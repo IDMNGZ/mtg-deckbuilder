@@ -35,10 +35,20 @@
         Filter cards
         <input type="text" id="browse-filter" placeholder="Search name or type…">
       </label>
+      <label class="field">
+        Sort by
+        <select id="browse-sort">
+          <option value="">Default order</option>
+          <option value="cmc-asc">Mana Cost: Low → High</option>
+          <option value="cmc-desc">Mana Cost: High → Low</option>
+        </select>
+      </label>
       <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch this edition from Scryfall">Refresh</button>
       <span id="browse-status" class="status-text"></span>
     </div>
     <div id="browse-type-filters" class="type-filter-row"></div>
+    <div id="browse-color-filters" class="type-filter-row"></div>
+    <div id="browse-rarity-filters" class="type-filter-row"></div>
     <div id="browse-grid" class="card-grid"></div>
   </section>
 
@@ -48,9 +58,20 @@
         Filter your collection
         <input type="text" id="collection-filter" placeholder="Search name, edition, or type…">
       </label>
+      <label class="field">
+        Sort by
+        <select id="collection-sort">
+          <option value="">Default order</option>
+          <option value="cmc-asc">Mana Cost: Low → High</option>
+          <option value="cmc-desc">Mana Cost: High → Low</option>
+        </select>
+      </label>
       <button id="btn-merge-toggle-collection" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
       <span id="collection-status" class="status-text"></span>
     </div>
+    <div id="collection-type-filters" class="type-filter-row"></div>
+    <div id="collection-color-filters" class="type-filter-row"></div>
+    <div id="collection-rarity-filters" class="type-filter-row"></div>
     <div id="collection-grid" class="card-grid"></div>
   </section>
 
@@ -95,6 +116,7 @@
 <script src="js/storage.js"></script>
 <script src="js/scryfall.js"></script>
 <script src="js/card-view.js"></script>
+<script src="js/card-filters.js"></script>
 <script src="js/ui-browse.js"></script>
 <script src="js/ui-collection.js"></script>
 <script src="js/ui-deckbuilder.js"></script>

@@ -3,6 +3,7 @@ var CollectionUI = (function () {
   "use strict";
 
   var els = {};
+  var state = { selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set(), sort: "" };
 
   function matchesFilter(card, needle) {
     if (!needle) return true;
@@ -27,7 +28,13 @@ var CollectionUI = (function () {
   function render() {
     var owned = Storage.getOwnedCards();
     var needle = els.filter.value.trim();
-    var visible = owned.filter(function (c) { return matchesFilter(c, needle); });
+    var visible = owned.filter(function (c) {
+      return matchesFilter(c, needle) &&
+        CardFilters.matchesTypes(c, state.selectedTypes) &&
+        CardFilters.matchesColors(c, state.selectedColors) &&
+        CardFilters.matchesRarity(c, state.selectedRarities);
+    });
+    visible = CardFilters.sortCards(visible, state.sort);
     var merged = Storage.getMergeByName();
 
     els.status.textContent = owned.length + " card" + (owned.length === 1 ? "" : "s") + " owned";
@@ -60,16 +67,25 @@ var CollectionUI = (function () {
 
   function init() {
     els.filter = document.getElementById("collection-filter");
+    els.sort = document.getElementById("collection-sort");
     els.grid = document.getElementById("collection-grid");
     els.status = document.getElementById("collection-status");
     els.mergeToggle = document.getElementById("btn-merge-toggle-collection");
+    els.typeFilters = document.getElementById("collection-type-filters");
+    els.colorFilters = document.getElementById("collection-color-filters");
+    els.rarityFilters = document.getElementById("collection-rarity-filters");
 
     els.filter.addEventListener("input", render);
+    els.sort.addEventListener("change", function () { state.sort = els.sort.value; render(); });
     els.mergeToggle.addEventListener("click", function () {
       Storage.setMergeByName(!Storage.getMergeByName());
       renderMergeToggle();
       render();
     });
+
+    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, render);
+    CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);
+    CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, render);
   }
 
   function activate() {

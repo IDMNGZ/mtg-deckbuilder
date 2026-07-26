@@ -27,6 +27,8 @@ var CardView = (function () {
   // Collapses a list of owned card snapshots into one entry per card *name*, so the
   // same real-world card owned across several printings/editions shows up once.
   // Each group keeps every printing (for "remove all") plus a representative for display.
+  // Preserves the input's order (first occurrence of each name) rather than re-sorting,
+  // so callers can sort the input first (e.g. by CMC) and have that order stick.
   function groupByName(cards) {
     var order = [];
     var groups = {};
@@ -37,7 +39,7 @@ var CardView = (function () {
       }
       groups[card.name].prints.push(card);
     });
-    return order.sort().map(function (name) { return groups[name]; });
+    return order.map(function (name) { return groups[name]; });
   }
 
   // opts: { onOwnToggle(card, owned) }, or { printCount, onRemoveAll(card) } for a merged

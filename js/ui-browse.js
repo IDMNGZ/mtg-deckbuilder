@@ -2,32 +2,14 @@
 var BrowseUI = (function () {
   "use strict";
 
-  var TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Land", "Planeswalker", "Battle"];
-
   var els = {};
-  var state = { cards: [], setCode: "", selectedTypes: new Set() };
+  var state = {
+    cards: [], setCode: "",
+    selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set(),
+    sort: "",
+  };
 
   function setStatus(text) { els.status.textContent = text; }
-
-  function renderTypeFilters() {
-    els.typeFilters.innerHTML = "";
-    TYPES.forEach(function (type) {
-      var btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "type-filter-btn" + (state.selectedTypes.has(type) ? " active" : "");
-      btn.textContent = type;
-      btn.addEventListener("click", function () {
-        if (state.selectedTypes.has(type)) {
-          state.selectedTypes.delete(type);
-        } else {
-          state.selectedTypes.add(type);
-        }
-        renderTypeFilters();
-        renderGrid();
-      });
-      els.typeFilters.appendChild(btn);
-    });
-  }
 
   function loadSets(forceRefresh) {
     els.select.innerHTML = '<option value="">Loading editions…</option>';
@@ -72,23 +54,19 @@ var BrowseUI = (function () {
       card.typeLine.toLowerCase().indexOf(needle) !== -1;
   }
 
-  // Contains-match against the full type line (not just mainType) so "Artifact" also
-  // surfaces Artifact Creatures, "Land" surfaces basic lands, etc. OR'd across selections.
-  function matchesTypes(card) {
-    if (state.selectedTypes.size === 0) return true;
-    var typeLine = card.typeLine;
-    var matched = false;
-    state.selectedTypes.forEach(function (type) {
-      if (new RegExp("\\b" + type + "\\b", "i").test(typeLine)) matched = true;
-    });
-    return matched;
-  }
-
   function renderGrid() {
     var needle = els.filter.value.trim();
+    var visible = state.cards.filter(function (c) {
+      return matchesFilter(c, needle) &&
+        CardFilters.matchesTypes(c, state.selectedTypes) &&
+        CardFilters.matchesColors(c, state.selectedColors) &&
+        CardFilters.matchesRarity(c, state.selectedRarities);
+    });
+    visible = CardFilters.sortCards(visible, state.sort);
+
     els.grid.innerHTML = "";
     var frag = document.createDocumentFragment();
-    state.cards.filter(function (c) { return matchesFilter(c, needle) && matchesTypes(c); }).forEach(function (card) {
+    visible.forEach(function (card) {
       frag.appendChild(CardView.renderTile(card, {
         onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
       }));
@@ -99,21 +77,28 @@ var BrowseUI = (function () {
   function init() {
     els.select = document.getElementById("set-select");
     els.filter = document.getElementById("browse-filter");
+    els.sort = document.getElementById("browse-sort");
     els.grid = document.getElementById("browse-grid");
     els.status = document.getElementById("browse-status");
     els.refreshBtn = document.getElementById("btn-refresh-set");
     els.typeFilters = document.getElementById("browse-type-filters");
+    els.colorFilters = document.getElementById("browse-color-filters");
+    els.rarityFilters = document.getElementById("browse-rarity-filters");
 
     els.select.addEventListener("change", function () {
       Storage.setLastBrowseSet(els.select.value);
       loadCardsForSet(els.select.value, false);
     });
     els.filter.addEventListener("input", renderGrid);
+    els.sort.addEventListener("change", function () { state.sort = els.sort.value; renderGrid(); });
     els.refreshBtn.addEventListener("click", function () {
       if (state.setCode) loadCardsForSet(state.setCode, true);
     });
 
-    renderTypeFilters();
+    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, renderGrid);
+    CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderGrid);
+    CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, renderGrid);
+
     loadSets(false).then(function (sets) {
       var lastCode = Storage.getLastBrowseSet();
       var stillExists = lastCode && sets.some(function (s) { return s.code === lastCode; });
