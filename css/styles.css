@@ -97,6 +97,25 @@ select, input[type="text"], .deck-name-input {
 
 .status-text { font-size: 12px; color: var(--text-dim); }
 
+.type-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.type-filter-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.type-filter-btn:hover { border-color: var(--accent); color: var(--text); }
+.type-filter-btn.active { background: var(--accent); color: #101116; border-color: var(--accent); font-weight: 600; }
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));

@@ -12,6 +12,18 @@ var CardView = (function () {
     return "rarity-" + (rarity || "common").toLowerCase();
   }
 
+  // The card's principal type (Creature, Instant, Land, ...), ignoring supertypes
+  // (Legendary, Basic, Snow, ...) and subtypes after the em dash.
+  function mainType(card) {
+    var frontHalf = card.typeLine.split("—")[0].trim();
+    var words = frontHalf.split(/\s+/).filter(Boolean);
+    return words.length ? words[words.length - 1] : "Other";
+  }
+
+  function isLand(card) {
+    return card.typeLine.indexOf("Land") !== -1;
+  }
+
   // opts: { onOwnToggle(card, owned) } and/or { addLabel, onAdd(card) }
   function renderTile(card, opts) {
     opts = opts || {};
@@ -109,5 +121,7 @@ var CardView = (function () {
     closeModal: closeModal,
     initModal: initModal,
     escapeHtml: escapeHtml,
+    mainType: mainType,
+    isLand: isLand,
   };
 })();

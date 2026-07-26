@@ -13,15 +13,8 @@ var DeckBuilderUI = (function () {
     return { id: null, name: "", cards: [] }; // cards: [{ card, qty }]
   }
 
-  function isLand(card) {
-    return card.typeLine.indexOf("Land") !== -1;
-  }
-
-  function mainType(card) {
-    var frontHalf = card.typeLine.split("—")[0].trim();
-    var words = frontHalf.split(/\s+/).filter(Boolean);
-    return words.length ? words[words.length - 1] : "Other";
-  }
+  var isLand = CardView.isLand;
+  var mainType = CardView.mainType;
 
   function findEntry(cardId) {
     for (var i = 0; i < deck.cards.length; i++) {

@@ -2,10 +2,32 @@
 var BrowseUI = (function () {
   "use strict";
 
+  var TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Land", "Planeswalker", "Battle"];
+
   var els = {};
-  var state = { cards: [], setCode: "" };
+  var state = { cards: [], setCode: "", selectedTypes: new Set() };
 
   function setStatus(text) { els.status.textContent = text; }
+
+  function renderTypeFilters() {
+    els.typeFilters.innerHTML = "";
+    TYPES.forEach(function (type) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "type-filter-btn" + (state.selectedTypes.has(type) ? " active" : "");
+      btn.textContent = type;
+      btn.addEventListener("click", function () {
+        if (state.selectedTypes.has(type)) {
+          state.selectedTypes.delete(type);
+        } else {
+          state.selectedTypes.add(type);
+        }
+        renderTypeFilters();
+        renderGrid();
+      });
+      els.typeFilters.appendChild(btn);
+    });
+  }
 
   function loadSets(forceRefresh) {
     els.select.innerHTML = '<option value="">Loading editions…</option>';
@@ -48,11 +70,23 @@ var BrowseUI = (function () {
       card.typeLine.toLowerCase().indexOf(needle) !== -1;
   }
 
+  // Contains-match against the full type line (not just mainType) so "Artifact" also
+  // surfaces Artifact Creatures, "Land" surfaces basic lands, etc. OR'd across selections.
+  function matchesTypes(card) {
+    if (state.selectedTypes.size === 0) return true;
+    var typeLine = card.typeLine;
+    var matched = false;
+    state.selectedTypes.forEach(function (type) {
+      if (new RegExp("\\b" + type + "\\b", "i").test(typeLine)) matched = true;
+    });
+    return matched;
+  }
+
   function renderGrid() {
     var needle = els.filter.value.trim();
     els.grid.innerHTML = "";
     var frag = document.createDocumentFragment();
-    state.cards.filter(function (c) { return matchesFilter(c, needle); }).forEach(function (card) {
+    state.cards.filter(function (c) { return matchesFilter(c, needle) && matchesTypes(c); }).forEach(function (card) {
       frag.appendChild(CardView.renderTile(card, {
         onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
       }));
@@ -66,6 +100,7 @@ var BrowseUI = (function () {
     els.grid = document.getElementById("browse-grid");
     els.status = document.getElementById("browse-status");
     els.refreshBtn = document.getElementById("btn-refresh-set");
+    els.typeFilters = document.getElementById("browse-type-filters");
 
     els.select.addEventListener("change", function () { loadCardsForSet(els.select.value, false); });
     els.filter.addEventListener("input", renderGrid);
@@ -73,6 +108,7 @@ var BrowseUI = (function () {
       if (state.setCode) loadCardsForSet(state.setCode, true);
     });
 
+    renderTypeFilters();
     loadSets(false);
   }
 
