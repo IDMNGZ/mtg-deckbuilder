@@ -108,14 +108,18 @@ var Storage = (function () {
     return "deck_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
   }
 
-  // ---- Last-viewed edition (so the Browse tab reopens where you left off) ----
+  // ---- Selected edition(s) in Browse (so it reopens with the same selection) ----
+  // Stored as an array of set codes so multiple editions can be viewed at once;
+  // transparently migrates the older single-string format from before that existed.
 
-  function getLastBrowseSet() {
-    return readJSON(KEY_LAST_BROWSE_SET, "");
+  function getSelectedBrowseSets() {
+    var val = readJSON(KEY_LAST_BROWSE_SET, []);
+    if (typeof val === "string") return val ? [val] : [];
+    return Array.isArray(val) ? val : [];
   }
 
-  function setLastBrowseSet(setCode) {
-    writeJSON(KEY_LAST_BROWSE_SET, setCode || "");
+  function setSelectedBrowseSets(setCodes) {
+    writeJSON(KEY_LAST_BROWSE_SET, setCodes || []);
   }
 
   // ---- "Merge duplicate printings by name" toggle (Collection + Deck Builder pool) ----
@@ -216,8 +220,8 @@ var Storage = (function () {
     setSetsCache: setSetsCache,
     getCardsCache: getCardsCache,
     setCardsCache: setCardsCache,
-    getLastBrowseSet: getLastBrowseSet,
-    setLastBrowseSet: setLastBrowseSet,
+    getSelectedBrowseSets: getSelectedBrowseSets,
+    setSelectedBrowseSets: setSelectedBrowseSets,
     getMergeByName: getMergeByName,
     setMergeByName: setMergeByName,
     exportData: exportData,

@@ -27,10 +27,20 @@
 
   <section id="tab-browse" class="tab-panel">
     <div class="browse-controls">
-      <label class="field">
-        Edition
-        <select id="set-select"><option value="">Loading editions…</option></select>
-      </label>
+      <div class="field edition-picker">
+        Editions
+        <input type="text" id="edition-search" placeholder="Search editions (e.g. 'Lord of the Rings')…" autocomplete="off">
+        <div id="edition-checklist" class="edition-checklist hidden">
+          <div class="edition-checklist-actions">
+            <span id="edition-match-count"></span>
+            <span>
+              <button type="button" id="btn-select-all-matching" class="btn btn-ghost">Select all matches</button>
+              <button type="button" id="btn-clear-editions" class="btn btn-ghost">Clear</button>
+            </span>
+          </div>
+          <div id="edition-checklist-rows"></div>
+        </div>
+      </div>
       <label class="field field-grow">
         Filter cards
         <input type="text" id="browse-filter" placeholder="Search name or type…">
@@ -43,9 +53,10 @@
           <option value="cmc-desc">Mana Cost: High → Low</option>
         </select>
       </label>
-      <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch this edition from Scryfall">Refresh</button>
+      <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch the selected edition(s) from Scryfall">Refresh</button>
       <span id="browse-status" class="status-text"></span>
     </div>
+    <div id="edition-chips" class="edition-chips"></div>
     <div id="browse-type-filters" class="type-filter-row"></div>
     <div id="browse-color-filters" class="type-filter-row"></div>
     <div id="browse-rarity-filters" class="type-filter-row"></div>

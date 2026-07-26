@@ -75,6 +75,13 @@ var CardView = (function () {
       '<span class="' + rarityClass(card.rarity) + '">' + escapeHtml(card.rarity) + '</span>';
     tile.appendChild(metaRow);
 
+    // Shown on every tile (not just when merging) since Browse can now combine cards
+    // from several editions at once, where it's otherwise ambiguous which is which.
+    var setLine = document.createElement("div");
+    setLine.className = "card-set-line";
+    setLine.textContent = card.setName || card.set;
+    tile.appendChild(setLine);
+
     if (opts.onOwnToggle) {
       var ownRow = document.createElement("label");
       ownRow.className = "card-own-row";
