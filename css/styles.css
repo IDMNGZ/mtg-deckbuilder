@@ -418,7 +418,37 @@ select, input[type="text"], .deck-name-input {
   font-size: 24px;
   cursor: pointer;
 }
+.modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(20, 21, 26, 0.75);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+}
+.modal-nav:hover { border-color: var(--accent); color: var(--accent); }
+.modal-nav.hidden { display: none; }
+.modal-nav-prev { left: 8px; }
+.modal-nav-next { right: 8px; }
 #modal-body img { width: 100%; border-radius: 10px; display: block; }
+.modal-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.modal-own-toggle { display: flex; align-items: center; gap: 6px; color: var(--text); white-space: nowrap; }
+.modal-own-toggle input { width: 16px; height: 16px; }
 .modal-body-text { white-space: pre-wrap; font-size: 14px; line-height: 1.5; }
 .modal-body-text h2 { margin-top: 0; font-size: 18px; }
 

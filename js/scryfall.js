@@ -7,6 +7,7 @@ var Scryfall = (function () {
   var API_ROOT = "https://api.scryfall.com";
   var SETS_TTL_MS = 24 * 60 * 60 * 1000; // 24h
   var CARDS_TTL_MS = 24 * 60 * 60 * 1000;
+  var PRINTS_TTL_MS = 24 * 60 * 60 * 1000;
   var REQUEST_GAP_MS = 100; // be polite between paginated requests
 
   function sleep(ms) {
@@ -61,7 +62,23 @@ var Scryfall = (function () {
       colorIdentity: card.color_identity || [],
       image: image,
       scryfallUri: card.scryfall_uri,
+      printsSearchUri: card.prints_search_uri,
     };
+  }
+
+  // Shared pagination loop: walks has_more/next_page, normalizing every card along the way.
+  function fetchAllPages(firstUrl) {
+    var all = [];
+    function page(url) {
+      return request(url).then(function (res) {
+        (res.data || []).forEach(function (c) { all.push(normalizeCard(c)); });
+        if (res.has_more && res.next_page) {
+          return sleep(REQUEST_GAP_MS).then(function () { return page(res.next_page); });
+        }
+        return all;
+      });
+    }
+    return page(firstUrl);
   }
 
   function fetchSets(forceRefresh) {
@@ -95,23 +112,12 @@ var Scryfall = (function () {
       return Promise.resolve(cached.data);
     }
 
-    var all = [];
     // unique=cards (not "prints") collapses same-card reprints within this one set - e.g.
     // Commander precon products that reprint the same staple across multiple decks, or
     // showcase/borderless/serialized treatments - down to a single row per card.
     var firstUrl = API_ROOT + "/cards/search?order=set&unique=cards&q=" + encodeURIComponent("set:" + setCode);
 
-    function page(url) {
-      return request(url).then(function (res) {
-        (res.data || []).forEach(function (c) { all.push(normalizeCard(c)); });
-        if (res.has_more && res.next_page) {
-          return sleep(REQUEST_GAP_MS).then(function () { return page(res.next_page); });
-        }
-        return all;
-      });
-    }
-
-    return page(firstUrl).then(function (cards) {
+    return fetchAllPages(firstUrl).then(function (cards) {
       Storage.setCardsCache(setCode, cards);
       return cards;
     }).catch(function (err) {
@@ -124,8 +130,25 @@ var Scryfall = (function () {
     });
   }
 
+  // Every printing of one specific card across all editions (for the modal's version
+  // cycler), keyed by name in the cache since prints_search_uri is deterministic per card.
+  function fetchPrintsByName(card, forceRefresh) {
+    var cached = Storage.getPrintsCache(card.name);
+    if (!forceRefresh && cached && (Date.now() - cached.timestamp) < PRINTS_TTL_MS) {
+      return Promise.resolve(cached.data);
+    }
+    if (!card.printsSearchUri) {
+      return Promise.resolve([card]); // older cached card data predates this field - degrade gracefully
+    }
+    return fetchAllPages(card.printsSearchUri).then(function (prints) {
+      Storage.setPrintsCache(card.name, prints);
+      return prints;
+    });
+  }
+
   return {
     fetchSets: fetchSets,
     fetchCardsForSet: fetchCardsForSet,
+    fetchPrintsByName: fetchPrintsByName,
   };
 })();

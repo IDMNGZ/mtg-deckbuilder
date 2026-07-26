@@ -11,6 +11,7 @@ var Storage = (function () {
   // (dedupes reprints within a set) - the prefix change forces a fresh fetch instead of
   // serving stale, duplicate-laden cached data for sets browsed before the change.
   var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards2:";
+  var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints:";
   var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
   var KEY_MERGE_BY_NAME = NS + "mergeByName";
 
@@ -150,6 +151,14 @@ var Storage = (function () {
     writeJSON(KEY_CARDS_CACHE_PREFIX + setCode, { timestamp: Date.now(), data: data });
   }
 
+  function getPrintsCache(cardName) {
+    return readJSON(KEY_PRINTS_CACHE_PREFIX + cardName, null); // { timestamp, data }
+  }
+
+  function setPrintsCache(cardName, data) {
+    writeJSON(KEY_PRINTS_CACHE_PREFIX + cardName, { timestamp: Date.now(), data: data });
+  }
+
   // ---- Export / Import (owned cards + decks only, not the bulky card cache) ----
 
   function exportData() {
@@ -220,6 +229,8 @@ var Storage = (function () {
     setSetsCache: setSetsCache,
     getCardsCache: getCardsCache,
     setCardsCache: setCardsCache,
+    getPrintsCache: getPrintsCache,
+    setPrintsCache: setPrintsCache,
     getSelectedBrowseSets: getSelectedBrowseSets,
     setSelectedBrowseSets: setSelectedBrowseSets,
     getMergeByName: getMergeByName,

@@ -227,6 +227,8 @@ var DeckBuilderUI = (function () {
       renderMergeToggle();
       renderPool();
     });
+    // Keep the pool in sync when ownership is toggled from the card modal's version cycler.
+    document.addEventListener("mtg:ownership-changed", renderPool);
 
     renderDeck();
   }

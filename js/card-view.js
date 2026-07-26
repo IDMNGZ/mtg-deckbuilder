@@ -117,10 +117,14 @@ var CardView = (function () {
     return tile;
   }
 
+  // Modal cycling state: every printing of the currently-open card's name (once fetched),
+  // plus which one is showing. Ownership can be toggled per-printing right from the modal.
+  var modalState = { prints: [], index: 0 };
+
   // The enlarged image is legible enough on its own (name, cost, type, rules text,
   // rarity/set symbols are all printed on the card) - no need to duplicate it as text.
-  function openModal(card) {
-    var modal = document.getElementById("card-modal");
+  function renderModalPrint() {
+    var card = modalState.prints[modalState.index];
     var body = document.getElementById("modal-body");
     body.innerHTML = "";
 
@@ -140,7 +144,57 @@ var CardView = (function () {
       body.appendChild(fallback);
     }
 
-    modal.classList.remove("hidden");
+    var caption = document.createElement("div");
+    caption.className = "modal-caption";
+
+    var info = document.createElement("span");
+    info.textContent = card.setName + (modalState.prints.length > 1 ? " (" + (modalState.index + 1) + " of " + modalState.prints.length + ")" : "");
+    caption.appendChild(info);
+
+    var ownToggle = document.createElement("label");
+    ownToggle.className = "modal-own-toggle";
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = Storage.isOwned(card.id);
+    cb.addEventListener("change", function () {
+      Storage.setOwned(card, cb.checked);
+      document.dispatchEvent(new CustomEvent("mtg:ownership-changed"));
+    });
+    ownToggle.appendChild(cb);
+    ownToggle.appendChild(document.createTextNode("I own this"));
+    caption.appendChild(ownToggle);
+
+    body.appendChild(caption);
+
+    var multi = modalState.prints.length > 1;
+    document.getElementById("modal-prev").classList.toggle("hidden", !multi);
+    document.getElementById("modal-next").classList.toggle("hidden", !multi);
+  }
+
+  function openModal(card) {
+    modalState.prints = [card];
+    modalState.index = 0;
+    document.getElementById("card-modal").classList.remove("hidden");
+    renderModalPrint();
+
+    if (window.Scryfall) {
+      Scryfall.fetchPrintsByName(card).then(function (prints) {
+        if (document.getElementById("card-modal").classList.contains("hidden")) return; // closed while fetching
+        if (!prints || prints.length <= 1) return;
+        var matchIdx = prints.findIndex(function (p) { return p.id === card.id; });
+        modalState.prints = prints;
+        modalState.index = matchIdx >= 0 ? matchIdx : 0;
+        renderModalPrint();
+      }).catch(function (err) {
+        console.error("Failed to load other printings:", err);
+      });
+    }
+  }
+
+  function stepModal(delta) {
+    if (modalState.prints.length <= 1) return;
+    modalState.index = (modalState.index + delta + modalState.prints.length) % modalState.prints.length;
+    renderModalPrint();
   }
 
   function closeModal() {
@@ -149,9 +203,14 @@ var CardView = (function () {
 
   function initModal() {
     document.getElementById("modal-close").addEventListener("click", closeModal);
+    document.getElementById("modal-prev").addEventListener("click", function () { stepModal(-1); });
+    document.getElementById("modal-next").addEventListener("click", function () { stepModal(1); });
     document.querySelector("#card-modal .modal-backdrop").addEventListener("click", closeModal);
     document.addEventListener("keydown", function (e) {
+      if (document.getElementById("card-modal").classList.contains("hidden")) return;
       if (e.key === "Escape") closeModal();
+      else if (e.key === "ArrowLeft") stepModal(-1);
+      else if (e.key === "ArrowRight") stepModal(1);
     });
   }
 

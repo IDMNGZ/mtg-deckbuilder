@@ -86,6 +86,9 @@ var CollectionUI = (function () {
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, render);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, render);
+
+    // Keep this list in sync when ownership is toggled from the card modal's version cycler.
+    document.addEventListener("mtg:ownership-changed", render);
   }
 
   function activate() {

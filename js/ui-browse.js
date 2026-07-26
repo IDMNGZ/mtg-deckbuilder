@@ -231,6 +231,8 @@ var BrowseUI = (function () {
     els.refreshBtn.addEventListener("click", function () {
       Promise.all(setBySelectionOrder().map(function (code) { return ensureSetLoaded(code, true); })).then(renderGrid);
     });
+    // Keep checkboxes in sync when ownership is toggled from the card modal's version cycler.
+    document.addEventListener("mtg:ownership-changed", renderGrid);
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, renderGrid);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderGrid);
