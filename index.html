@@ -26,75 +26,81 @@
 <main id="app">
 
   <section id="tab-browse" class="tab-panel">
-    <div class="browse-controls">
-      <div class="field edition-picker">
-        Editions
-        <input type="text" id="edition-search" placeholder="Search editions (e.g. 'Lord of the Rings')…" autocomplete="off">
-        <div id="edition-checklist" class="edition-checklist hidden">
-          <div class="edition-checklist-actions">
-            <span id="edition-match-count"></span>
-            <span>
-              <button type="button" id="btn-select-all-matching" class="btn btn-ghost">Select all matches</button>
-              <button type="button" id="btn-clear-editions" class="btn btn-ghost">Clear</button>
-            </span>
+    <div class="sticky-controls">
+      <div class="browse-controls">
+        <div class="field edition-picker">
+          Editions
+          <input type="text" id="edition-search" placeholder="Search editions (e.g. 'Lord of the Rings')…" autocomplete="off">
+          <div id="edition-checklist" class="edition-checklist hidden">
+            <div class="edition-checklist-actions">
+              <span id="edition-match-count"></span>
+              <span>
+                <button type="button" id="btn-select-all-matching" class="btn btn-ghost">Select all matches</button>
+                <button type="button" id="btn-clear-editions" class="btn btn-ghost">Clear</button>
+              </span>
+            </div>
+            <div id="edition-checklist-rows"></div>
           </div>
-          <div id="edition-checklist-rows"></div>
         </div>
+        <label class="field field-grow">
+          Filter cards
+          <input type="text" id="browse-filter" placeholder="Search name or type…">
+        </label>
+        <label class="field">
+          Sort by
+          <select id="browse-sort">
+            <option value="">Default order</option>
+            <option value="cmc-asc">Mana Cost: Low → High</option>
+            <option value="cmc-desc">Mana Cost: High → Low</option>
+          </select>
+        </label>
+        <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch the selected edition(s) from Scryfall">Refresh</button>
+        <span id="browse-status" class="status-text"></span>
       </div>
-      <label class="field field-grow">
-        Filter cards
-        <input type="text" id="browse-filter" placeholder="Search name or type…">
-      </label>
-      <label class="field">
-        Sort by
-        <select id="browse-sort">
-          <option value="">Default order</option>
-          <option value="cmc-asc">Mana Cost: Low → High</option>
-          <option value="cmc-desc">Mana Cost: High → Low</option>
-        </select>
-      </label>
-      <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch the selected edition(s) from Scryfall">Refresh</button>
-      <span id="browse-status" class="status-text"></span>
+      <div id="edition-chips" class="edition-chips"></div>
+      <div id="browse-type-filters" class="type-filter-row"></div>
+      <div id="browse-color-filters" class="type-filter-row"></div>
+      <div id="browse-rarity-filters" class="type-filter-row"></div>
     </div>
-    <div id="edition-chips" class="edition-chips"></div>
-    <div id="browse-type-filters" class="type-filter-row"></div>
-    <div id="browse-color-filters" class="type-filter-row"></div>
-    <div id="browse-rarity-filters" class="type-filter-row"></div>
     <div id="browse-grid" class="card-grid"></div>
   </section>
 
   <section id="tab-collection" class="tab-panel">
-    <div class="browse-controls">
-      <label class="field field-grow">
-        Filter your collection
-        <input type="text" id="collection-filter" placeholder="Search name, edition, or type…">
-      </label>
-      <label class="field">
-        Sort by
-        <select id="collection-sort">
-          <option value="">Default order</option>
-          <option value="cmc-asc">Mana Cost: Low → High</option>
-          <option value="cmc-desc">Mana Cost: High → Low</option>
-        </select>
-      </label>
-      <button id="btn-merge-toggle-collection" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
-      <span id="collection-status" class="status-text"></span>
+    <div class="sticky-controls">
+      <div class="browse-controls">
+        <label class="field field-grow">
+          Filter your collection
+          <input type="text" id="collection-filter" placeholder="Search name, edition, or type…">
+        </label>
+        <label class="field">
+          Sort by
+          <select id="collection-sort">
+            <option value="">Default order</option>
+            <option value="cmc-asc">Mana Cost: Low → High</option>
+            <option value="cmc-desc">Mana Cost: High → Low</option>
+          </select>
+        </label>
+        <button id="btn-merge-toggle-collection" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
+        <span id="collection-status" class="status-text"></span>
+      </div>
+      <div id="collection-type-filters" class="type-filter-row"></div>
+      <div id="collection-color-filters" class="type-filter-row"></div>
+      <div id="collection-rarity-filters" class="type-filter-row"></div>
     </div>
-    <div id="collection-type-filters" class="type-filter-row"></div>
-    <div id="collection-color-filters" class="type-filter-row"></div>
-    <div id="collection-rarity-filters" class="type-filter-row"></div>
     <div id="collection-grid" class="card-grid"></div>
   </section>
 
   <section id="tab-deckbuilder" class="tab-panel">
     <div class="deckbuilder-layout">
       <div class="deckbuilder-pool">
-        <div class="browse-controls">
-          <label class="field field-grow">
-            Add from your collection
-            <input type="text" id="deck-pool-filter" placeholder="Search owned cards…">
-          </label>
-          <button id="btn-merge-toggle-deckbuilder" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
+        <div class="sticky-controls">
+          <div class="browse-controls">
+            <label class="field field-grow">
+              Add from your collection
+              <input type="text" id="deck-pool-filter" placeholder="Search owned cards…">
+            </label>
+            <button id="btn-merge-toggle-deckbuilder" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
+          </div>
         </div>
         <div id="deck-pool-grid" class="card-grid card-grid-compact"></div>
       </div>
