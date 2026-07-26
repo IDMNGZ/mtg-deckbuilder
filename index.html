@@ -46,13 +46,6 @@
           </div>
         </div>
         <label class="field field-grow">
-          Search any card by name (all editions)
-          <div class="input-clear-wrap">
-            <input type="text" id="global-card-search" placeholder="Don't know the edition? Search by name…" autocomplete="off">
-            <button type="button" id="global-card-search-clear" class="input-clear-btn" title="Clear">&times;</button>
-          </div>
-        </label>
-        <label class="field field-grow">
           Filter cards
           <div class="input-clear-wrap">
             <input type="text" id="browse-filter" placeholder="Search name or type…">
@@ -69,6 +62,13 @@
         </label>
         <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch the selected edition(s) from Scryfall">Refresh</button>
         <span id="browse-status" class="status-text"></span>
+        <label class="field field-grow global-search-field">
+          Search any card by name (all editions)
+          <div class="input-clear-wrap">
+            <input type="text" id="global-card-search" placeholder="Don't know the edition? Search by name…" autocomplete="off">
+            <button type="button" id="global-card-search-clear" class="input-clear-btn" title="Clear">&times;</button>
+          </div>
+        </label>
       </div>
       <div id="edition-chips" class="edition-chips"></div>
       <hr class="controls-divider">
