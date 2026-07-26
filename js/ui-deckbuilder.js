@@ -53,6 +53,10 @@ var DeckBuilderUI = (function () {
     return card.name.toLowerCase().indexOf(needle) !== -1 || card.typeLine.toLowerCase().indexOf(needle) !== -1;
   }
 
+  function renderMergeToggle() {
+    els.mergeToggle.classList.toggle("active", Storage.getMergeByName());
+  }
+
   function renderPool() {
     var owned = Storage.getOwnedCards();
     var needle = els.poolFilter.value.trim();
@@ -61,13 +65,26 @@ var DeckBuilderUI = (function () {
       els.poolGrid.innerHTML = '<p class="empty-hint">No owned cards yet — check some off in the Browse tab first.</p>';
       return;
     }
+    var visible = owned.filter(function (c) { return matchesFilter(c, needle); });
     var frag = document.createDocumentFragment();
-    owned.filter(function (c) { return matchesFilter(c, needle); }).forEach(function (card) {
-      frag.appendChild(CardView.renderTile(card, {
-        onAdd: function (card) { addCard(card); },
-        addLabel: "Add to deck",
-      }));
-    });
+
+    if (Storage.getMergeByName()) {
+      // Which specific printing gets added doesn't matter for deck-building - name, cost,
+      // colors, and type are the same across reprints, so any one representative works.
+      CardView.groupByName(visible).forEach(function (group) {
+        frag.appendChild(CardView.renderTile(group.representative, {
+          onAdd: function (card) { addCard(card); },
+          addLabel: "Add to deck",
+        }));
+      });
+    } else {
+      visible.forEach(function (card) {
+        frag.appendChild(CardView.renderTile(card, {
+          onAdd: function (card) { addCard(card); },
+          addLabel: "Add to deck",
+        }));
+      });
+    }
     els.poolGrid.appendChild(frag);
   }
 
@@ -200,13 +217,24 @@ var DeckBuilderUI = (function () {
     els.list = document.getElementById("deck-list");
     els.newBtn = document.getElementById("btn-new-deck");
     els.saveBtn = document.getElementById("btn-save-deck");
+    els.mergeToggle = document.getElementById("btn-merge-toggle-deckbuilder");
 
     els.poolFilter.addEventListener("input", renderPool);
     els.newBtn.addEventListener("click", newDeck);
     els.saveBtn.addEventListener("click", saveDeck);
+    els.mergeToggle.addEventListener("click", function () {
+      Storage.setMergeByName(!Storage.getMergeByName());
+      renderMergeToggle();
+      renderPool();
+    });
 
     renderDeck();
   }
 
-  return { init: init, activate: renderPool, loadDeck: loadDeck };
+  function activate() {
+    renderMergeToggle();
+    renderPool();
+  }
+
+  return { init: init, activate: activate, loadDeck: loadDeck };
 })();

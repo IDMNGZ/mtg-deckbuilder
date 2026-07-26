@@ -190,11 +190,27 @@ select, input[type="text"], .deck-name-input {
 
 .card-own-row input { width: 16px; height: 16px; }
 
+.card-own-row-merged { justify-content: space-between; color: var(--text-dim); }
+.remove-all-btn { font-size: 11px; padding: 3px 8px; color: var(--danger); border-color: var(--danger); }
+
 .card-add-btn {
   width: 100%;
   padding: 5px;
   font-size: 12px;
 }
+
+.toggle-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.toggle-btn:hover { border-color: var(--accent); color: var(--text); }
+.toggle-btn.active { background: var(--accent); color: #101116; border-color: var(--accent); font-weight: 600; }
 
 /* Deck Builder */
 

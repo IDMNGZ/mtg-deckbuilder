@@ -24,7 +24,24 @@ var CardView = (function () {
     return card.typeLine.indexOf("Land") !== -1;
   }
 
-  // opts: { onOwnToggle(card, owned) } and/or { addLabel, onAdd(card) }
+  // Collapses a list of owned card snapshots into one entry per card *name*, so the
+  // same real-world card owned across several printings/editions shows up once.
+  // Each group keeps every printing (for "remove all") plus a representative for display.
+  function groupByName(cards) {
+    var order = [];
+    var groups = {};
+    cards.forEach(function (card) {
+      if (!groups[card.name]) {
+        groups[card.name] = { name: card.name, prints: [], representative: card };
+        order.push(card.name);
+      }
+      groups[card.name].prints.push(card);
+    });
+    return order.sort().map(function (name) { return groups[name]; });
+  }
+
+  // opts: { onOwnToggle(card, owned) }, or { printCount, onRemoveAll(card) } for a merged
+  // group tile, and/or { addLabel, onAdd(card) }
   function renderTile(card, opts) {
     opts = opts || {};
     var tile = document.createElement("div");
@@ -66,6 +83,18 @@ var CardView = (function () {
       ownRow.appendChild(cb);
       ownRow.appendChild(document.createTextNode("I own this"));
       tile.appendChild(ownRow);
+    } else if (opts.onRemoveAll) {
+      var mergedRow = document.createElement("div");
+      mergedRow.className = "card-own-row card-own-row-merged";
+      var countLabel = document.createElement("span");
+      countLabel.textContent = opts.printCount > 1 ? "Owned ×" + opts.printCount + " editions" : "Owned";
+      var removeBtn = document.createElement("button");
+      removeBtn.className = "btn btn-ghost remove-all-btn";
+      removeBtn.textContent = "Remove all";
+      removeBtn.addEventListener("click", function () { opts.onRemoveAll(card); });
+      mergedRow.appendChild(countLabel);
+      mergedRow.appendChild(removeBtn);
+      tile.appendChild(mergedRow);
     }
 
     if (opts.onAdd) {
@@ -123,5 +152,6 @@ var CardView = (function () {
     escapeHtml: escapeHtml,
     mainType: mainType,
     isLand: isLand,
+    groupByName: groupByName,
   };
 })();

@@ -12,6 +12,7 @@ var Storage = (function () {
   // serving stale, duplicate-laden cached data for sets browsed before the change.
   var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards2:";
   var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
+  var KEY_MERGE_BY_NAME = NS + "mergeByName";
 
   function readJSON(key, fallback) {
     try {
@@ -117,6 +118,16 @@ var Storage = (function () {
     writeJSON(KEY_LAST_BROWSE_SET, setCode || "");
   }
 
+  // ---- "Merge duplicate printings by name" toggle (Collection + Deck Builder pool) ----
+
+  function getMergeByName() {
+    return readJSON(KEY_MERGE_BY_NAME, false);
+  }
+
+  function setMergeByName(value) {
+    writeJSON(KEY_MERGE_BY_NAME, !!value);
+  }
+
   // ---- Scryfall response caches (separate from user data, safe to clear) ----
 
   function getSetsCache() {
@@ -207,6 +218,8 @@ var Storage = (function () {
     setCardsCache: setCardsCache,
     getLastBrowseSet: getLastBrowseSet,
     setLastBrowseSet: setLastBrowseSet,
+    getMergeByName: getMergeByName,
+    setMergeByName: setMergeByName,
     exportData: exportData,
     importData: importData,
   };
