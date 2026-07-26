@@ -11,7 +11,10 @@ var Storage = (function () {
   // (dedupes reprints within a set) - the prefix change forces a fresh fetch instead of
   // serving stale, duplicate-laden cached data for sets browsed before the change.
   var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards2:";
-  var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints:";
+  // Bumped to "prints2" when the lookup switched from the card's own (sometimes-missing)
+  // prints_search_uri field to a name-based query, so previously-cached single-print
+  // "degraded" results don't linger for their TTL - they force a fresh, correct fetch.
+  var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints2:";
   var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
   var KEY_MERGE_BY_NAME = NS + "mergeByName";
 

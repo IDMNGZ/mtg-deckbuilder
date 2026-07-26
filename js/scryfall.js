@@ -62,7 +62,6 @@ var Scryfall = (function () {
       colorIdentity: card.color_identity || [],
       image: image,
       scryfallUri: card.scryfall_uri,
-      printsSearchUri: card.prints_search_uri,
     };
   }
 
@@ -131,18 +130,24 @@ var Scryfall = (function () {
   }
 
   // Every printing of one specific card across all editions (for the modal's version
-  // cycler), keyed by name in the cache since prints_search_uri is deterministic per card.
+  // cycler), keyed by name in the cache. Queries by exact name rather than relying on
+  // the card's own prints_search_uri field, since cards cached/owned before that field
+  // existed wouldn't have it - name-based lookup works for any card, old data or new.
   function fetchPrintsByName(card, forceRefresh) {
     var cached = Storage.getPrintsCache(card.name);
     if (!forceRefresh && cached && (Date.now() - cached.timestamp) < PRINTS_TTL_MS) {
       return Promise.resolve(cached.data);
     }
-    if (!card.printsSearchUri) {
-      return Promise.resolve([card]); // older cached card data predates this field - degrade gracefully
-    }
-    return fetchAllPages(card.printsSearchUri).then(function (prints) {
+    var url = API_ROOT + "/cards/search?order=released&unique=prints&q=" + encodeURIComponent('!"' + card.name + '"');
+    return fetchAllPages(url).then(function (prints) {
       Storage.setPrintsCache(card.name, prints);
       return prints;
+    }).catch(function (err) {
+      if (/no cards found/i.test(err.message)) {
+        Storage.setPrintsCache(card.name, [card]);
+        return [card];
+      }
+      throw err;
     });
   }
 
