@@ -8,6 +8,7 @@ var Storage = (function () {
   var KEY_DECKS = NS + "decks";
   var KEY_SETS_CACHE = NS + "cache:sets";
   var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards:";
+  var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
 
   function readJSON(key, fallback) {
     try {
@@ -103,6 +104,16 @@ var Storage = (function () {
     return "deck_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
   }
 
+  // ---- Last-viewed edition (so the Browse tab reopens where you left off) ----
+
+  function getLastBrowseSet() {
+    return readJSON(KEY_LAST_BROWSE_SET, "");
+  }
+
+  function setLastBrowseSet(setCode) {
+    writeJSON(KEY_LAST_BROWSE_SET, setCode || "");
+  }
+
   // ---- Scryfall response caches (separate from user data, safe to clear) ----
 
   function getSetsCache() {
@@ -191,6 +202,8 @@ var Storage = (function () {
     setSetsCache: setSetsCache,
     getCardsCache: getCardsCache,
     setCardsCache: setCardsCache,
+    getLastBrowseSet: getLastBrowseSet,
+    setLastBrowseSet: setLastBrowseSet,
     exportData: exportData,
     importData: importData,
   };

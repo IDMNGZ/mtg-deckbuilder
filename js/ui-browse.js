@@ -37,9 +37,11 @@ var BrowseUI = (function () {
         var tag = s.digital ? " [digital]" : "";
         return '<option value="' + s.code + '">' + CardView.escapeHtml(s.name) + " (" + year + ")" + tag + "</option>";
       }).join("");
+      return sets;
     }).catch(function (err) {
       els.select.innerHTML = '<option value="">Failed to load editions</option>';
       setStatus(err.message);
+      return [];
     });
   }
 
@@ -102,14 +104,24 @@ var BrowseUI = (function () {
     els.refreshBtn = document.getElementById("btn-refresh-set");
     els.typeFilters = document.getElementById("browse-type-filters");
 
-    els.select.addEventListener("change", function () { loadCardsForSet(els.select.value, false); });
+    els.select.addEventListener("change", function () {
+      Storage.setLastBrowseSet(els.select.value);
+      loadCardsForSet(els.select.value, false);
+    });
     els.filter.addEventListener("input", renderGrid);
     els.refreshBtn.addEventListener("click", function () {
       if (state.setCode) loadCardsForSet(state.setCode, true);
     });
 
     renderTypeFilters();
-    loadSets(false);
+    loadSets(false).then(function (sets) {
+      var lastCode = Storage.getLastBrowseSet();
+      var stillExists = lastCode && sets.some(function (s) { return s.code === lastCode; });
+      if (stillExists) {
+        els.select.value = lastCode;
+        loadCardsForSet(lastCode, false);
+      }
+    });
   }
 
   return { init: init };
