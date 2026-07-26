@@ -124,7 +124,7 @@ var CardView = (function () {
 
     if (card.image) {
       var img = document.createElement("img");
-      img.src = card.image.normal || card.image.small;
+      img.src = card.image.large || card.image.normal || card.image.small;
       img.alt = card.name;
       body.appendChild(img);
     }

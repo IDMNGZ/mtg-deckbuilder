@@ -85,6 +85,12 @@ body {
   padding-bottom: 4px;
 }
 
+.controls-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4px 0 14px;
+}
+
 .browse-controls {
   display: flex;
   align-items: flex-end;
@@ -395,12 +401,12 @@ select, input[type="text"], .deck-name-input {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-  max-width: 640px;
+  max-width: 820px;
   width: 90%;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow-y: auto;
   display: flex;
-  gap: 20px;
+  gap: 24px;
 }
 .modal-close {
   position: absolute;
@@ -412,7 +418,7 @@ select, input[type="text"], .deck-name-input {
   font-size: 24px;
   cursor: pointer;
 }
-.modal-content img { width: 240px; border-radius: 10px; flex-shrink: 0; }
+.modal-content img { width: 380px; max-width: 100%; border-radius: 10px; flex-shrink: 0; }
 .modal-body-text { white-space: pre-wrap; font-size: 14px; line-height: 1.5; }
 .modal-body-text h2 { margin-top: 0; font-size: 18px; }
 
