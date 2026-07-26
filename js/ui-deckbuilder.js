@@ -218,6 +218,7 @@ var DeckBuilderUI = (function () {
     els.newBtn = document.getElementById("btn-new-deck");
     els.saveBtn = document.getElementById("btn-save-deck");
     els.mergeToggle = document.getElementById("btn-merge-toggle-deckbuilder");
+    els.refreshBtn = document.getElementById("btn-refresh-deckbuilder");
 
     els.poolFilter.addEventListener("input", renderPool);
     CardView.attachClearButton(els.poolFilter, document.getElementById("deck-pool-filter-clear"));
@@ -230,6 +231,15 @@ var DeckBuilderUI = (function () {
     });
     // Keep the pool in sync when ownership is toggled from the card modal's version cycler.
     document.addEventListener("mtg:ownership-changed", renderPool);
+    DataSync.wireRefreshButton(els.refreshBtn, function (result) {
+      // Patch the currently open deck's in-memory card refs too, not just what's in
+      // Storage - it may not have been saved yet, or was loaded before this refresh.
+      deck.cards.forEach(function (entry) {
+        if (result.freshMap[entry.card.id]) entry.card = result.freshMap[entry.card.id];
+      });
+      renderDeck();
+      renderPool();
+    });
 
     renderDeck();
   }

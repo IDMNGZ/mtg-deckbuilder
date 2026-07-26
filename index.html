@@ -99,6 +99,7 @@
           </select>
         </label>
         <button id="btn-merge-toggle-collection" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
+        <button id="btn-refresh-collection" class="btn btn-ghost" title="Re-fetch the latest Scryfall data for your owned cards and decks">Refresh</button>
         <span id="collection-status" class="status-text"></span>
       </div>
       <hr class="controls-divider">
@@ -122,6 +123,7 @@
               </div>
             </label>
             <button id="btn-merge-toggle-deckbuilder" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
+            <button id="btn-refresh-deckbuilder" class="btn btn-ghost" title="Re-fetch the latest Scryfall data for your owned cards and decks">Refresh</button>
           </div>
         </div>
         <div id="deck-pool-grid" class="card-grid card-grid-compact"></div>
@@ -158,6 +160,7 @@
 <script src="js/scryfall.js"></script>
 <script src="js/card-view.js"></script>
 <script src="js/card-filters.js"></script>
+<script src="js/data-sync.js"></script>
 <script src="js/ui-browse.js"></script>
 <script src="js/ui-collection.js"></script>
 <script src="js/ui-deckbuilder.js"></script>

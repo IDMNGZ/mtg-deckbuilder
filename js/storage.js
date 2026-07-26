@@ -72,6 +72,30 @@ var Storage = (function () {
     return Object.keys(map).map(function (id) { return map[id]; });
   }
 
+  // Overwrites stored card snapshots (owned cards + every deck's cards) with fresher data
+  // for whichever ids are present in freshMap - keeps images/text/rarity current and heals
+  // snapshots captured before an app data-shape change, without touching what's NOT owned
+  // or which decks a card is in.
+  function refreshCardData(freshMap) {
+    var updated = 0;
+
+    var owned = getOwnedMap();
+    Object.keys(owned).forEach(function (id) {
+      if (freshMap[id]) { owned[id] = freshMap[id]; updated++; }
+    });
+    writeJSON(KEY_OWNED, owned);
+
+    var decks = getDecks();
+    decks.forEach(function (deck) {
+      deck.cards.forEach(function (entry) {
+        if (freshMap[entry.card.id]) { entry.card = freshMap[entry.card.id]; updated++; }
+      });
+    });
+    writeJSON(KEY_DECKS, decks);
+
+    return updated;
+  }
+
   // ---- Decks ----
 
   function getDecks() {
@@ -223,6 +247,7 @@ var Storage = (function () {
     getOwnedIds: getOwnedIds,
     getOwnedMap: getOwnedMap,
     getOwnedCards: getOwnedCards,
+    refreshCardData: refreshCardData,
     getDecks: getDecks,
     getDeck: getDeck,
     saveDeck: saveDeck,

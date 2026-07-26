@@ -71,6 +71,7 @@ var CollectionUI = (function () {
     els.grid = document.getElementById("collection-grid");
     els.status = document.getElementById("collection-status");
     els.mergeToggle = document.getElementById("btn-merge-toggle-collection");
+    els.refreshBtn = document.getElementById("btn-refresh-collection");
     els.typeFilters = document.getElementById("collection-type-filters");
     els.colorFilters = document.getElementById("collection-color-filters");
     els.rarityFilters = document.getElementById("collection-rarity-filters");
@@ -83,6 +84,7 @@ var CollectionUI = (function () {
       renderMergeToggle();
       render();
     });
+    DataSync.wireRefreshButton(els.refreshBtn, function () { render(); });
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, render);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);

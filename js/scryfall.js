@@ -171,10 +171,37 @@ var Scryfall = (function () {
     });
   }
 
+  // Re-fetches specific cards by id (for refreshing saved snapshots in Collection/decks
+  // with the latest data). Uses Scryfall's batch /cards/collection endpoint, 75 ids per
+  // request (its documented max), rather than one request per card.
+  var COLLECTION_BATCH_SIZE = 75;
+  function fetchCardsByIds(ids) {
+    var chunks = [];
+    for (var i = 0; i < ids.length; i += COLLECTION_BATCH_SIZE) {
+      chunks.push(ids.slice(i, i + COLLECTION_BATCH_SIZE));
+    }
+
+    function doChunk(index, acc) {
+      if (index >= chunks.length) return Promise.resolve(acc);
+      var body = JSON.stringify({ identifiers: chunks[index].map(function (id) { return { id: id }; }) });
+      return fetch(API_ROOT + "/cards/collection", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: body,
+      }).then(function (res) { return res.json(); }).then(function (res) {
+        (res.data || []).forEach(function (c) { acc[c.id] = normalizeCard(c); });
+        return sleep(REQUEST_GAP_MS).then(function () { return doChunk(index + 1, acc); });
+      });
+    }
+
+    return doChunk(0, {});
+  }
+
   return {
     fetchSets: fetchSets,
     fetchCardsForSet: fetchCardsForSet,
     fetchPrintsByName: fetchPrintsByName,
     searchCardsByName: searchCardsByName,
+    fetchCardsByIds: fetchCardsByIds,
   };
 })();
