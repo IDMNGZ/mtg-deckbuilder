@@ -15,6 +15,7 @@
     <a href="#collection" class="tab-link" data-tab="collection">Collection</a>
     <a href="#deckbuilder" class="tab-link" data-tab="deckbuilder">Deck Builder</a>
     <a href="#decks" class="tab-link" data-tab="decks">My Decks</a>
+    <a href="#rules" class="tab-link" data-tab="rules">Rules</a>
   </nav>
   <div class="header-actions">
     <button id="btn-export" class="btn btn-ghost" title="Download your owned cards + decks as a JSON backup">Export</button>
@@ -144,6 +145,27 @@
     <ul id="decks-list" class="decks-list"></ul>
   </section>
 
+  <section id="tab-rules" class="tab-panel">
+    <div class="sticky-controls">
+      <div class="browse-controls">
+        <label class="field field-grow">
+          Search rules
+          <div class="input-clear-wrap">
+            <input type="text" id="rules-filter" placeholder="Search term or description…">
+            <button type="button" id="rules-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
+          </div>
+        </label>
+        <button id="btn-rules-show-all" class="btn btn-ghost">Show All</button>
+        <button id="btn-rules-hide-all" class="btn btn-ghost">Hide All</button>
+        <span id="rules-status" class="status-text"></span>
+      </div>
+      <hr class="controls-divider">
+      <div id="rules-set-filters" class="type-filter-row"></div>
+    </div>
+    <p class="rules-disclaimer">Fan-made quick reference summarizing common rules and keyword mechanics - not a reproduction of Wizards of the Coast's official Comprehensive Rules. Era groupings are approximate; consult the official Comprehensive Rules for authoritative rulings.</p>
+    <div id="rules-sections"></div>
+  </section>
+
 </main>
 
 <div id="card-modal" class="modal hidden">
@@ -161,10 +183,12 @@
 <script src="js/card-view.js"></script>
 <script src="js/card-filters.js"></script>
 <script src="js/data-sync.js"></script>
+<script src="js/rules-data.js"></script>
 <script src="js/ui-browse.js"></script>
 <script src="js/ui-collection.js"></script>
 <script src="js/ui-deckbuilder.js"></script>
 <script src="js/ui-decks.js"></script>
+<script src="js/ui-rules.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

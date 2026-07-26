@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var TABS = ["browse", "collection", "deckbuilder", "decks"];
+  var TABS = ["browse", "collection", "deckbuilder", "decks", "rules"];
 
   var activators = {
     browse: function () { BrowseUI.activate(); },
@@ -79,6 +79,7 @@
     CollectionUI.init();
     DeckBuilderUI.init();
     DecksUI.init();
+    RulesUI.init();
     wireHeaderActions();
     watchHeaderHeight();
 
