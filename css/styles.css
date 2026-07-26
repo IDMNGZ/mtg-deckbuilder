@@ -451,8 +451,14 @@ select, input[type="text"], .deck-name-input {
   padding-top: 8px;
 }
 
-.rule-term { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-.rule-desc { font-size: 13px; color: var(--text-dim); line-height: 1.45; }
+.rule-term { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+
+.rule-bullets { margin: 0; padding-left: 18px; }
+.rule-bullets li { font-size: 13px; color: var(--text); line-height: 1.45; margin-bottom: 3px; }
+.rule-bullets li::marker { color: var(--accent); }
+
+/* Edition/year is a footnote, not the headline - smaller, dimmer, and visually last. */
+.rule-source { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 6px; }
 
 /* Modal */
 

@@ -10,7 +10,9 @@ var RulesUI = (function () {
   function matchesSearch(entry, needle) {
     if (!needle) return true;
     needle = needle.toLowerCase();
-    return entry.term.toLowerCase().indexOf(needle) !== -1 || entry.description.toLowerCase().indexOf(needle) !== -1;
+    if (entry.term.toLowerCase().indexOf(needle) !== -1) return true;
+    if (entry.source && entry.source.toLowerCase().indexOf(needle) !== -1) return true;
+    return entry.bullets.some(function (b) { return b.toLowerCase().indexOf(needle) !== -1; });
   }
 
   function render() {
@@ -38,9 +40,16 @@ var RulesUI = (function () {
       entries.forEach(function (entry) {
         var entryEl = document.createElement("div");
         entryEl.className = "rule-entry";
+        // The rule itself (bullets) leads; the source edition/year is a trailing note,
+        // not the headline - it's secondary to what the mechanic actually does.
+        var bulletsHtml = "<ul class='rule-bullets'>" +
+          entry.bullets.map(function (b) { return "<li>" + CardView.escapeHtml(b) + "</li>"; }).join("") +
+          "</ul>";
+        var sourceHtml = entry.source ? "<div class='rule-source'>" + CardView.escapeHtml(entry.source) + "</div>" : "";
         entryEl.innerHTML =
           "<div class='rule-term'>" + CardView.escapeHtml(entry.term) + "</div>" +
-          "<div class='rule-desc'>" + CardView.escapeHtml(entry.description) + "</div>";
+          bulletsHtml +
+          sourceHtml;
         entriesWrap.appendChild(entryEl);
       });
       section.appendChild(entriesWrap);
