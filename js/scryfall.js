@@ -96,7 +96,10 @@ var Scryfall = (function () {
     }
 
     var all = [];
-    var firstUrl = API_ROOT + "/cards/search?order=set&unique=prints&q=" + encodeURIComponent("set:" + setCode);
+    // unique=cards (not "prints") collapses same-card reprints within this one set - e.g.
+    // Commander precon products that reprint the same staple across multiple decks, or
+    // showcase/borderless/serialized treatments - down to a single row per card.
+    var firstUrl = API_ROOT + "/cards/search?order=set&unique=cards&q=" + encodeURIComponent("set:" + setCode);
 
     function page(url) {
       return request(url).then(function (res) {

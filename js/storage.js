@@ -7,7 +7,10 @@ var Storage = (function () {
   var KEY_OWNED = NS + "owned";
   var KEY_DECKS = NS + "decks";
   var KEY_SETS_CACHE = NS + "cache:sets";
-  var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards:";
+  // Bumped to "cards2" when the fetch mode changed from unique=prints to unique=cards
+  // (dedupes reprints within a set) - the prefix change forces a fresh fetch instead of
+  // serving stale, duplicate-laden cached data for sets browsed before the change.
+  var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards2:";
   var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
 
   function readJSON(key, fallback) {
