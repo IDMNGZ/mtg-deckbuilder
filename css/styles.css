@@ -401,12 +401,12 @@ select, input[type="text"], .deck-name-input {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 20px;
-  max-width: 940px;
+  max-width: 560px;
   width: 90%;
   max-height: 92vh;
   overflow-y: auto;
   display: flex;
-  gap: 24px;
+  justify-content: center;
 }
 .modal-close {
   position: absolute;
@@ -418,20 +418,11 @@ select, input[type="text"], .deck-name-input {
   font-size: 24px;
   cursor: pointer;
 }
-.modal-image-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.modal-image-col img { width: 480px; max-width: 100%; border-radius: 10px; }
-.modal-card-summary { font-size: 12px; text-align: center; }
+#modal-body img { width: 100%; border-radius: 10px; display: block; }
 .modal-body-text { white-space: pre-wrap; font-size: 14px; line-height: 1.5; }
 .modal-body-text h2 { margin-top: 0; font-size: 18px; }
 
 @media (max-width: 900px) {
   .deckbuilder-layout { grid-template-columns: 1fr; }
   .deckbuilder-current { position: static; }
-  .modal-content { flex-direction: column; align-items: center; }
 }

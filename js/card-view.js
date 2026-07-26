@@ -117,32 +117,28 @@ var CardView = (function () {
     return tile;
   }
 
+  // The enlarged image is legible enough on its own (name, cost, type, rules text,
+  // rarity/set symbols are all printed on the card) - no need to duplicate it as text.
   function openModal(card) {
     var modal = document.getElementById("card-modal");
     var body = document.getElementById("modal-body");
     body.innerHTML = "";
 
-    var imageCol = document.createElement("div");
-    imageCol.className = "modal-image-col";
     if (card.image) {
       var img = document.createElement("img");
       img.src = card.image.large || card.image.normal || card.image.small;
       img.alt = card.name;
-      imageCol.appendChild(img);
+      body.appendChild(img);
+    } else {
+      // Rare fallback for cards Scryfall has no image for.
+      var fallback = document.createElement("div");
+      fallback.className = "modal-body-text";
+      fallback.innerHTML =
+        "<h2>" + escapeHtml(card.name) + " <span class='card-mana'>" + escapeHtml(card.manaCost) + "</span></h2>" +
+        "<div><em>" + escapeHtml(card.typeLine) + "</em></div>" +
+        "<div>" + escapeHtml(card.oracleText) + "</div>";
+      body.appendChild(fallback);
     }
-    var summary = document.createElement("div");
-    summary.className = "modal-card-summary " + rarityClass(card.rarity);
-    summary.innerHTML = escapeHtml(card.rarity) + " &middot; " + escapeHtml(card.setName) + " (" + escapeHtml(card.collectorNumber) + ")";
-    imageCol.appendChild(summary);
-    body.appendChild(imageCol);
-
-    var text = document.createElement("div");
-    text.className = "modal-body-text";
-    text.innerHTML =
-      "<h2>" + escapeHtml(card.name) + " <span class='card-mana'>" + escapeHtml(card.manaCost) + "</span></h2>" +
-      "<div><em>" + escapeHtml(card.typeLine) + "</em></div>" +
-      "<div>" + escapeHtml(card.oracleText) + "</div>";
-    body.appendChild(text);
 
     modal.classList.remove("hidden");
   }
