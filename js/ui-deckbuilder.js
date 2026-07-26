@@ -220,6 +220,7 @@ var DeckBuilderUI = (function () {
     els.mergeToggle = document.getElementById("btn-merge-toggle-deckbuilder");
 
     els.poolFilter.addEventListener("input", renderPool);
+    CardView.attachClearButton(els.poolFilter, document.getElementById("deck-pool-filter-clear"));
     els.newBtn.addEventListener("click", newDeck);
     els.saveBtn.addEventListener("click", saveDeck);
     els.mergeToggle.addEventListener("click", function () {

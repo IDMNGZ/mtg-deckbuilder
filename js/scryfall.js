@@ -151,9 +151,30 @@ var Scryfall = (function () {
     });
   }
 
+  // Live "search any card by name, regardless of edition" for Browse - not cached, since
+  // it's a fast-moving search-as-you-type query rather than a stable, reusable list. Only
+  // fetches the first page (Scryfall's default 175/page is plenty for a name search) so
+  // a broad query doesn't trigger a long pagination chain.
+  function searchCardsByName(query) {
+    var url = API_ROOT + "/cards/search?unique=prints&order=name&q=" + encodeURIComponent(query);
+    return request(url).then(function (res) {
+      return {
+        cards: (res.data || []).map(normalizeCard),
+        hasMore: !!res.has_more,
+        totalMatches: typeof res.total_cards === "number" ? res.total_cards : (res.data || []).length,
+      };
+    }).catch(function (err) {
+      if (/no cards found/i.test(err.message)) {
+        return { cards: [], hasMore: false, totalMatches: 0 };
+      }
+      throw err;
+    });
+  }
+
   return {
     fetchSets: fetchSets,
     fetchCardsForSet: fetchCardsForSet,
     fetchPrintsByName: fetchPrintsByName,
+    searchCardsByName: searchCardsByName,
   };
 })();

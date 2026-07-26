@@ -76,6 +76,7 @@ var CollectionUI = (function () {
     els.rarityFilters = document.getElementById("collection-rarity-filters");
 
     els.filter.addEventListener("input", render);
+    CardView.attachClearButton(els.filter, document.getElementById("collection-filter-clear"));
     els.sort.addEventListener("change", function () { state.sort = els.sort.value; render(); });
     els.mergeToggle.addEventListener("click", function () {
       Storage.setMergeByName(!Storage.getMergeByName());

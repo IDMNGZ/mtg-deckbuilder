@@ -12,6 +12,19 @@ var CardView = (function () {
     return "rarity-" + (rarity || "common").toLowerCase();
   }
 
+  // Wires an (x) button to clear a text input: shows only when the input has a value,
+  // clears + refocuses + fires "input" on click so whatever's listening re-renders.
+  function attachClearButton(input, btn) {
+    function sync() { btn.style.display = input.value ? "block" : "none"; }
+    input.addEventListener("input", sync);
+    btn.addEventListener("click", function () {
+      input.value = "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.focus();
+    });
+    sync();
+  }
+
   // The card's principal type (Creature, Instant, Land, ...), ignoring supertypes
   // (Legendary, Basic, Snow, ...) and subtypes after the em dash.
   function mainType(card) {
@@ -223,5 +236,6 @@ var CardView = (function () {
     mainType: mainType,
     isLand: isLand,
     groupByName: groupByName,
+    attachClearButton: attachClearButton,
   };
 })();

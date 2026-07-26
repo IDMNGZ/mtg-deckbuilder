@@ -4,6 +4,8 @@ var BrowseUI = (function () {
   "use strict";
 
   var MAX_CHECKLIST_ROWS = 80;
+  var GLOBAL_SEARCH_DEBOUNCE_MS = 350;
+  var GLOBAL_SEARCH_MIN_CHARS = 2;
 
   var els = {};
   var state = {
@@ -13,7 +15,12 @@ var BrowseUI = (function () {
     pendingLoads: 0,
     selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set(),
     sort: "",
+    // Global "search any card by name" mode: null = inactive (browse by selected editions).
+    globalResults: null,
+    globalHasMore: false,
+    globalSearchSeq: 0,
   };
+  var globalSearchTimer = null;
 
   function setBySelectionOrder() {
     // Set preserves insertion order in JS, so chips/status read in the order picked.
@@ -25,6 +32,11 @@ var BrowseUI = (function () {
   }
 
   function updateStatus() {
+    if (state.globalResults !== null) {
+      var moreNote = state.globalHasMore ? " (showing first " + state.globalResults.length + ")" : "";
+      els.status.textContent = state.globalResults.length + " match" + (state.globalResults.length === 1 ? "" : "es") + " across all editions" + moreNote;
+      return;
+    }
     var loadedCounts = setBySelectionOrder().map(function (code) { return (state.cardsBySet[code] || []).length; });
     var total = loadedCounts.reduce(function (a, b) { return a + b; }, 0);
     var editionCount = state.selectedCodes.size;
@@ -34,6 +46,31 @@ var BrowseUI = (function () {
     } else {
       els.status.textContent = total + " cards from " + editionCount + " edition" + (editionCount === 1 ? "" : "s") + loadingNote;
     }
+  }
+
+  // ---- Global "search any card by name, regardless of edition" ----
+
+  function performGlobalSearch(query) {
+    var seq = ++state.globalSearchSeq;
+    query = (query || "").trim();
+    if (query.length < GLOBAL_SEARCH_MIN_CHARS) {
+      state.globalResults = null;
+      state.globalHasMore = false;
+      renderGrid();
+      return;
+    }
+    els.status.textContent = "Searching “" + query + "” across all editions…";
+    Scryfall.searchCardsByName(query).then(function (result) {
+      if (seq !== state.globalSearchSeq) return; // superseded by a newer search
+      state.globalResults = result.cards;
+      state.globalHasMore = result.hasMore;
+      renderGrid();
+    }).catch(function (err) {
+      if (seq !== state.globalSearchSeq) return;
+      state.globalResults = [];
+      state.globalHasMore = false;
+      els.status.textContent = "Search failed: " + err.message;
+    });
   }
 
   function ensureSetLoaded(code, forceRefresh) {
@@ -173,12 +210,17 @@ var BrowseUI = (function () {
 
   function renderGrid() {
     var needle = els.filter.value.trim();
-    var combined = [];
-    setBySelectionOrder().forEach(function (code) {
-      combined = combined.concat(state.cardsBySet[code] || []);
-    });
+    var pool;
+    if (state.globalResults !== null) {
+      pool = state.globalResults;
+    } else {
+      pool = [];
+      setBySelectionOrder().forEach(function (code) {
+        pool = pool.concat(state.cardsBySet[code] || []);
+      });
+    }
 
-    var visible = combined.filter(function (c) {
+    var visible = pool.filter(function (c) {
       return matchesFilter(c, needle) &&
         CardFilters.matchesTypes(c, state.selectedTypes) &&
         CardFilters.matchesColors(c, state.selectedColors) &&
@@ -187,18 +229,28 @@ var BrowseUI = (function () {
     visible = CardFilters.sortCards(visible, state.sort);
 
     els.grid.innerHTML = "";
-    if (state.selectedCodes.size === 0) {
-      els.grid.innerHTML = '<p class="empty-hint">Search and select one or more editions above to browse their cards.</p>';
+    if (state.globalResults !== null) {
+      if (visible.length === 0) {
+        els.grid.innerHTML = '<p class="empty-hint">No cards found. Try a different spelling or a shorter search.</p>';
+      } else {
+        renderTiles(visible);
+      }
+    } else if (state.selectedCodes.size === 0) {
+      els.grid.innerHTML = '<p class="empty-hint">Search and select one or more editions above to browse their cards, or search any card by name (any edition) instead.</p>';
     } else {
-      var frag = document.createDocumentFragment();
-      visible.forEach(function (card) {
-        frag.appendChild(CardView.renderTile(card, {
-          onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
-        }));
-      });
-      els.grid.appendChild(frag);
+      renderTiles(visible);
     }
     updateStatus();
+  }
+
+  function renderTiles(cards) {
+    var frag = document.createDocumentFragment();
+    cards.forEach(function (card) {
+      frag.appendChild(CardView.renderTile(card, {
+        onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
+      }));
+    });
+    els.grid.appendChild(frag);
   }
 
   function init() {
@@ -209,6 +261,7 @@ var BrowseUI = (function () {
     els.selectAllBtn = document.getElementById("btn-select-all-matching");
     els.clearBtn = document.getElementById("btn-clear-editions");
     els.chips = document.getElementById("edition-chips");
+    els.globalSearch = document.getElementById("global-card-search");
     els.filter = document.getElementById("browse-filter");
     els.sort = document.getElementById("browse-sort");
     els.grid = document.getElementById("browse-grid");
@@ -225,8 +278,16 @@ var BrowseUI = (function () {
     document.addEventListener("click", function (e) {
       if (!els.checklist.contains(e.target) && e.target !== els.editionSearch) hideChecklist();
     });
+    CardView.attachClearButton(els.editionSearch, document.getElementById("edition-search-clear"));
+
+    els.globalSearch.addEventListener("input", function () {
+      clearTimeout(globalSearchTimer);
+      globalSearchTimer = setTimeout(function () { performGlobalSearch(els.globalSearch.value); }, GLOBAL_SEARCH_DEBOUNCE_MS);
+    });
+    CardView.attachClearButton(els.globalSearch, document.getElementById("global-card-search-clear"));
 
     els.filter.addEventListener("input", renderGrid);
+    CardView.attachClearButton(els.filter, document.getElementById("browse-filter-clear"));
     els.sort.addEventListener("change", function () { state.sort = els.sort.value; renderGrid(); });
     els.refreshBtn.addEventListener("click", function () {
       Promise.all(setBySelectionOrder().map(function (code) { return ensureSetLoaded(code, true); })).then(renderGrid);

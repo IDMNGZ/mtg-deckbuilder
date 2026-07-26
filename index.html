@@ -30,7 +30,10 @@
       <div class="browse-controls">
         <div class="field edition-picker">
           Editions
-          <input type="text" id="edition-search" placeholder="Search editions (e.g. 'Lord of the Rings')…" autocomplete="off">
+          <div class="input-clear-wrap">
+            <input type="text" id="edition-search" placeholder="Search editions (e.g. 'Lord of the Rings')…" autocomplete="off">
+            <button type="button" id="edition-search-clear" class="input-clear-btn" title="Clear">&times;</button>
+          </div>
           <div id="edition-checklist" class="edition-checklist hidden">
             <div class="edition-checklist-actions">
               <span id="edition-match-count"></span>
@@ -43,8 +46,18 @@
           </div>
         </div>
         <label class="field field-grow">
+          Search any card by name (all editions)
+          <div class="input-clear-wrap">
+            <input type="text" id="global-card-search" placeholder="Don't know the edition? Search by name…" autocomplete="off">
+            <button type="button" id="global-card-search-clear" class="input-clear-btn" title="Clear">&times;</button>
+          </div>
+        </label>
+        <label class="field field-grow">
           Filter cards
-          <input type="text" id="browse-filter" placeholder="Search name or type…">
+          <div class="input-clear-wrap">
+            <input type="text" id="browse-filter" placeholder="Search name or type…">
+            <button type="button" id="browse-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
+          </div>
         </label>
         <label class="field">
           Sort by
@@ -71,7 +84,10 @@
       <div class="browse-controls">
         <label class="field field-grow">
           Filter your collection
-          <input type="text" id="collection-filter" placeholder="Search name, edition, or type…">
+          <div class="input-clear-wrap">
+            <input type="text" id="collection-filter" placeholder="Search name, edition, or type…">
+            <button type="button" id="collection-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
+          </div>
         </label>
         <label class="field">
           Sort by
@@ -99,7 +115,10 @@
           <div class="browse-controls">
             <label class="field field-grow">
               Add from your collection
-              <input type="text" id="deck-pool-filter" placeholder="Search owned cards…">
+              <div class="input-clear-wrap">
+                <input type="text" id="deck-pool-filter" placeholder="Search owned cards…">
+                <button type="button" id="deck-pool-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
+              </div>
             </label>
             <button id="btn-merge-toggle-deckbuilder" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
           </div>
