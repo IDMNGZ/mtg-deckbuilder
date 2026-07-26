@@ -245,12 +245,29 @@ var BrowseUI = (function () {
 
   function renderTiles(cards) {
     var frag = document.createDocumentFragment();
-    cards.forEach(function (card) {
-      frag.appendChild(CardView.renderTile(card, {
-        onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
-      }));
-    });
+    if (Storage.getMergeByName()) {
+      // Collapse same-name cards across editions to one tile - checking ownership on a
+      // specific printing happens via the modal's version cycler instead of an ambiguous
+      // single checkbox (a merged tile can represent printings you own and don't).
+      CardView.groupByName(cards).forEach(function (group) {
+        var anyOwned = group.prints.some(function (p) { return Storage.isOwned(p.id); });
+        frag.appendChild(CardView.renderTile(group.representative, {
+          printCount: group.prints.length,
+          anyOwned: anyOwned,
+        }));
+      });
+    } else {
+      cards.forEach(function (card) {
+        frag.appendChild(CardView.renderTile(card, {
+          onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
+        }));
+      });
+    }
     els.grid.appendChild(frag);
+  }
+
+  function renderMergeToggle() {
+    els.mergeToggle.classList.toggle("active", Storage.getMergeByName());
   }
 
   function init() {
@@ -267,6 +284,7 @@ var BrowseUI = (function () {
     els.grid = document.getElementById("browse-grid");
     els.status = document.getElementById("browse-status");
     els.refreshBtn = document.getElementById("btn-refresh-set");
+    els.mergeToggle = document.getElementById("btn-merge-toggle-browse");
     els.typeFilters = document.getElementById("browse-type-filters");
     els.colorFilters = document.getElementById("browse-color-filters");
     els.rarityFilters = document.getElementById("browse-rarity-filters");
@@ -292,12 +310,19 @@ var BrowseUI = (function () {
     els.refreshBtn.addEventListener("click", function () {
       Promise.all(setBySelectionOrder().map(function (code) { return ensureSetLoaded(code, true); })).then(renderGrid);
     });
-    // Keep checkboxes in sync when ownership is toggled from the card modal's version cycler.
+    els.mergeToggle.addEventListener("click", function () {
+      Storage.setMergeByName(!Storage.getMergeByName());
+      renderMergeToggle();
+      renderGrid();
+    });
+    // Keep checkboxes/merge state in sync when changed from the card modal's version cycler,
+    // or from the same shared toggle in Collection / the Deck Builder pool.
     document.addEventListener("mtg:ownership-changed", renderGrid);
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, renderGrid);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderGrid);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, renderGrid);
+    renderMergeToggle();
 
     Scryfall.fetchSets(false).then(function (sets) {
       state.allSets = sets;
@@ -315,5 +340,12 @@ var BrowseUI = (function () {
     function setStatusError(err) { els.status.textContent = "Failed to load editions: " + err.message; }
   }
 
-  return { init: init };
+  function activate() {
+    // The merge toggle is shared with Collection / the Deck Builder pool, so resync in
+    // case it was flipped there while this tab was in the background.
+    renderMergeToggle();
+    renderGrid();
+  }
+
+  return { init: init, activate: activate };
 })();

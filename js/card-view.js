@@ -90,9 +90,12 @@ var CardView = (function () {
 
     // Shown on every tile (not just when merging) since Browse can now combine cards
     // from several editions at once, where it's otherwise ambiguous which is which.
+    // When merged, a single set name would misleadingly imply this is the only printing.
     var setLine = document.createElement("div");
     setLine.className = "card-set-line";
-    setLine.textContent = card.setName || card.set;
+    setLine.textContent = (opts.printCount && opts.printCount > 1)
+      ? "Multiple editions (" + opts.printCount + ")"
+      : (card.setName || card.set);
     tile.appendChild(setLine);
 
     if (opts.onOwnToggle) {
@@ -117,6 +120,14 @@ var CardView = (function () {
       mergedRow.appendChild(countLabel);
       mergedRow.appendChild(removeBtn);
       tile.appendChild(mergedRow);
+    } else if (opts.printCount) {
+      // Browse's merged view: several printings, not necessarily owned. No single checkbox
+      // makes sense here (it'd be ambiguous which printing it marks) - tap the image and use
+      // the modal's version cycler to check off the exact printing you own.
+      var infoRow = document.createElement("div");
+      infoRow.className = "card-own-row card-own-row-info";
+      infoRow.textContent = opts.anyOwned ? "✓ You own at least one printing" : opts.printCount + " printings — tap image to check ownership";
+      tile.appendChild(infoRow);
     }
 
     if (opts.onAdd) {

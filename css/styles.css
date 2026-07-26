@@ -327,6 +327,7 @@ select, input[type="text"], .deck-name-input {
 
 .card-own-row-merged { justify-content: space-between; color: var(--text-dim); }
 .remove-all-btn { font-size: 11px; padding: 3px 8px; color: var(--danger); border-color: var(--danger); }
+.card-own-row-info { color: var(--text-dim); font-size: 11px; text-align: center; }
 
 .card-add-btn {
   width: 100%;

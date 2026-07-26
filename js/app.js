@@ -5,6 +5,7 @@
   var TABS = ["browse", "collection", "deckbuilder", "decks"];
 
   var activators = {
+    browse: function () { BrowseUI.activate(); },
     collection: function () { CollectionUI.activate(); },
     deckbuilder: function () { DeckBuilderUI.activate(); },
     decks: function () { DecksUI.activate(); },
