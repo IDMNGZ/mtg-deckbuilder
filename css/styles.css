@@ -24,6 +24,12 @@
 
 * { box-sizing: border-box; }
 
+/* Hard guarantee against the page becoming horizontally pannable - grid/flex children
+   can still misbehave and force their container wider than the viewport (see the
+   min-width: 0 fixes below for the actual case that was happening), so this is a
+   backstop rather than the fix itself. */
+html, body { overflow-x: hidden; }
+
 body {
   margin: 0;
   font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -228,7 +234,7 @@ select, input[type="text"], .deck-name-input {
 .edition-row:hover { background: var(--bg-input); }
 .edition-row input { width: 15px; height: 15px; flex-shrink: 0; }
 
-.filter-details { margin-bottom: 4px; }
+.filter-details, .filter-panel { margin-bottom: 4px; }
 
 .filter-summary {
   cursor: pointer;
@@ -326,6 +332,11 @@ select, input[type="text"], .deck-name-input {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* Without this, a grid item's implicit min-width defaults to its content's min-content
+     size - a long card name plus a nowrap mana cost could force this tile (and therefore
+     its whole grid column) wider than the column track ever intended, which is what was
+     making the page horizontally scrollable at small card sizes. */
+  min-width: 0;
 }
 
 .card-tile img {
@@ -357,9 +368,19 @@ select, input[type="text"], .deck-name-input {
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
+  min-width: 0;
 }
 
-.card-mana { color: var(--text-dim); font-weight: 400; font-size: 12px; white-space: nowrap; }
+/* The name is the flexible side - truncates with an ellipsis instead of forcing the row
+   (and its tile/grid column) wider than the tile at small card sizes. */
+.card-title-row > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-mana { color: var(--text-dim); font-weight: 400; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
 
 .card-meta {
   font-size: 11px;
@@ -467,8 +488,14 @@ select, input[type="text"], .deck-name-input {
   border-bottom: 1px solid var(--border);
   font-size: 13px;
 }
-.deck-list-item .qty { color: var(--text-dim); width: 20px; }
-.deck-list-item .name { flex: 1; }
+.deck-list-item .qty { color: var(--text-dim); width: 20px; flex-shrink: 0; }
+.deck-list-item .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .deck-list-item .remove-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 16px; }
 .empty-hint { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
 
