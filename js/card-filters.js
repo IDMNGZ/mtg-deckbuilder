@@ -4,13 +4,16 @@ var CardFilters = (function () {
 
   var TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Land", "Planeswalker", "Battle"];
 
+  // Icon-only buttons using Scryfall's official mana symbol SVGs (same CORS-enabled,
+  // freely-usable source as the card images elsewhere in the app) - keeps color filters
+  // recognizable at a glance without the horizontal space a text label needs.
   var COLORS = [
-    { value: "W", label: "White", swatch: "var(--white)" },
-    { value: "U", label: "Blue", swatch: "var(--blue)" },
-    { value: "B", label: "Black", swatch: "var(--black)" },
-    { value: "R", label: "Red", swatch: "var(--red)" },
-    { value: "G", label: "Green", swatch: "var(--green)" },
-    { value: "C", label: "Colorless", swatch: "var(--text-dim)" },
+    { value: "W", label: "White", icon: "https://svgs.scryfall.io/card-symbols/W.svg" },
+    { value: "U", label: "Blue", icon: "https://svgs.scryfall.io/card-symbols/U.svg" },
+    { value: "B", label: "Black", icon: "https://svgs.scryfall.io/card-symbols/B.svg" },
+    { value: "R", label: "Red", icon: "https://svgs.scryfall.io/card-symbols/R.svg" },
+    { value: "G", label: "Green", icon: "https://svgs.scryfall.io/card-symbols/G.svg" },
+    { value: "C", label: "Colorless", icon: "https://svgs.scryfall.io/card-symbols/C.svg" },
   ];
 
   var RARITIES = ["common", "uncommon", "rare", "mythic"].map(function (r) {
@@ -24,14 +27,25 @@ var CardFilters = (function () {
     items.forEach(function (item) {
       var btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "type-filter-btn" + (selectedSet.has(item.value) ? " active" : "");
-      if (item.swatch) {
-        var dot = document.createElement("span");
-        dot.className = "type-filter-swatch";
-        dot.style.background = item.swatch;
-        btn.appendChild(dot);
+      btn.title = item.label;
+      btn.className = "type-filter-btn"
+        + (item.icon ? " type-filter-btn-icon" : "")
+        + (selectedSet.has(item.value) ? " active" : "");
+      if (item.icon) {
+        var img = document.createElement("img");
+        img.className = "type-filter-icon";
+        img.src = item.icon;
+        img.alt = item.label;
+        btn.appendChild(img);
+      } else {
+        if (item.swatch) {
+          var dot = document.createElement("span");
+          dot.className = "type-filter-swatch";
+          dot.style.background = item.swatch;
+          btn.appendChild(dot);
+        }
+        btn.appendChild(document.createTextNode(item.label));
       }
-      btn.appendChild(document.createTextNode(item.label));
       btn.addEventListener("click", function () {
         if (selectedSet.has(item.value)) {
           selectedSet.delete(item.value);

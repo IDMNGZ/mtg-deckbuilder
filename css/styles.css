@@ -270,6 +270,18 @@ select, input[type="text"], .deck-name-input {
   box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
 }
 
+.type-filter-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+}
+.type-filter-icon { width: 18px; height: 18px; display: block; pointer-events: none; }
+.type-filter-btn-icon.active { background: var(--bg-elevated); border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -509,8 +521,8 @@ select, input[type="text"], .deck-name-input {
 .about-bio { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .about-photo-placeholder,
 .about-photo {
-  width: 164px;
-  height: 164px;
+  width: 205px;
+  height: 205px;
   border-radius: 50%;
   border: 2px solid var(--gold);
   flex-shrink: 0;
@@ -685,6 +697,14 @@ select, input[type="text"], .deck-name-input {
   .tab-link { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
   .header-actions { flex-wrap: nowrap; gap: 6px; margin-left: auto; }
   .header-actions .btn { padding: 6px 8px; font-size: 12px; white-space: nowrap; }
+
+  /* Was pinned to 1 column (minmax(200px,...) doesn't fit twice at phone width) - shrink
+     the minimum so 2-3 tiles fit per row instead of one giant card at a time. */
+  .card-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  .card-grid-compact { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+
+  /* Photo above the bio copy instead of squeezed beside it once wrapping kicks in. */
+  .about-bio { flex-direction: column; align-items: center; text-align: center; }
 }
 
 /* Phone landscape: the header has almost no vertical room to work with, so it becomes
@@ -717,4 +737,9 @@ select, input[type="text"], .deck-name-input {
 
   .sticky-controls { top: 0; }
   .deckbuilder-current { position: static; top: auto; }
+
+  /* Landscape has plenty of width once the header moves into the sidebar - was still
+     capped at minmax(200px,...) which only fit 3 tiles; let it pack in more per row. */
+  .card-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+  .card-grid-compact { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
 }
