@@ -86,6 +86,44 @@
     }
   }
 
+  // Applies (or clears) the user's chosen card-grid tile size as an inline style on the
+  // root element, which - being inline - overrides whatever the current media query set
+  // as the breakpoint default. The compact grid (deck builder pool) gets a smaller value
+  // in step so it doesn't end up wider than the full grid at the same "zoom level".
+  function applyCardGridSize(px) {
+    if (px == null) {
+      document.documentElement.style.removeProperty("--card-min-w");
+      document.documentElement.style.removeProperty("--card-min-w-compact");
+    } else {
+      document.documentElement.style.setProperty("--card-min-w", px + "px");
+      document.documentElement.style.setProperty("--card-min-w-compact", Math.max(80, px - 40) + "px");
+    }
+  }
+
+  function currentEffectiveCardSize() {
+    var raw = getComputedStyle(document.documentElement).getPropertyValue("--card-min-w");
+    var n = parseInt(raw, 10);
+    return isNaN(n) ? 200 : n;
+  }
+
+  // One shared preference, several sliders (Browse/Collection/Deck Builder pool) - all
+  // three stay in sync so switching tabs never shows a stale handle position.
+  function wireCardSizeSliders() {
+    var sliders = document.querySelectorAll(".card-size-slider");
+    var stored = Storage.getCardGridSize();
+    var initial = stored != null ? stored : currentEffectiveCardSize();
+    if (stored != null) applyCardGridSize(stored);
+    sliders.forEach(function (slider) {
+      slider.value = initial;
+      slider.addEventListener("input", function () {
+        var px = parseInt(slider.value, 10);
+        Storage.setCardGridSize(px);
+        applyCardGridSize(px);
+        sliders.forEach(function (s) { if (s !== slider) s.value = px; });
+      });
+    });
+  }
+
   function init() {
     CardView.initModal();
     BrowseUI.init();
@@ -97,6 +135,7 @@
     wireHeaderActions();
     watchHeaderHeight();
     applyMobileFilterDefaults();
+    wireCardSizeSliders();
 
     // A pull replacing local data (from another device's changes) needs whatever tab is
     // currently visible to re-render from the fresh data.

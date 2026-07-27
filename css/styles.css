@@ -15,6 +15,11 @@
   --green: #4caf6e;
   --gold: #c9a536;
   --header-h: 60px; /* fallback; js/app.js measures the real header height on load/resize */
+  /* Card grid tile-size floor. Redeclared per breakpoint below as sensible defaults;
+     js/app.js overrides both with an inline style once the user drags the zoom slider,
+     which (being inline) wins over any of these media-query values automatically. */
+  --card-min-w: 200px;
+  --card-min-w-compact: 160px;
 }
 
 * { box-sizing: border-box; }
@@ -142,6 +147,14 @@ select, input[type="text"], .deck-name-input {
 }
 
 .status-text { font-size: 12px; color: var(--text-dim); }
+
+.card-size-field { min-width: 110px; }
+.card-size-slider {
+  width: 100px;
+  accent-color: var(--accent);
+  height: 30px;
+  cursor: pointer;
+}
 
 .edition-picker {
   position: relative;
@@ -284,11 +297,11 @@ select, input[type="text"], .deck-name-input {
 
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min-w), 1fr));
   gap: 14px;
 }
 
-.card-grid-compact { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.card-grid-compact { grid-template-columns: repeat(auto-fill, minmax(var(--card-min-w-compact), 1fr)); }
 
 .card-tile {
   background: var(--bg-elevated);
@@ -698,10 +711,11 @@ select, input[type="text"], .deck-name-input {
   .header-actions { flex-wrap: nowrap; gap: 6px; margin-left: auto; }
   .header-actions .btn { padding: 6px 8px; font-size: 12px; white-space: nowrap; }
 
-  /* Was pinned to 1 column (minmax(200px,...) doesn't fit twice at phone width) - shrink
-     the minimum so 2-3 tiles fit per row instead of one giant card at a time. */
-  .card-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-  .card-grid-compact { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  /* Was pinned to 1 column (200px doesn't fit twice at phone width) - shrink the default
+     minimum so 2-3 tiles fit per row instead of one giant card at a time. Only takes
+     effect while the user hasn't set an explicit zoom level (see :root comment above). */
+  :root { --card-min-w: 140px; --card-min-w-compact: 120px; }
+  .card-grid { gap: 10px; }
 
   /* Photo above the bio copy instead of squeezed beside it once wrapping kicks in. */
   .about-bio { flex-direction: column; align-items: center; text-align: center; }
@@ -739,7 +753,8 @@ select, input[type="text"], .deck-name-input {
   .deckbuilder-current { position: static; top: auto; }
 
   /* Landscape has plenty of width once the header moves into the sidebar - was still
-     capped at minmax(200px,...) which only fit 3 tiles; let it pack in more per row. */
-  .card-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-  .card-grid-compact { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); }
+     capped at the 200px desktop default, which only fit 3 tiles; pack in more per row
+     by default (still overridable by the zoom slider, same as the portrait default). */
+  :root { --card-min-w: 120px; --card-min-w-compact: 105px; }
+  .card-grid { gap: 10px; }
 }

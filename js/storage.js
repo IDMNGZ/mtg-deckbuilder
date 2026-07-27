@@ -17,6 +17,7 @@ var Storage = (function () {
   var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints2:";
   var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
   var KEY_MERGE_BY_NAME = NS + "mergeByName";
+  var KEY_CARD_GRID_SIZE = NS + "cardGridSize";
   var KEY_DROPBOX_AUTH = NS + "dropboxAuth";
   var KEY_LAST_SYNCED_AT = NS + "lastSyncedAt";
 
@@ -171,6 +172,22 @@ var Storage = (function () {
     writeJSON(KEY_MERGE_BY_NAME, !!value);
   }
 
+  // ---- Card grid zoom (Browse/Collection/Deck Builder pool tile size) ----
+  // null means "no preference yet" - the CSS media-query defaults apply untouched until
+  // the user actually moves the slider, at which point their choice sticks everywhere.
+
+  function getCardGridSize() {
+    return readJSON(KEY_CARD_GRID_SIZE, null);
+  }
+
+  function setCardGridSize(px) {
+    if (px == null) {
+      localStorage.removeItem(KEY_CARD_GRID_SIZE);
+    } else {
+      writeJSON(KEY_CARD_GRID_SIZE, px);
+    }
+  }
+
   // ---- Dropbox sync connection (optional; app works fully local without it) ----
 
   function getDropboxAuth() {
@@ -296,6 +313,8 @@ var Storage = (function () {
     setSelectedBrowseSets: setSelectedBrowseSets,
     getMergeByName: getMergeByName,
     setMergeByName: setMergeByName,
+    getCardGridSize: getCardGridSize,
+    setCardGridSize: setCardGridSize,
     getDropboxAuth: getDropboxAuth,
     setDropboxAuth: setDropboxAuth,
     clearDropboxAuth: clearDropboxAuth,
