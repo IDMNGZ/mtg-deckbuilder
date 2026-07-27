@@ -3,5 +3,5 @@
 // for the full setup steps (permission type, scopes, redirect URI). Leaving this blank
 // just means the Dropbox sync option won't be offered; the app still works fully local.
 var SYNC_CONFIG = {
-  DROPBOX_APP_KEY: "",
+  DROPBOX_APP_KEY: "hf18lxrdbubrggb",
 };
