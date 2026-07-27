@@ -27,6 +27,49 @@
     syncHeaderHeight(); // switching tabs can add/remove the scrollbar, which can rewrap the header
   }
 
+  // Merge Dupes and Card size used to be duplicated in every tab's own filter row (they're
+  // shared preferences, not tab-specific) - now there's exactly one of each, living in the
+  // header. Tabs learn about a merge-state change via "mtg:merge-changed" instead of a
+  // local button, so this stays decoupled from whichever tabs happen to exist.
+  function wireGlobalMergeToggle() {
+    var btn = document.getElementById("btn-merge-toggle-global");
+    function sync() { btn.classList.toggle("active", Storage.getMergeByName()); }
+    sync();
+    btn.addEventListener("click", function () {
+      Storage.setMergeByName(!Storage.getMergeByName());
+      sync();
+      document.dispatchEvent(new CustomEvent("mtg:merge-changed"));
+    });
+  }
+
+  // "Refresh" means something different depending on which tab is active - Browse
+  // refetches the selected edition(s), Collection/Deck Builder refetch owned+deck card
+  // data (identical for both, so one shared call covers them). Dispatching on the active
+  // tab here is what lets a single header button replace three separate ones.
+  function wireGlobalRefresh() {
+    var btn = document.getElementById("btn-refresh-global");
+    var originalLabel = btn.textContent;
+    function busy(label) { btn.disabled = true; btn.textContent = label; }
+    function done(label) {
+      btn.textContent = label;
+      setTimeout(function () { btn.textContent = originalLabel; btn.disabled = false; }, 2000);
+    }
+    btn.addEventListener("click", function () {
+      if (currentTab() === "browse") {
+        busy("Refreshing…");
+        BrowseUI.refresh().then(function () { done("Refreshed"); })
+          .catch(function (err) { console.error("Refresh failed:", err); done("Refresh failed"); });
+        return;
+      }
+      busy("Refreshing…");
+      DataSync.refreshAllSavedCardData().then(function (result) {
+        CollectionUI.refresh();
+        DeckBuilderUI.refresh(result);
+        done(result.total === 0 ? "Nothing to refresh" : "Refreshed " + result.updated + "/" + result.total);
+      }).catch(function (err) { console.error("Refresh failed:", err); done("Refresh failed"); });
+    });
+  }
+
   function wireHeaderActions() {
     document.getElementById("btn-export").addEventListener("click", function () {
       Storage.exportData();
@@ -133,6 +176,8 @@
     RulesUI.init();
     UiSyncPanel.init();
     wireHeaderActions();
+    wireGlobalMergeToggle();
+    wireGlobalRefresh();
     watchHeaderHeight();
     applyMobileFilterDefaults();
     wireCardSizeSliders();

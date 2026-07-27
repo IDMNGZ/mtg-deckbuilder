@@ -266,8 +266,11 @@ var BrowseUI = (function () {
     els.grid.appendChild(frag);
   }
 
-  function renderMergeToggle() {
-    els.mergeToggle.classList.toggle("active", Storage.getMergeByName());
+  // Re-fetches the selected edition(s) from Scryfall. Exposed so the header's single
+  // global Refresh button can call it when Browse is the active tab - "refresh" means
+  // something different per tab (Collection/Deck Builder refetch owned+deck data instead).
+  function refresh() {
+    return Promise.all(setBySelectionOrder().map(function (code) { return ensureSetLoaded(code, true); })).then(renderGrid);
   }
 
   function init() {
@@ -283,8 +286,6 @@ var BrowseUI = (function () {
     els.sort = document.getElementById("browse-sort");
     els.grid = document.getElementById("browse-grid");
     els.status = document.getElementById("browse-status");
-    els.refreshBtn = document.getElementById("btn-refresh-set");
-    els.mergeToggle = document.getElementById("btn-merge-toggle-browse");
     els.typeFilters = document.getElementById("browse-type-filters");
     els.colorFilters = document.getElementById("browse-color-filters");
     els.rarityFilters = document.getElementById("browse-rarity-filters");
@@ -307,22 +308,14 @@ var BrowseUI = (function () {
     els.filter.addEventListener("input", renderGrid);
     CardView.attachClearButton(els.filter, document.getElementById("browse-filter-clear"));
     els.sort.addEventListener("change", function () { state.sort = els.sort.value; renderGrid(); });
-    els.refreshBtn.addEventListener("click", function () {
-      Promise.all(setBySelectionOrder().map(function (code) { return ensureSetLoaded(code, true); })).then(renderGrid);
-    });
-    els.mergeToggle.addEventListener("click", function () {
-      Storage.setMergeByName(!Storage.getMergeByName());
-      renderMergeToggle();
-      renderGrid();
-    });
     // Keep checkboxes/merge state in sync when changed from the card modal's version cycler,
-    // or from the same shared toggle in Collection / the Deck Builder pool.
+    // or from the shared Merge Dupes toggle in the header.
     document.addEventListener("mtg:ownership-changed", renderGrid);
+    document.addEventListener("mtg:merge-changed", renderGrid);
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, renderGrid);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderGrid);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, renderGrid);
-    renderMergeToggle();
 
     Scryfall.fetchSets(false).then(function (sets) {
       state.allSets = sets;
@@ -341,11 +334,8 @@ var BrowseUI = (function () {
   }
 
   function activate() {
-    // The merge toggle is shared with Collection / the Deck Builder pool, so resync in
-    // case it was flipped there while this tab was in the background.
-    renderMergeToggle();
     renderGrid();
   }
 
-  return { init: init, activate: activate };
+  return { init: init, activate: activate, refresh: refresh };
 })();

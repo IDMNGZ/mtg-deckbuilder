@@ -54,8 +54,16 @@ var DeckBuilderUI = (function () {
     return card.name.toLowerCase().indexOf(needle) !== -1 || card.typeLine.toLowerCase().indexOf(needle) !== -1;
   }
 
-  function renderMergeToggle() {
-    els.mergeToggle.classList.toggle("active", Storage.getMergeByName());
+  // Called by the header's global Refresh button (via DataSync.refreshAllSavedCardData)
+  // once new Scryfall data for owned/decked cards is in. Patches the currently open
+  // deck's in-memory card refs too, not just what's in Storage - it may not have been
+  // saved yet, or was loaded before this refresh.
+  function applyRefresh(result) {
+    deck.cards.forEach(function (entry) {
+      if (result.freshMap[entry.card.id]) entry.card = result.freshMap[entry.card.id];
+    });
+    renderDeck();
+    renderPool();
   }
 
   function renderPool() {
@@ -223,8 +231,6 @@ var DeckBuilderUI = (function () {
     els.list = document.getElementById("deck-list");
     els.newBtn = document.getElementById("btn-new-deck");
     els.saveBtn = document.getElementById("btn-save-deck");
-    els.mergeToggle = document.getElementById("btn-merge-toggle-deckbuilder");
-    els.refreshBtn = document.getElementById("btn-refresh-deckbuilder");
     els.typeFilters = document.getElementById("deckbuilder-type-filters");
     els.colorFilters = document.getElementById("deckbuilder-color-filters");
     els.rarityFilters = document.getElementById("deckbuilder-rarity-filters");
@@ -237,30 +243,17 @@ var DeckBuilderUI = (function () {
     CardView.attachClearButton(els.poolFilter, document.getElementById("deck-pool-filter-clear"));
     els.newBtn.addEventListener("click", newDeck);
     els.saveBtn.addEventListener("click", saveDeck);
-    els.mergeToggle.addEventListener("click", function () {
-      Storage.setMergeByName(!Storage.getMergeByName());
-      renderMergeToggle();
-      renderPool();
-    });
-    // Keep the pool in sync when ownership is toggled from the card modal's version cycler.
+    // Keep the pool in sync when ownership is toggled from the card modal's version cycler,
+    // or when the shared Merge Dupes toggle in the header changes.
     document.addEventListener("mtg:ownership-changed", renderPool);
-    DataSync.wireRefreshButton(els.refreshBtn, function (result) {
-      // Patch the currently open deck's in-memory card refs too, not just what's in
-      // Storage - it may not have been saved yet, or was loaded before this refresh.
-      deck.cards.forEach(function (entry) {
-        if (result.freshMap[entry.card.id]) entry.card = result.freshMap[entry.card.id];
-      });
-      renderDeck();
-      renderPool();
-    });
+    document.addEventListener("mtg:merge-changed", renderPool);
 
     renderDeck();
   }
 
   function activate() {
-    renderMergeToggle();
     renderPool();
   }
 
-  return { init: init, activate: activate, loadDeck: loadDeck };
+  return { init: init, activate: activate, loadDeck: loadDeck, refresh: applyRefresh };
 })();

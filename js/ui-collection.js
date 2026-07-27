@@ -21,11 +21,6 @@ var CollectionUI = (function () {
     render();
   }
 
-  function renderMergeToggle() {
-    var merged = Storage.getMergeByName();
-    els.mergeToggle.classList.toggle("active", merged);
-  }
-
   function render() {
     var owned = Storage.getOwnedCards();
     var needle = els.filter.value.trim();
@@ -71,8 +66,6 @@ var CollectionUI = (function () {
     els.sort = document.getElementById("collection-sort");
     els.grid = document.getElementById("collection-grid");
     els.status = document.getElementById("collection-status");
-    els.mergeToggle = document.getElementById("btn-merge-toggle-collection");
-    els.refreshBtn = document.getElementById("btn-refresh-collection");
     els.typeFilters = document.getElementById("collection-type-filters");
     els.colorFilters = document.getElementById("collection-color-filters");
     els.rarityFilters = document.getElementById("collection-rarity-filters");
@@ -80,25 +73,20 @@ var CollectionUI = (function () {
     els.filter.addEventListener("input", render);
     CardView.attachClearButton(els.filter, document.getElementById("collection-filter-clear"));
     els.sort.addEventListener("change", function () { state.sort = els.sort.value; render(); });
-    els.mergeToggle.addEventListener("click", function () {
-      Storage.setMergeByName(!Storage.getMergeByName());
-      renderMergeToggle();
-      render();
-    });
-    DataSync.wireRefreshButton(els.refreshBtn, function () { render(); });
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, render);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, render);
 
-    // Keep this list in sync when ownership is toggled from the card modal's version cycler.
+    // Keep this list in sync when ownership is toggled from the card modal's version cycler,
+    // or when the shared Merge Dupes toggle / a global Refresh happens from the header.
     document.addEventListener("mtg:ownership-changed", render);
+    document.addEventListener("mtg:merge-changed", render);
   }
 
   function activate() {
-    renderMergeToggle();
     render();
   }
 
-  return { init: init, activate: activate };
+  return { init: init, activate: activate, refresh: render };
 })();
