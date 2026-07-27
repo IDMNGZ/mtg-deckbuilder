@@ -63,17 +63,6 @@
             <button type="button" id="browse-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
           </div>
         </label>
-        <label class="field">
-          Sort by
-          <select id="browse-sort">
-            <option value="">Default order</option>
-            <option value="cmc-asc">Mana Cost: Low → High</option>
-            <option value="cmc-desc">Mana Cost: High → Low</option>
-          </select>
-        </label>
-        <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch the selected edition(s) from Scryfall">Refresh</button>
-        <button id="btn-merge-toggle-browse" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
-        <span id="browse-status" class="status-text"></span>
         <label class="field field-grow global-search-field">
           Search any card by name (all editions)
           <div class="input-clear-wrap">
@@ -84,9 +73,25 @@
       </div>
       <div id="edition-chips" class="edition-chips"></div>
       <hr class="controls-divider">
-      <div id="browse-type-filters" class="type-filter-row"></div>
-      <div id="browse-color-filters" class="type-filter-row"></div>
-      <div id="browse-rarity-filters" class="type-filter-row"></div>
+      <details class="filter-details" open>
+        <summary class="filter-summary">Sort / Filters / Options</summary>
+        <div class="browse-controls filter-details-controls">
+          <label class="field">
+            Sort by
+            <select id="browse-sort">
+              <option value="">Default order</option>
+              <option value="cmc-asc">Mana Cost: Low → High</option>
+              <option value="cmc-desc">Mana Cost: High → Low</option>
+            </select>
+          </label>
+          <button id="btn-refresh-set" class="btn btn-ghost" title="Re-fetch the selected edition(s) from Scryfall">Refresh</button>
+          <button id="btn-merge-toggle-browse" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
+          <span id="browse-status" class="status-text"></span>
+        </div>
+        <div id="browse-type-filters" class="type-filter-row"></div>
+        <div id="browse-color-filters" class="type-filter-row"></div>
+        <div id="browse-rarity-filters" class="type-filter-row"></div>
+      </details>
     </div>
     <div id="browse-grid" class="card-grid"></div>
   </section>
@@ -101,22 +106,27 @@
             <button type="button" id="collection-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
           </div>
         </label>
-        <label class="field">
-          Sort by
-          <select id="collection-sort">
-            <option value="">Default order</option>
-            <option value="cmc-asc">Mana Cost: Low → High</option>
-            <option value="cmc-desc">Mana Cost: High → Low</option>
-          </select>
-        </label>
-        <button id="btn-merge-toggle-collection" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
-        <button id="btn-refresh-collection" class="btn btn-ghost" title="Re-fetch the latest Scryfall data for your owned cards and decks">Refresh</button>
-        <span id="collection-status" class="status-text"></span>
       </div>
       <hr class="controls-divider">
-      <div id="collection-type-filters" class="type-filter-row"></div>
-      <div id="collection-color-filters" class="type-filter-row"></div>
-      <div id="collection-rarity-filters" class="type-filter-row"></div>
+      <details class="filter-details" open>
+        <summary class="filter-summary">Sort / Filters / Options</summary>
+        <div class="browse-controls filter-details-controls">
+          <label class="field">
+            Sort by
+            <select id="collection-sort">
+              <option value="">Default order</option>
+              <option value="cmc-asc">Mana Cost: Low → High</option>
+              <option value="cmc-desc">Mana Cost: High → Low</option>
+            </select>
+          </label>
+          <button id="btn-merge-toggle-collection" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge duplicate printings</button>
+          <button id="btn-refresh-collection" class="btn btn-ghost" title="Re-fetch the latest Scryfall data for your owned cards and decks">Refresh</button>
+          <span id="collection-status" class="status-text"></span>
+        </div>
+        <div id="collection-type-filters" class="type-filter-row"></div>
+        <div id="collection-color-filters" class="type-filter-row"></div>
+        <div id="collection-rarity-filters" class="type-filter-row"></div>
+      </details>
     </div>
     <div id="collection-grid" class="card-grid"></div>
   </section>
@@ -170,7 +180,10 @@
         <span id="rules-status" class="status-text"></span>
       </div>
       <hr class="controls-divider">
-      <div id="rules-set-filters" class="type-filter-row"></div>
+      <details class="filter-details" open>
+        <summary class="filter-summary">Filter by Set</summary>
+        <div id="rules-set-filters" class="type-filter-row"></div>
+      </details>
     </div>
     <p class="rules-disclaimer">Fan-made quick reference summarizing common rules and keyword mechanics - not a reproduction of Wizards of the Coast's official Comprehensive Rules. Era groupings are approximate; consult the official Comprehensive Rules for authoritative rulings.</p>
     <div id="rules-sections"></div>

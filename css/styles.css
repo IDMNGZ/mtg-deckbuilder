@@ -215,6 +215,32 @@ select, input[type="text"], .deck-name-input {
 .edition-row:hover { background: var(--bg-input); }
 .edition-row input { width: 15px; height: 15px; flex-shrink: 0; }
 
+.filter-details { margin-bottom: 4px; }
+
+.filter-summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  user-select: none;
+}
+.filter-summary::-webkit-details-marker { display: none; }
+.filter-summary::before {
+  content: "\25B8";
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+.filter-details[open] > .filter-summary::before { transform: rotate(90deg); }
+.filter-summary:hover { border-color: var(--accent); color: var(--text); }
+
 .type-filter-row {
   display: flex;
   flex-wrap: wrap;
@@ -483,8 +509,8 @@ select, input[type="text"], .deck-name-input {
 .about-bio { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .about-photo-placeholder,
 .about-photo {
-  width: 126px;
-  height: 126px;
+  width: 164px;
+  height: 164px;
   border-radius: 50%;
   border: 2px solid var(--gold);
   flex-shrink: 0;
@@ -604,4 +630,91 @@ select, input[type="text"], .deck-name-input {
 @media (max-width: 900px) {
   .deckbuilder-layout { grid-template-columns: 1fr; }
   .deckbuilder-current { position: static; }
+}
+
+/* Phone (either orientation): the controls row's fixed min-widths force nearly every
+   field onto its own line, and the edition-chip list wraps to as many rows as there are
+   selected editions - both are unbounded height risks the "dashboard" budget can't absorb. */
+@media (max-width: 600px) and (orientation: portrait), (orientation: landscape) and (max-height: 500px) {
+  .browse-controls { gap: 8px 10px; }
+  .browse-controls .field,
+  .browse-controls .field-grow,
+  .browse-controls .edition-picker {
+    min-width: 140px;
+    flex: 1 1 140px;
+  }
+  .global-search-field {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    flex-basis: 100%;
+  }
+  .edition-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-top: 4px;
+  }
+  .edition-chip { flex-shrink: 0; }
+
+  .sticky-controls { padding-top: 6px; padding-bottom: 2px; }
+  .browse-controls { margin-bottom: 6px; }
+  .controls-divider { margin: 4px 0 8px; }
+  .filter-summary { margin-bottom: 6px; padding: 5px 9px; font-size: 11px; }
+  .filter-details[open] > .filter-summary { margin-bottom: 8px; }
+  .type-filter-row { margin-bottom: 8px; }
+  .field { gap: 2px; }
+  .field > *:first-child { font-size: 11px; }
+}
+
+/* Phone portrait: collapse the header into a single compact, horizontally-scrollable
+   bar pinned to the top so the nav/action "dashboard" stops eating the viewport. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .app-header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .app-header h1 { display: none; }
+  .tabs { flex-wrap: nowrap; gap: 6px; }
+  .tab-link { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+  .header-actions { flex-wrap: nowrap; gap: 6px; margin-left: auto; }
+  .header-actions .btn { padding: 6px 8px; font-size: 12px; white-space: nowrap; }
+}
+
+/* Phone landscape: the header has almost no vertical room to work with, so it becomes
+   a fixed left sidebar instead of fighting the card grid for height. --header-h (used
+   by .sticky-controls/.deckbuilder-current for portrait/desktop) no longer applies once
+   the header is a full-height sidebar, so their top offsets are hardcoded here instead. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 130px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 8px;
+    overflow-y: auto;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    z-index: 20;
+  }
+  .app-header h1 { font-size: 13px; }
+  .tabs { flex-direction: column; gap: 4px; }
+  .tab-link { text-align: center; padding: 6px 8px; font-size: 12px; }
+  .header-actions { flex-direction: column; gap: 4px; }
+  .header-actions .btn { font-size: 11px; padding: 5px 6px; }
+
+  #app { margin: 0 0 0 130px; max-width: none; padding: 12px 14px 30px; }
+
+  .sticky-controls { top: 0; }
+  .deckbuilder-current { position: static; top: auto; }
 }

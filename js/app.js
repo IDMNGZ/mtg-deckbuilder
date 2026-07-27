@@ -74,6 +74,18 @@
     window.addEventListener("load", syncHeaderHeight);
   }
 
+  // The type/color/rarity filter rows ship <details open> in the HTML so they're visible
+  // by default on desktop. On phones that alone can be a big chunk of the screen, so start
+  // them collapsed there - this only sets the initial state, it won't fight a user's toggle.
+  function applyMobileFilterDefaults() {
+    var isCompact = window.matchMedia(
+      "(max-width: 600px) and (orientation: portrait), (orientation: landscape) and (max-height: 500px)"
+    ).matches;
+    if (isCompact) {
+      document.querySelectorAll(".filter-details").forEach(function (d) { d.open = false; });
+    }
+  }
+
   function init() {
     CardView.initModal();
     BrowseUI.init();
@@ -84,6 +96,7 @@
     UiSyncPanel.init();
     wireHeaderActions();
     watchHeaderHeight();
+    applyMobileFilterDefaults();
 
     // A pull replacing local data (from another device's changes) needs whatever tab is
     // currently visible to re-render from the fresh data.
