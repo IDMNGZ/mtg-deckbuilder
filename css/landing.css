@@ -7,7 +7,13 @@ html, body {
 
 body.landing-page {
   min-height: 100vh;
-  background: #0a0c14 url('../card-back-bg.svg') center / cover no-repeat;
+  background-color: #0a0c14;
+  /* Set by js/landing-backgrounds.js before paint; falls back to the original
+     artwork if that script hasn't run yet (or has nothing in its list). */
+  background-image: var(--landing-bg, url('../card-back-bg.svg'));
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
   font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   display: flex;
   flex-direction: column;

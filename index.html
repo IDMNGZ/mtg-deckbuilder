@@ -11,6 +11,21 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="stylesheet" href="css/landing.css">
+<script src="js/landing-backgrounds.js"></script>
+<script>
+  // Runs before the body paints, so there's no flash of the fallback background
+  // before swapping to the randomly chosen one.
+  (function () {
+    if (typeof LANDING_BACKGROUNDS === "undefined" || LANDING_BACKGROUNDS.length === 0) return;
+    var choice = LANDING_BACKGROUNDS[Math.floor(Math.random() * LANDING_BACKGROUNDS.length)];
+    // Resolve to an absolute URL against this page's location before handing it to CSS -
+    // a relative url() inside a custom property resolves against whichever stylesheet
+    // consumes it (css/landing.css), not where the value was set, which would otherwise
+    // silently point at the wrong folder.
+    var absoluteUrl = new URL(choice, location.href).href;
+    document.documentElement.style.setProperty("--landing-bg", "url('" + absoluteUrl + "')");
+  })();
+</script>
 </head>
 <body class="landing-page">
   <main>
