@@ -752,6 +752,12 @@ select, input[type="text"], .deck-name-input {
   .sticky-controls { top: 0; }
   .deckbuilder-current { position: static; top: auto; }
 
+  /* The controls block used to stretch across the whole (now-widened) content area,
+     leaving big empty gaps to the right of each short pill row. Capping its width makes
+     it wrap the same compact way the portrait layout already does, instead of spreading
+     out just because the space is there. */
+  .sticky-controls { max-width: 460px; }
+
   /* Landscape has plenty of width once the header moves into the sidebar - was still
      capped at the 200px desktop default, which only fit 3 tiles; pack in more per row
      by default (still overridable by the zoom slider, same as the portrait default). */
