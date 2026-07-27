@@ -23,6 +23,8 @@
     <a href="#deckbuilder" class="tab-link" data-tab="deckbuilder">Deck Builder</a>
     <a href="#decks" class="tab-link" data-tab="decks">My Decks</a>
     <a href="#rules" class="tab-link" data-tab="rules">Rules</a>
+    <a href="#howto" class="tab-link" data-tab="howto">How To Use</a>
+    <a href="#about" class="tab-link" data-tab="about">About</a>
   </nav>
   <div class="header-actions">
     <button id="btn-sync" class="btn btn-ghost" title="Sync your data across devices">Sync</button>
@@ -172,6 +174,233 @@
     </div>
     <p class="rules-disclaimer">Fan-made quick reference summarizing common rules and keyword mechanics - not a reproduction of Wizards of the Coast's official Comprehensive Rules. Era groupings are approximate; consult the official Comprehensive Rules for authoritative rulings.</p>
     <div id="rules-sections"></div>
+  </section>
+
+  <section id="tab-howto" class="tab-panel">
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Getting Started</h2>
+        <p>What this app does and how the tabs fit together.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">The basic idea</div>
+          <ul class="rule-bullets">
+            <li>Browse cards and check off the ones you physically own.</li>
+            <li>Your checked-off cards make up your Collection.</li>
+            <li>Deck Builder only lets you use cards you've checked off - it's a deck built from what you actually have.</li>
+            <li>Everything saves automatically to this browser, and optionally syncs to your own Dropbox account across devices.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Browse</h2>
+        <p>Find cards across any edition (or all of them) and mark ownership.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Picking editions</div>
+          <ul class="rule-bullets">
+            <li>Type into "Editions" to search set names (e.g. "Lord of the Rings"), then check the boxes for whichever editions you want to browse - you can select several at once.</li>
+            <li>"Select all matches" checks every edition currently matching your search in one click.</li>
+            <li>Your edition selection is remembered next time you open the app.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Don't know the edition?</div>
+          <ul class="rule-bullets">
+            <li>Use "Search any card by name (all editions)" instead - it searches every edition at once, independent of what's selected above.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Narrowing the list</div>
+          <ul class="rule-bullets">
+            <li>"Filter cards" searches by name or type within whatever's currently shown.</li>
+            <li>Type, color, and rarity buttons combine as filters - click any combination.</li>
+            <li>"Sort by" reorders by mana cost.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Checking off ownership</div>
+          <ul class="rule-bullets">
+            <li>Check "I own this" on any card tile - ownership is tracked per specific printing, so the same card from two different sets is checked separately.</li>
+            <li>Tap a card's image to open it larger, and use the arrows to page through every printing of that card if you're not sure which edition your physical copy is from.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Merge duplicate printings</div>
+          <ul class="rule-bullets">
+            <li>If you've selected several related editions, the same card can show up once per edition it was reprinted in.</li>
+            <li>Turn on "Merge duplicate printings" to collapse those into one tile - check ownership on the exact printing via the image/arrows instead.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Collection</h2>
+        <p>Everything you've checked off, in one place.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Reviewing what you own</div>
+          <ul class="rule-bullets">
+            <li>Shows every card you've checked off, across every edition, with the same search/type/color/rarity filters as Browse.</li>
+            <li>Unchecking "I own this" here removes it from your collection immediately.</li>
+            <li>"Merge duplicate printings" works the same way as in Browse - merged tiles show "Remove all" to drop every printing of that card at once.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Deck Builder</h2>
+        <p>Build a deck from cards you actually own, with live stats.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Adding cards</div>
+          <ul class="rule-bullets">
+            <li>The left pool only shows owned cards - search it to find what you want, then click "Add to deck."</li>
+            <li>Non-basic-land cards cap at 4 copies; basic lands are unlimited.</li>
+            <li>Click the &minus; next to a card in your deck list to remove one copy.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Reading the stats</div>
+          <ul class="rule-bullets">
+            <li>Mana curve and average CMC exclude lands, since a land's cost doesn't reflect deck aggression.</li>
+            <li>Color balance counts colored mana symbols across your deck; colorless cards (including lands) count separately.</li>
+            <li>Types shows a breakdown of card types in the deck.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Saving</div>
+          <ul class="rule-bullets">
+            <li>Give the deck a name, then click "Save Deck." Saving again with the same deck open updates it; "New" starts a fresh one.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>My Decks</h2>
+        <p>Manage everything you've saved.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Managing decks</div>
+          <ul class="rule-bullets">
+            <li>"Open" loads a deck back into the Deck Builder to keep editing it.</li>
+            <li>"Delete" removes it permanently - there's a confirmation before it's gone.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Rules</h2>
+        <p>A quick-reference glossary, not part of your collection.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Using it</div>
+          <ul class="rule-bullets">
+            <li>Browse basic rules, evergreen keywords, game formats, and keyword mechanics grouped by era.</li>
+            <li>Toggle which sections show with the buttons at the top, or search for a specific term.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Syncing Your Data</h2>
+        <p>Keep your collection and decks available on more than one device.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Automatic sync (Dropbox)</div>
+          <ul class="rule-bullets">
+            <li>Click "Sync" in the header, then "Connect Dropbox," and log into your own Dropbox account.</li>
+            <li>Your data is written to a private folder Dropbox creates just for this app - it's not visible to anyone else, including other people using this same site.</li>
+            <li>Connect the same Dropbox account on another device (like your phone) and it'll pull your data down automatically.</li>
+            <li>Changes push a few seconds after you make them, and pull whenever you switch back to the tab.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Manual backup (no account needed)</div>
+          <ul class="rule-bullets">
+            <li>"Export" in the header downloads a JSON file of your owned cards and decks.</li>
+            <li>"Import" on another device/browser loads that file back in, merging it with whatever's already there.</li>
+            <li>Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Using it on your phone</div>
+          <ul class="rule-bullets">
+            <li>Open this site in Safari (iOS) and use Share &rarr; Add to Home Screen for a full-screen, app-like icon.</li>
+            <li>Connect Dropbox there too to keep your phone and computer in sync.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <section id="tab-about" class="tab-panel">
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>About</h2>
+        <p>Magic: The Gathering Deck Builder</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Creator</div>
+          <ul class="rule-bullets">
+            <li>Created by Ian Dominguez.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Version</div>
+          <ul class="rule-bullets">
+            <li id="about-version">v0.1.0</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">How it's built</div>
+          <ul class="rule-bullets">
+            <li>A static, no-backend web app - your collection and deck data stay in your own browser (or your own Dropbox, if you connect it), never on any server this app controls.</li>
+            <li>Card data and images are provided by the <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall API</a>.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Legal / Disclaimer</h2>
+        <p>The important fine print.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <ul class="rule-bullets">
+            <li>This is an unofficial, fan-made tool. It is not produced, endorsed, supported, or affiliated with Wizards of the Coast.</li>
+            <li>Magic: The Gathering, its card names, mana symbols, rules text, and artwork are trademarks and copyrights of Wizards of the Coast LLC, a subsidiary of Hasbro, Inc.</li>
+            <li>Card images and data displayed here are provided by Scryfall, used under Wizards of the Coast's Fan Content Policy, which permits fan-made tools like this one to display official card information for the purpose of identifying and using cards.</li>
+            <li>Decorative artwork elsewhere in this app (such as the landing page background) is original work created for this app, not a reproduction of any Wizards of the Coast artwork or trade dress.</li>
+            <li>This app is free, does not sell anything, and does not claim ownership of any Magic: The Gathering content.</li>
+            <li>Your collection and deck data belongs to you - it's stored locally in your browser and, optionally, in your own personal Dropbox account. The people who built this app cannot see it.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
   </section>
 
 </main>
