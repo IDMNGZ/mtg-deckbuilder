@@ -483,8 +483,8 @@ select, input[type="text"], .deck-name-input {
 .about-bio { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .about-photo-placeholder,
 .about-photo {
-  width: 84px;
-  height: 84px;
+  width: 126px;
+  height: 126px;
   border-radius: 50%;
   border: 2px solid var(--gold);
   flex-shrink: 0;
@@ -499,7 +499,9 @@ select, input[type="text"], .deck-name-input {
   font-weight: 700;
 }
 .about-photo { object-fit: cover; display: block; }
-.about-bio-text { flex: 1; min-width: 200px; margin: 0; font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+.about-bio-text { flex: 1; min-width: 200px; font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+.about-bio-text p { margin: 0 0 12px; }
+.about-bio-text p:last-child { margin-bottom: 0; }
 
 .about-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .about-links a { color: var(--accent); text-decoration: none; font-size: 14px; }
