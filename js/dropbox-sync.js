@@ -183,13 +183,23 @@ var DropboxSync = (function () {
     return ensureFreshToken().then(function (token) {
       return fetch(API_ROOT + "/users/get_current_account", {
         method: "POST",
+        // Every Dropbox API call needs a body, even parameterless ones like this ("null" is
+        // the documented convention) - omitting it entirely gets rejected as a bad request.
         headers: { Authorization: "Bearer " + token, "Content-Type": "application/json" },
+        body: "null",
       });
-    }).then(function (res) { return res.json(); }).then(function (info) {
+    }).then(function (res) {
+      if (!res.ok) return res.text().then(function (t) { throw new Error(t); });
+      return res.json();
+    }).then(function (info) {
       var auth = Storage.getDropboxAuth();
       if (auth) { auth.accountEmail = info.email; Storage.setDropboxAuth(auth); }
       updateState({ accountEmail: info.email });
-    }).catch(function () { /* cosmetic only - not worth failing the connection over */ });
+    }).catch(function (err) {
+      // Cosmetic only (doesn't affect actual syncing) - log it so it's diagnosable, but
+      // don't surface it as a user-facing sync error.
+      console.error("Dropbox: couldn't fetch account email:", err);
+    });
   }
 
   // ---- Push / Pull ----

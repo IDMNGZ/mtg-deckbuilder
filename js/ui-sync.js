@@ -22,7 +22,7 @@ var UiSyncPanel = (function () {
     // they must always be able to see status/errors and disconnect, even if this
     // deployment's App Key was later removed or changed.
     if (status.connected) {
-      html += "<div class='sync-status-row'><span>Connected as <strong>" + CardView.escapeHtml(status.accountEmail || "…") + "</strong></span></div>";
+      html += "<div class='sync-status-row'><span>" + (status.accountEmail ? "Connected as <strong>" + CardView.escapeHtml(status.accountEmail) + "</strong>" : "Connected") + "</span></div>";
       html += "<div class='sync-status-row'><span>Last synced: " + formatTime(status.lastSyncedAt) + (status.syncing ? " (syncing…)" : "") + "</span></div>";
       if (status.lastError) html += "<div class='sync-error'>" + CardView.escapeHtml(status.lastError) + "</div>";
       html += "<div class='sync-actions'>";
