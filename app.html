@@ -27,6 +27,12 @@
     <a href="#about" class="tab-link" data-tab="about">About</a>
   </nav>
   <div class="header-actions">
+    <button id="btn-merge-toggle-deckbuilder" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge Dupes</button>
+    <button id="btn-refresh-deckbuilder" class="btn btn-ghost" title="Re-fetch the latest Scryfall data for your owned cards and decks">Refresh</button>
+    <label class="field card-size-field">
+      Card size
+      <input type="range" class="card-size-slider" min="100" max="260" step="10" title="Zoom the card grid in or out">
+    </label>
     <button id="btn-sync" class="btn btn-ghost" title="Sync your data across devices">Sync</button>
     <button id="btn-export" class="btn btn-ghost" title="Download your owned cards + decks as a JSON backup">Export</button>
     <button id="btn-import" class="btn btn-ghost" title="Load a JSON backup">Import</button>
@@ -156,14 +162,6 @@
           </div>
           <hr class="controls-divider">
           <div class="filter-panel">
-            <div class="browse-controls filter-details-controls">
-              <button id="btn-merge-toggle-deckbuilder" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge Dupes</button>
-              <button id="btn-refresh-deckbuilder" class="btn btn-ghost" title="Re-fetch the latest Scryfall data for your owned cards and decks">Refresh</button>
-              <label class="field card-size-field">
-                Card size
-                <input type="range" class="card-size-slider" min="100" max="260" step="10" title="Zoom the card grid in or out">
-              </label>
-            </div>
             <div class="filter-pill-group">
               <div id="deckbuilder-color-filters" class="type-filter-row"></div>
               <div id="deckbuilder-type-filters" class="type-filter-row"></div>
@@ -171,7 +169,7 @@
             </div>
           </div>
         </div>
-        <div id="deck-pool-grid" class="card-grid card-grid-compact"></div>
+        <div id="deck-pool-grid" class="card-grid"></div>
       </div>
       <div class="deckbuilder-current">
         <div class="deck-meta">

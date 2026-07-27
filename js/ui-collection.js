@@ -14,6 +14,7 @@ var CollectionUI = (function () {
   }
 
   function removeAllPrintings(name) {
+    if (!window.confirm('Remove all owned printings of "' + name + '"? This cannot be undone.')) return;
     Storage.getOwnedCards().filter(function (c) { return c.name === name; }).forEach(function (c) {
       Storage.setOwned(c, false);
     });

@@ -439,20 +439,30 @@ select, input[type="text"], .deck-name-input {
 
 /* Deck Builder */
 
+/* Was a 1.3fr/1fr side-by-side split - the deck-in-progress panel is much shorter than
+   the card pool, which left a lot of dead space below it once the pool kept going. Now
+   it sits full-width above the pool instead (both at any screen size, not just mobile),
+   and the pool's own card grid matches Browse/Collection's sizing (see #deck-pool-grid
+   dropping the .card-grid-compact class in app.html) now that it has the full width. */
 .deckbuilder-layout {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1fr;
   gap: 20px;
-  align-items: start;
 }
 
+/* Grid items default to an implicit min-width based on their content's min-content size -
+   nested "auto-fill" grids (the card pool) can push that surprisingly high, which forces
+   the whole single-column layout wider than the viewport. min-width: 0 lets both panes
+   actually shrink to the column they were given instead. */
+.deckbuilder-pool, .deckbuilder-current { min-width: 0; }
+
 .deckbuilder-current {
+  order: -1;
+  max-width: 760px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;
-  position: sticky;
-  top: calc(var(--header-h) + 10px);
 }
 
 .deck-meta { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -694,14 +704,6 @@ select, input[type="text"], .deck-name-input {
 .sync-error { font-size: 12px; color: var(--danger); margin-bottom: 10px; }
 .sync-actions { display: flex; gap: 8px; margin-top: 10px; }
 
-@media (max-width: 900px) {
-  .deckbuilder-layout { grid-template-columns: 1fr; }
-  .deckbuilder-current { position: static; }
-  /* Single-column layout otherwise follows DOM order (pool markup comes first), which
-     buried the deck-in-progress view below the entire card pool - flip it to the top. */
-  .deckbuilder-current { order: -1; }
-}
-
 /* Phone (either orientation): the controls row's fixed min-widths force nearly every
    field onto its own line, and the edition-chip list wraps to as many rows as there are
    selected editions - both are unbounded height risks the "dashboard" budget can't absorb. */
@@ -800,8 +802,8 @@ select, input[type="text"], .deck-name-input {
 
 /* Phone landscape: the header has almost no vertical room to work with, so it becomes
    a fixed left sidebar instead of fighting the card grid for height. --header-h (used
-   by .sticky-controls/.deckbuilder-current for portrait/desktop) no longer applies once
-   the header is a full-height sidebar, so their top offsets are hardcoded here instead. */
+   by .sticky-controls for portrait/desktop) no longer applies once the header is a
+   full-height sidebar, so its top offset is hardcoded here instead. */
 @media (orientation: landscape) and (max-height: 500px) {
   .app-header {
     position: fixed;
@@ -827,7 +829,6 @@ select, input[type="text"], .deck-name-input {
   #app { margin: 0 0 0 130px; max-width: none; padding: 12px 14px 30px; }
 
   .sticky-controls { top: 0; }
-  .deckbuilder-current { position: static; top: auto; }
 
   /* Landscape has plenty of width once the header moves into the sidebar - was still
      capped at the 200px desktop default, which only fit 3 tiles; pack in more per row
