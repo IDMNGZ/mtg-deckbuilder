@@ -18,6 +18,7 @@
     <a href="#rules" class="tab-link" data-tab="rules">Rules</a>
   </nav>
   <div class="header-actions">
+    <button id="btn-sync" class="btn btn-ghost" title="Sync your data across devices">Sync</button>
     <button id="btn-export" class="btn btn-ghost" title="Download your owned cards + decks as a JSON backup">Export</button>
     <button id="btn-import" class="btn btn-ghost" title="Load a JSON backup">Import</button>
     <input type="file" id="file-import" accept="application/json" hidden>
@@ -178,11 +179,23 @@
   </div>
 </div>
 
+<div id="sync-modal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content sync-modal-content">
+    <button id="sync-modal-close" class="modal-close">&times;</button>
+    <h2>Sync your data</h2>
+    <div id="sync-panel-body"></div>
+  </div>
+</div>
+
 <script src="js/storage.js"></script>
 <script src="js/scryfall.js"></script>
 <script src="js/card-view.js"></script>
 <script src="js/card-filters.js"></script>
 <script src="js/data-sync.js"></script>
+<script src="js/sync-config.js"></script>
+<script src="js/dropbox-sync.js"></script>
+<script src="js/ui-sync.js"></script>
 <script src="js/rules-data.js"></script>
 <script src="js/ui-browse.js"></script>
 <script src="js/ui-collection.js"></script>

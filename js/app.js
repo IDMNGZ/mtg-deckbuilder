@@ -44,6 +44,7 @@
       reader.onload = function () {
         try {
           var result = Storage.importData(reader.result, "merge");
+          DropboxSync.push(); // no-op if not connected; otherwise carries the import to other devices
           window.alert("Imported: " + result.owned + " owned cards, " + result.decks + " decks.");
           showTab(currentTab());
         } catch (err) {
@@ -80,8 +81,14 @@
     DeckBuilderUI.init();
     DecksUI.init();
     RulesUI.init();
+    UiSyncPanel.init();
     wireHeaderActions();
     watchHeaderHeight();
+
+    // A pull replacing local data (from another device's changes) needs whatever tab is
+    // currently visible to re-render from the fresh data.
+    document.addEventListener("mtg:remote-sync-applied", function () { showTab(currentTab()); });
+    DropboxSync.handleRedirectIfPresent().then(function () { DropboxSync.init(); });
 
     window.addEventListener("hashchange", function () { showTab(currentTab()); });
     showTab(currentTab());

@@ -21,14 +21,37 @@ There's no CI and nothing to build — pushing to `main` is enough, GitHub Pages
 
 ## How saves work
 
-**Each person's data lives only in their own browser** (`localStorage`), scoped to this site. There's no shared account system or server — if you and a friend both visit the same GitHub Pages URL, you each see and edit only your own collection and decks, independently, with no setup required.
+**Each person's data lives only in their own browser** (`localStorage`), scoped to this site, by default. There's no shared account system or server — if you and a friend both visit the same GitHub Pages URL, you each see and edit only your own collection and decks, independently, with no setup required.
 
-This means:
+This means, unless you set up syncing (below):
 - Clearing your browser's site data for this page will erase your collection/decks.
-- Your data doesn't automatically sync between your phone and your laptop, or between browsers.
-- To back up or move your data, use the **Export** / **Import** buttons in the header — Export downloads a JSON file of your owned cards and decks; Import reads one back in (merging with whatever's already there).
+- Your data doesn't automatically move between your phone and your laptop, or between browsers.
 
 Card data itself (the set list and card details fetched from Scryfall) is cached locally too, so you're not re-downloading it on every visit — there's a "Refresh" button in the Browse tab if Scryfall's data changes and you want the latest.
+
+## Syncing across devices
+
+Click **Sync** in the header. There are two independent options — pick whichever suits you, or neither:
+
+**Manual backup (works immediately, no setup):** use **Export** / **Import** in the header. Export downloads a JSON file of your owned cards and decks; Import reads one back in (merged with whatever's already there). Drop the exported file into a folder synced by iCloud Drive, Dropbox, OneDrive, etc. and you can Import it on another device — it's just a plain file, so it goes wherever you decide to put it.
+
+**Automatic sync via Dropbox (one-time setup, then hands-off):** each person connects their *own* Dropbox account from the Sync panel. Your data is written to a private "App folder" Dropbox creates just for this app — invisible to the rest of your Dropbox and to anyone else using this same site. Every device you connect to the same Dropbox account stays in sync automatically (pushes shortly after you make a change, pulls when you switch back to the tab). This is opt-in per person: friends who don't connect anything just keep using local-only storage as normal.
+
+Dropbox sync needs a one-time setup **by whoever is hosting this site** (not by each user) before the Connect button will work:
+
+1. Go to the [Dropbox App Console](https://www.dropbox.com/developers/apps) and click **Create app**.
+2. Choose **Scoped access**, then **App folder** access type (not "Full Dropbox" — App folder keeps this sandboxed to its own folder). Give it any name.
+3. On the app's **Permissions** tab, enable `files.content.write` and `files.content.read`, then click Submit.
+4. On the **Settings** tab, under **OAuth 2** → **Redirect URIs**, add the exact URL this site is hosted at (e.g. `https://<your-username>.github.io/<repo-name>/`). Add `http://localhost:8090/index.html` too (or whatever local URL you test with) if you want Dropbox sign-in to work while testing locally.
+5. Copy the **App key** from the Settings tab into `js/sync-config.js`:
+   ```js
+   var SYNC_CONFIG = {
+     DROPBOX_APP_KEY: "paste-your-app-key-here",
+   };
+   ```
+6. Commit and push. The Sync panel will now offer "Connect Dropbox" to anyone who visits.
+
+Nothing here needs a paid Dropbox plan or a backend server — the whole flow (including token refresh) runs from the static site itself. The only real limitation: if you edit the same account's data on two devices before either has a chance to sync, the one that syncs last wins (no merge of concurrent edits) — in practice this only matters if you're using two devices at once without ever reopening the tab in between.
 
 ## Notes on how ownership and decks work
 

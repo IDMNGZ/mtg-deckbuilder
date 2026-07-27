@@ -17,6 +17,14 @@ var Storage = (function () {
   var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints2:";
   var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
   var KEY_MERGE_BY_NAME = NS + "mergeByName";
+  var KEY_DROPBOX_AUTH = NS + "dropboxAuth";
+  var KEY_LAST_SYNCED_AT = NS + "lastSyncedAt";
+
+  // Fired whenever owned cards or decks are mutated (not on cache/setting writes), so a
+  // sync module can listen without every UI module needing to know sync exists.
+  function dispatchDataChanged() {
+    document.dispatchEvent(new CustomEvent("mtg:data-changed"));
+  }
 
   function readJSON(key, fallback) {
     try {
@@ -61,6 +69,7 @@ var Storage = (function () {
       delete map[card.id];
     }
     writeJSON(KEY_OWNED, map);
+    dispatchDataChanged();
   }
 
   function getOwnedIds() {
@@ -124,12 +133,14 @@ var Storage = (function () {
       decks.push(deck);
     }
     writeJSON(KEY_DECKS, decks);
+    dispatchDataChanged();
     return deck;
   }
 
   function deleteDeck(deckId) {
     var decks = getDecks().filter(function (d) { return d.id !== deckId; });
     writeJSON(KEY_DECKS, decks);
+    dispatchDataChanged();
   }
 
   function makeDeckId() {
@@ -158,6 +169,28 @@ var Storage = (function () {
 
   function setMergeByName(value) {
     writeJSON(KEY_MERGE_BY_NAME, !!value);
+  }
+
+  // ---- Dropbox sync connection (optional; app works fully local without it) ----
+
+  function getDropboxAuth() {
+    return readJSON(KEY_DROPBOX_AUTH, null); // { accessToken, refreshToken, expiresAt, accountEmail }
+  }
+
+  function setDropboxAuth(auth) {
+    writeJSON(KEY_DROPBOX_AUTH, auth);
+  }
+
+  function clearDropboxAuth() {
+    localStorage.removeItem(KEY_DROPBOX_AUTH);
+  }
+
+  function getLastSyncedAt() {
+    return readJSON(KEY_LAST_SYNCED_AT, null);
+  }
+
+  function setLastSyncedAt(isoString) {
+    writeJSON(KEY_LAST_SYNCED_AT, isoString);
   }
 
   // ---- Scryfall response caches (separate from user data, safe to clear) ----
@@ -227,7 +260,7 @@ var Storage = (function () {
 
     // merge: union owned cards, append decks that don't already exist by id
     var owned = getOwnedMap();
-    Object.keys(parsed.ownedCards).forEach(function (id) { owned[id] = true; });
+    Object.keys(parsed.ownedCards).forEach(function (id) { owned[id] = parsed.ownedCards[id]; });
     writeJSON(KEY_OWNED, owned);
 
     var decks = getDecks();
@@ -263,6 +296,11 @@ var Storage = (function () {
     setSelectedBrowseSets: setSelectedBrowseSets,
     getMergeByName: getMergeByName,
     setMergeByName: setMergeByName,
+    getDropboxAuth: getDropboxAuth,
+    setDropboxAuth: setDropboxAuth,
+    clearDropboxAuth: clearDropboxAuth,
+    getLastSyncedAt: getLastSyncedAt,
+    setLastSyncedAt: setLastSyncedAt,
     exportData: exportData,
     importData: importData,
   };
