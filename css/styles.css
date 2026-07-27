@@ -28,33 +28,35 @@ body {
 
 .app-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 24px;
-  padding: 12px 20px;
+  gap: 12px;
+  padding: 16px 20px;
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 10;
-  flex-wrap: wrap;
 }
 
-.app-header h1 { font-size: 18px; margin: 0; white-space: nowrap; }
+.app-header h1 { font-size: 20px; margin: 0; text-align: center; }
 
-.tabs { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
 .tab-link {
   color: var(--text-dim);
   text-decoration: none;
-  padding: 8px 14px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
   font-size: 14px;
 }
 
-.tab-link:hover { background: var(--bg-input); color: var(--text); }
-.tab-link.active { background: var(--accent); color: #101116; font-weight: 600; }
+.tab-link:hover { border-color: var(--accent); color: var(--text); }
+.tab-link.active { background: var(--accent); color: #101116; border-color: var(--accent); font-weight: 600; }
 
-.header-actions { display: flex; gap: 8px; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
 .btn {
   border: 1px solid var(--border);
@@ -442,7 +444,10 @@ select, input[type="text"], .deck-name-input {
 
 .rule-entries {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* auto-fit (not auto-fill) collapses empty tracks so real content stretches to
+     fill the row - auto-fill reserves phantom empty columns, leaving a lone entry
+     stuck in a narrow strip with dead space beside it. */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
 }
 
