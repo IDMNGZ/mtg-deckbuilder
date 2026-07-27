@@ -261,6 +261,21 @@ select, input[type="text"], .deck-name-input {
   margin-bottom: 16px;
 }
 
+/* Type/color/rarity used to each get their own full-width row, which left big empty
+   gaps once a row's handful of pills ran out - "display: contents" drops the three
+   .type-filter-row wrappers from the box model so their buttons all flow together as
+   one wrapping group, packing the available width instead of stacking mostly-empty rows. */
+.filter-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.filter-pill-group .type-filter-row {
+  display: contents;
+}
+
 .type-filter-btn {
   border: 1px solid var(--border);
   background: var(--bg-input);
@@ -689,6 +704,7 @@ select, input[type="text"], .deck-name-input {
   .filter-summary { margin-bottom: 6px; padding: 5px 9px; font-size: 11px; }
   .filter-details[open] > .filter-summary { margin-bottom: 8px; }
   .type-filter-row { margin-bottom: 8px; }
+  .filter-pill-group { margin-bottom: 8px; gap: 6px; }
   .field { gap: 2px; }
   .field > *:first-child { font-size: 11px; }
 }
@@ -751,12 +767,6 @@ select, input[type="text"], .deck-name-input {
 
   .sticky-controls { top: 0; }
   .deckbuilder-current { position: static; top: auto; }
-
-  /* The controls block used to stretch across the whole (now-widened) content area,
-     leaving big empty gaps to the right of each short pill row. Capping its width makes
-     it wrap the same compact way the portrait layout already does, instead of spreading
-     out just because the space is there. */
-  .sticky-controls { max-width: 460px; }
 
   /* Landscape has plenty of width once the header moves into the sidebar - was still
      capped at the 200px desktop default, which only fit 3 tiles; pack in more per row
