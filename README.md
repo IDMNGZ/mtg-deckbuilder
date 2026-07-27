@@ -6,7 +6,7 @@ No installation, no build step, no backend. It's a handful of static HTML/CSS/JS
 
 ## Running it
 
-Just open `index.html` in a browser. That's it — there's nothing to install or compile.
+Open `index.html` for the landing page, or go straight to `app.html` for the deck builder itself. That's it — there's nothing to install or compile.
 
 If you'd rather serve it over `http://` (some browsers are stricter about local files), any static file server works, e.g. `npx serve` or the VS Code "Live Server" extension.
 
@@ -42,7 +42,7 @@ Dropbox sync needs a one-time setup **by whoever is hosting this site** (not by 
 1. Go to the [Dropbox App Console](https://www.dropbox.com/developers/apps) and click **Create app**.
 2. Choose **Scoped access**, then **App folder** access type (not "Full Dropbox" — App folder keeps this sandboxed to its own folder). Give it any name.
 3. On the app's **Permissions** tab, enable `files.content.write` and `files.content.read`, then click Submit.
-4. On the **Settings** tab, under **OAuth 2** → **Redirect URIs**, add the exact URL this site is hosted at (e.g. `https://<your-username>.github.io/<repo-name>/`). Add `http://localhost:8090/index.html` too (or whatever local URL you test with) if you want Dropbox sign-in to work while testing locally.
+4. On the **Settings** tab, under **OAuth 2** → **Redirect URIs**, add the exact URL of `app.html` on this site (e.g. `https://<your-username>.github.io/<repo-name>/app.html`) - Dropbox's redirect must exactly match whatever page initiates the connection, which is `app.html`, not the landing page. Add `http://localhost:8090/app.html` too (or whatever local URL you test with) if you want Dropbox sign-in to work while testing locally. You can register multiple redirect URIs on the same app, so add as many as you need.
 5. Copy the **App key** from the Settings tab into `js/sync-config.js`:
    ```js
    var SYNC_CONFIG = {
