@@ -4,6 +4,7 @@ var DeckBuilderUI = (function () {
 
   var els = {};
   var MAX_COPIES = 4;
+  var state = { selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set() };
 
   // In-memory working deck. Each entry keeps a denormalized card snapshot so the
   // deck stays intact even if the card is later unchecked in the collection.
@@ -65,7 +66,12 @@ var DeckBuilderUI = (function () {
       els.poolGrid.innerHTML = '<p class="empty-hint">No owned cards yet — check some off in the Browse tab first.</p>';
       return;
     }
-    var visible = owned.filter(function (c) { return matchesFilter(c, needle); });
+    var visible = owned.filter(function (c) {
+      return matchesFilter(c, needle) &&
+        CardFilters.matchesTypes(c, state.selectedTypes) &&
+        CardFilters.matchesColors(c, state.selectedColors) &&
+        CardFilters.matchesRarity(c, state.selectedRarities);
+    });
     var frag = document.createDocumentFragment();
 
     if (Storage.getMergeByName()) {
@@ -219,6 +225,13 @@ var DeckBuilderUI = (function () {
     els.saveBtn = document.getElementById("btn-save-deck");
     els.mergeToggle = document.getElementById("btn-merge-toggle-deckbuilder");
     els.refreshBtn = document.getElementById("btn-refresh-deckbuilder");
+    els.typeFilters = document.getElementById("deckbuilder-type-filters");
+    els.colorFilters = document.getElementById("deckbuilder-color-filters");
+    els.rarityFilters = document.getElementById("deckbuilder-rarity-filters");
+
+    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, renderPool);
+    CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderPool);
+    CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, renderPool);
 
     els.poolFilter.addEventListener("input", renderPool);
     CardView.attachClearButton(els.poolFilter, document.getElementById("deck-pool-filter-clear"));

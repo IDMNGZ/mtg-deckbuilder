@@ -697,6 +697,9 @@ select, input[type="text"], .deck-name-input {
 @media (max-width: 900px) {
   .deckbuilder-layout { grid-template-columns: 1fr; }
   .deckbuilder-current { position: static; }
+  /* Single-column layout otherwise follows DOM order (pool markup comes first), which
+     buried the deck-in-progress view below the entire card pool - flip it to the top. */
+  .deckbuilder-current { order: -1; }
 }
 
 /* Phone (either orientation): the controls row's fixed min-widths force nearly every
@@ -734,6 +737,37 @@ select, input[type="text"], .deck-name-input {
   .filter-pill-group { margin-bottom: 8px; gap: 6px; }
   .field { gap: 2px; }
   .field > *:first-child { font-size: 11px; }
+
+  /* The always-visible filter panel (sort/merge/refresh/size + color/type/rarity pills)
+     is a lot of content to keep permanently on screen - instead of wrapping to several
+     rows, flatten it into one horizontally-scrollable strip, the same pattern already
+     used for the header's tab bar and the edition-chip list. */
+  .filter-panel {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: 0;
+  }
+  .filter-panel > .filter-details-controls,
+  .filter-panel > .filter-pill-group {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .filter-panel .field,
+  .filter-panel .card-size-field {
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+  .filter-panel .btn,
+  .filter-panel .type-filter-btn,
+  .filter-panel select {
+    white-space: nowrap;
+  }
 }
 
 /* Phone portrait: collapse the header into a single compact, horizontally-scrollable
