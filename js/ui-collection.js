@@ -74,7 +74,7 @@ var CollectionUI = (function () {
     CardView.attachClearButton(els.filter, document.getElementById("collection-filter-clear"));
     els.sort.addEventListener("change", function () { state.sort = els.sort.value; render(); });
 
-    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, render);
+    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, render);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, render);
 

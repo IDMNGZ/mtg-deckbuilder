@@ -313,7 +313,7 @@ var BrowseUI = (function () {
     document.addEventListener("mtg:ownership-changed", renderGrid);
     document.addEventListener("mtg:merge-changed", renderGrid);
 
-    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, renderGrid);
+    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, renderGrid);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderGrid);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, renderGrid);
 

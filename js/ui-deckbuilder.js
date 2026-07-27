@@ -235,7 +235,7 @@ var DeckBuilderUI = (function () {
     els.colorFilters = document.getElementById("deckbuilder-color-filters");
     els.rarityFilters = document.getElementById("deckbuilder-rarity-filters");
 
-    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES.map(function (t) { return { value: t, label: t }; }), state.selectedTypes, renderPool);
+    CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, renderPool);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderPool);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, renderPool);
 

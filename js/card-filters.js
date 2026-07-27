@@ -2,7 +2,18 @@
 var CardFilters = (function () {
   "use strict";
 
-  var TYPES = ["Creature", "Instant", "Sorcery", "Artifact", "Enchantment", "Land", "Planeswalker", "Battle"];
+  // "match" lists the type-line words a pill responds to, when it's more than just its
+  // own value - Battle is a tiny card pool (introduced March of the Machine, 2023) so it
+  // rides along on the Planeswalker pill instead of taking a whole slot of its own.
+  var TYPES = [
+    { value: "Creature", label: "Creature" },
+    { value: "Instant", label: "Instant" },
+    { value: "Sorcery", label: "Sorcery" },
+    { value: "Artifact", label: "Artifact" },
+    { value: "Enchantment", label: "Enchantment" },
+    { value: "Land", label: "Land" },
+    { value: "Planeswalker", label: "Planeswalker/Battle", match: ["Planeswalker", "Battle"] },
+  ];
 
   // Icon-only buttons using Scryfall's official mana symbol SVGs (same CORS-enabled,
   // freely-usable source as the card images elsewhere in the app) - keeps color filters
@@ -61,12 +72,15 @@ var CardFilters = (function () {
 
   // Contains-match against the full type line (not just mainType) so "Artifact" also
   // surfaces Artifact Creatures, "Land" surfaces basic lands, etc. OR'd across selections.
+  // A selected value can match more than one type-line word (see TYPES' "match" lists).
   function matchesTypes(card, selectedTypes) {
     if (selectedTypes.size === 0) return true;
     var typeLine = card.typeLine;
     var matched = false;
-    selectedTypes.forEach(function (type) {
-      if (new RegExp("\\b" + type + "\\b", "i").test(typeLine)) matched = true;
+    selectedTypes.forEach(function (value) {
+      var item = TYPES.filter(function (t) { return t.value === value; })[0];
+      var words = (item && item.match) || [value];
+      if (new RegExp("\\b(?:" + words.join("|") + ")\\b", "i").test(typeLine)) matched = true;
     });
     return matched;
   }
