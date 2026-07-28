@@ -11,7 +11,11 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="stylesheet" href="css/landing.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
 <script src="js/landing-backgrounds.js"></script>
+<script src="js/version.js"></script>
 <script>
   // Runs before the body paints, so there's no flash of the fallback background
   // before swapping to the randomly chosen one.
@@ -30,10 +34,10 @@
 <body class="landing-page">
   <main>
     <h1 class="landing-title">Magic The Gathering<br>Deck Builder</h1>
-    <a href="app.html" class="landing-enter-btn">Enter App</a>
-    <p class="landing-subtitle">Created by Ian Dominguez</p>
+    <a href="app.html" class="landing-enter-btn">Enter</a>
   </main>
   <div class="landing-footer">
+    <p class="landing-subtitle">Created by Ian Dominguez</p>
     <button type="button" id="btn-share" class="landing-share-btn" title="Share this app">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="18" cy="5" r="3"></circle>
@@ -45,14 +49,18 @@
       Share
     </button>
     <span id="share-feedback" class="landing-share-feedback" aria-live="polite"></span>
-    <div class="landing-version">v0.1.53</div>
+    <div class="landing-appinfo">
+      <div>MTG Deck Builder <span id="landing-version"></span> - card data via <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall</a></div>
+      <div>&copy; 2026 Ian Dominguez / Rogue Theory Studio. All rights reserved.</div>
+    </div>
   </div>
   <script src="js/share.js"></script>
   <script>
     // Deferred to DOMContentLoaded (unlike the background-picker script above) since this
-    // one needs the button to actually exist in the DOM.
+    // one needs the button/version elements to actually exist in the DOM.
     document.addEventListener("DOMContentLoaded", function () {
       ShareApp.wire(document.getElementById("btn-share"), document.getElementById("share-feedback"));
+      document.getElementById("landing-version").textContent = APP_VERSION;
     });
   </script>
 </body>

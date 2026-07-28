@@ -183,6 +183,7 @@
     wireCardSizeSliders();
     ShareApp.wire(document.getElementById("btn-share-howto"), document.getElementById("share-feedback-howto"));
     ShareApp.wire(document.getElementById("btn-share-about"), document.getElementById("share-feedback-about"));
+    document.getElementById("about-version").textContent = APP_VERSION;
 
     // A pull replacing local data (from another device's changes) needs whatever tab is
     // currently visible to re-render from the fresh data.

@@ -26,17 +26,25 @@ body.landing-page {
 }
 
 .landing-title {
+  font-family: "Cinzel", "Cinzel Fallback", Georgia, serif;
   font-size: clamp(34px, 7.5vw, 64px);
+  font-weight: 700;
   line-height: 1.15;
   margin: 0 0 28px;
   letter-spacing: 0.5px;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.65);
+  /* Layered: a tight, dark offset shadow for a crisp carved/engraved look, plus the
+     original soft glow behind it so the title still lifts off busy background art. */
+  text-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.55),
+    0 6px 10px rgba(0, 0, 0, 0.75),
+    0 2px 24px rgba(0, 0, 0, 0.65);
 }
 
 .landing-subtitle {
   font-size: 19px;
+  font-weight: 700;
   color: #c7c9d6;
-  margin: 22px 0 0;
+  margin: 0;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
@@ -44,7 +52,7 @@ body.landing-page {
   display: inline-block;
   padding: 16px 44px;
   font-size: 19px;
-  font-weight: 600;
+  font-weight: 700;
   color: #14151a;
   background: #c9a536;
   border-radius: 8px;
@@ -101,9 +109,16 @@ body.landing-page {
   min-height: 16px;
 }
 
-.landing-version {
-  font-size: 13px;
-  color: rgba(242, 239, 230, 0.45);
+/* Mirrors the About tab's app-info footer (see .about-footer in styles.css) so the same
+   version/attribution/copyright block shows up here too. */
+.landing-appinfo {
+  font-size: 12px;
+  line-height: 1.8;
+  color: rgba(242, 239, 230, 0.55);
+}
+
+.landing-appinfo a {
+  color: rgba(242, 239, 230, 0.55);
 }
 
 /* The source art is portrait (896x1344) - on a wide desktop viewport, "cover" has to
