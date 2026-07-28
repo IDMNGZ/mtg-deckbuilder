@@ -83,12 +83,12 @@ body {
   border: 1px solid transparent;
 }
 .tab-group-primary {
-  background: rgba(124, 140, 255, 0.08);
-  border-color: rgba(124, 140, 255, 0.3);
+  background: rgba(124, 140, 255, 0.18);
+  border-color: rgba(124, 140, 255, 0.55);
 }
 .tab-group-info {
-  background: rgba(154, 156, 166, 0.08);
-  border-color: rgba(154, 156, 166, 0.3);
+  background: rgba(154, 156, 166, 0.16);
+  border-color: rgba(154, 156, 166, 0.5);
 }
 
 .header-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
@@ -113,15 +113,35 @@ body {
   padding: 0 2px;
 }
 .header-action-group-view {
-  background: rgba(76, 175, 110, 0.08);
-  border-color: rgba(76, 175, 110, 0.3);
+  background: rgba(76, 175, 110, 0.18);
+  border-color: rgba(76, 175, 110, 0.55);
 }
 .header-action-group-view .header-group-label { color: var(--green); }
 .header-action-group-data {
-  background: rgba(201, 165, 54, 0.08);
-  border-color: rgba(201, 165, 54, 0.3);
+  background: rgba(201, 165, 54, 0.18);
+  border-color: rgba(201, 165, 54, 0.55);
 }
 .header-action-group-data .header-group-label { color: var(--gold); }
+
+/* Buttons/tabs inside a tinted group pick up a touch of that group's color themselves,
+   instead of staying the same neutral --bg-input as everything else - otherwise the
+   group tint only shows in the thin strip of padding around them. */
+.tab-group-primary .tab-link:not(.active) {
+  background: rgba(124, 140, 255, 0.14);
+  border-color: rgba(124, 140, 255, 0.4);
+}
+.tab-group-info .tab-link:not(.active) {
+  background: rgba(154, 156, 166, 0.14);
+  border-color: rgba(154, 156, 166, 0.4);
+}
+.header-action-group-view .btn {
+  background: rgba(76, 175, 110, 0.14);
+  border-color: rgba(76, 175, 110, 0.4);
+}
+.header-action-group-data .btn {
+  background: rgba(201, 165, 54, 0.14);
+  border-color: rgba(201, 165, 54, 0.4);
+}
 
 .btn {
   border: 1px solid var(--border);
@@ -642,6 +662,10 @@ select, input[type="text"], .deck-name-input {
   padding: 16px 20px;
   margin-bottom: 16px;
 }
+
+.share-inline-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.share-inline-btn { display: inline-flex; align-items: center; gap: 7px; }
+.share-inline-feedback { font-size: 13px; color: var(--gold); }
 
 .rules-section-header h2 { margin: 0 0 4px; font-size: 17px; }
 .rules-section-header p { margin: 0 0 14px; font-size: 13px; color: var(--text-dim); }

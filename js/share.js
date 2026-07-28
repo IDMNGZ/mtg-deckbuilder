@@ -1,0 +1,69 @@
+// Wires a "Share" button (+ optional feedback element) to share the app - opens the OS
+// native share sheet where supported, falling back to copying the link to the clipboard.
+// Shared by the landing page, How To Use, and About, so there's one place to fix bugs or
+// change the share copy instead of three.
+var ShareApp = (function () {
+  "use strict";
+
+  // Always the canonical public URL, not location.href - a shared link should hand
+  // someone the landing page experience, not wherever in the app the button was clicked
+  // from (a specific tab, or a local test server).
+  var SHARE_URL = "https://idmngz.github.io/mtg-deckbuilder/";
+  var SHARE_TITLE = "MTG Deck Builder";
+  var SHARE_TEXT = "Track your Magic: The Gathering collection and build decks from what you own.";
+
+  function showFeedback(feedbackEl, text) {
+    if (!feedbackEl) return;
+    feedbackEl.textContent = text;
+    setTimeout(function () { feedbackEl.textContent = ""; }, 2500);
+  }
+
+  // Last-resort fallback for browsers with neither the Web Share API nor the async
+  // Clipboard API (older Safari/Firefox, or non-HTTPS contexts).
+  function legacyCopy(text, feedbackEl) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+      var ok = document.execCommand("copy");
+      showFeedback(feedbackEl, ok ? "Link copied!" : "Couldn't copy - copy the address bar link instead.");
+    } catch (err) {
+      showFeedback(feedbackEl, "Couldn't copy - copy the address bar link instead.");
+    }
+    document.body.removeChild(ta);
+  }
+
+  function copyToClipboard(text, feedbackEl) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        showFeedback(feedbackEl, "Link copied!");
+      }).catch(function () {
+        legacyCopy(text, feedbackEl);
+      });
+    } else {
+      legacyCopy(text, feedbackEl);
+    }
+  }
+
+  // buttonEl: required. feedbackEl: optional element to show a "Link copied!"-style
+  // message in (skipped silently if omitted, e.g. for a button with no room nearby).
+  function wire(buttonEl, feedbackEl) {
+    if (!buttonEl) return;
+    buttonEl.addEventListener("click", function () {
+      var shareData = { title: SHARE_TITLE, text: SHARE_TEXT, url: SHARE_URL };
+      // navigator.share opens the OS's native share sheet (supported on most mobile
+      // browsers, and some desktop ones) - falls back to copying the link otherwise.
+      if (navigator.share) {
+        navigator.share(shareData).catch(function () {}); // ignore cancel/unsupported-mid-call
+        return;
+      }
+      copyToClipboard(SHARE_URL, feedbackEl);
+    });
+  }
+
+  return { wire: wire };
+})();

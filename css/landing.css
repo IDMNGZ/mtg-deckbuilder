@@ -26,24 +26,24 @@ body.landing-page {
 }
 
 .landing-title {
-  font-size: clamp(28px, 6vw, 52px);
+  font-size: clamp(34px, 7.5vw, 64px);
   line-height: 1.15;
-  margin: 0 0 14px;
+  margin: 0 0 28px;
   letter-spacing: 0.5px;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.65);
 }
 
 .landing-subtitle {
-  font-size: 16px;
+  font-size: 19px;
   color: #c7c9d6;
-  margin: 0 0 40px;
+  margin: 22px 0 0;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
 }
 
 .landing-enter-btn {
   display: inline-block;
-  padding: 14px 40px;
-  font-size: 16px;
+  padding: 16px 44px;
+  font-size: 19px;
   font-weight: 600;
   color: #14151a;
   background: #c9a536;
@@ -58,20 +58,26 @@ body.landing-page {
   box-shadow: 0 6px 28px rgba(201, 165, 54, 0.55);
 }
 
-.landing-actions {
+/* Pinned near the bottom of the viewport, separate from the title/CTA block above (which
+   is vertically centered as its own group) - Share reads as a secondary, lower-priority
+   action next to the version number rather than competing with "Enter App". */
+.landing-footer {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .landing-share-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 13px 24px;
-  font-size: 15px;
+  padding: 14px 26px;
+  font-size: 17px;
   font-weight: 600;
   color: #f2efe6;
   background: rgba(242, 239, 230, 0.08);
@@ -90,18 +96,13 @@ body.landing-page {
 
 .landing-share-feedback {
   display: block;
-  margin-top: 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: #c9a536;
   min-height: 16px;
 }
 
 .landing-version {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(242, 239, 230, 0.45);
 }
 

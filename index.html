@@ -30,78 +30,29 @@
 <body class="landing-page">
   <main>
     <h1 class="landing-title">Magic The Gathering<br>Deck Builder</h1>
+    <a href="app.html" class="landing-enter-btn">Enter App</a>
     <p class="landing-subtitle">Created by Ian Dominguez</p>
-    <div class="landing-actions">
-      <a href="app.html" class="landing-enter-btn">Enter App</a>
-      <button type="button" id="btn-share" class="landing-share-btn" title="Share this app">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        Share
-      </button>
-    </div>
-    <span id="share-feedback" class="landing-share-feedback" aria-live="polite"></span>
   </main>
-  <div class="landing-version">v0.1.0</div>
+  <div class="landing-footer">
+    <button type="button" id="btn-share" class="landing-share-btn" title="Share this app">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="18" cy="5" r="3"></circle>
+        <circle cx="6" cy="12" r="3"></circle>
+        <circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+      </svg>
+      Share
+    </button>
+    <span id="share-feedback" class="landing-share-feedback" aria-live="polite"></span>
+    <div class="landing-version">v0.1.53</div>
+  </div>
+  <script src="js/share.js"></script>
   <script>
     // Deferred to DOMContentLoaded (unlike the background-picker script above) since this
     // one needs the button to actually exist in the DOM.
     document.addEventListener("DOMContentLoaded", function () {
-      var btn = document.getElementById("btn-share");
-      var feedback = document.getElementById("share-feedback");
-      if (!btn) return;
-
-      function showFeedback(text) {
-        if (!feedback) return;
-        feedback.textContent = text;
-        setTimeout(function () { feedback.textContent = ""; }, 2500);
-      }
-
-      // Last-resort fallback for browsers with neither the Web Share API nor the
-      // async Clipboard API (older Safari/Firefox, or non-HTTPS contexts).
-      function legacyCopy(text) {
-        var ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.opacity = "0";
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        try {
-          var ok = document.execCommand("copy");
-          showFeedback(ok ? "Link copied!" : "Couldn't copy - copy the address bar link instead.");
-        } catch (err) {
-          showFeedback("Couldn't copy - copy the address bar link instead.");
-        }
-        document.body.removeChild(ta);
-      }
-
-      function copyToClipboard(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(function () { showFeedback("Link copied!"); }).catch(function () { legacyCopy(text); });
-        } else {
-          legacyCopy(text);
-        }
-      }
-
-      btn.addEventListener("click", function () {
-        var shareData = {
-          title: document.title,
-          text: "Track your Magic: The Gathering collection and build decks from what you own.",
-          url: location.href,
-        };
-        // navigator.share opens the OS's native share sheet (supported on most mobile
-        // browsers, and some desktop ones) - falls back to copying the link otherwise.
-        if (navigator.share) {
-          navigator.share(shareData).catch(function () {}); // ignore cancel/unsupported-mid-call
-          return;
-        }
-        copyToClipboard(location.href);
-      });
+      ShareApp.wire(document.getElementById("btn-share"), document.getElementById("share-feedback"));
     });
   </script>
 </body>
