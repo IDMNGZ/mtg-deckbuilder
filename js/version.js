@@ -1,5 +1,5 @@
 // Single source of truth for the displayed app version - the landing page footer and the
 // About tab both read this instead of hard-coding their own copy, so they can't drift out
 // of sync with each other again. Bump this by hand on every push (tied to git push count,
-// e.g. push #55 -> v0.1.55).
-var APP_VERSION = "v0.1.55";
+// e.g. push #56 -> v0.1.56).
+var APP_VERSION = "v0.1.56";
