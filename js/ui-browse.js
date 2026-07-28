@@ -307,7 +307,7 @@ var BrowseUI = (function () {
 
     els.filter.addEventListener("input", renderGrid);
     CardView.attachClearButton(els.filter, document.getElementById("browse-filter-clear"));
-    els.sort.addEventListener("change", function () { state.sort = els.sort.value; renderGrid(); });
+    CardFilters.wireSortCycle(els.sort, function (value) { state.sort = value; renderGrid(); });
     // Keep checkboxes/merge state in sync when changed from the card modal's version cycler,
     // or from the shared Merge Dupes toggle in the header.
     document.addEventListener("mtg:ownership-changed", renderGrid);

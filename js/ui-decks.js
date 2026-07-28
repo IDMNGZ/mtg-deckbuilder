@@ -21,8 +21,8 @@ var DecksUI = (function () {
       var li = document.createElement("li");
       li.className = "deck-card";
       li.innerHTML =
-        '<span class="deck-card-name">' + CardView.escapeHtml(deck.name) + '</span>' +
-        '<span class="deck-card-meta">' + countCards(deck) + ' cards &middot; updated ' + new Date(deck.updatedAt).toLocaleString() + '</span>';
+        '<div class="deck-card-name">' + CardView.escapeHtml(deck.name) + '</div>' +
+        '<div class="deck-card-meta">' + countCards(deck) + ' cards &middot; updated ' + new Date(deck.updatedAt).toLocaleString() + '</div>';
 
       var editBtn = document.createElement("button");
       editBtn.className = "btn btn-ghost";
@@ -39,8 +39,11 @@ var DecksUI = (function () {
         }
       });
 
-      li.appendChild(editBtn);
-      li.appendChild(deleteBtn);
+      var actions = document.createElement("div");
+      actions.className = "deck-card-actions";
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+      li.appendChild(actions);
       els.list.appendChild(li);
     });
   }

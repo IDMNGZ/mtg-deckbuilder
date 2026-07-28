@@ -52,6 +52,11 @@ body {
 
 .app-header h1 { font-size: 20px; margin: 0; text-align: center; }
 
+/* Invisible to layout everywhere except phone portrait (see that media query) - lets
+   nav+header-actions become one combined horizontally-scrolling row there without
+   changing anything about how they behave at other sizes. */
+.header-controls-row { display: contents; }
+
 .tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 
 .tab-link {
@@ -203,8 +208,10 @@ select, input[type="text"], .deck-name-input {
 
 .status-text { font-size: 12px; color: var(--text-dim); }
 
-.card-size-field { min-width: 110px; }
-.sort-field { min-width: 160px; }
+/* Was stacked (the .field default) - text-above-slider made this row taller than every
+   other button in the header group. Laying it out as a row instead keeps its height in
+   line with the buttons beside it. */
+.card-size-field { min-width: 110px; flex-direction: row; align-items: center; gap: 6px; }
 .card-size-slider {
   width: 100px;
   accent-color: var(--accent);
@@ -340,10 +347,11 @@ select, input[type="text"], .deck-name-input {
   margin-bottom: 0;
 }
 
-.sort-field { flex: 0 0 auto; }
 .filter-pill-group .type-filter-row {
   display: contents;
 }
+
+.sort-toggle-btn { white-space: nowrap; }
 
 .type-filter-btn {
   border: 1px solid var(--border);
@@ -574,18 +582,27 @@ select, input[type="text"], .deck-name-input {
 
 /* My Decks */
 
-.decks-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.decks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
 .deck-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  gap: 10px;
 }
-.deck-card .deck-card-name { font-weight: 600; flex: 1; }
+.deck-card .deck-card-name { font-weight: 600; font-size: 15px; }
 .deck-card .deck-card-meta { font-size: 12px; color: var(--text-dim); }
+.deck-card .deck-card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; }
+.deck-card .deck-card-actions .btn { flex: 1; }
 
 /* Rules */
 
@@ -818,7 +835,6 @@ select, input[type="text"], .deck-name-input {
     margin-bottom: 0;
   }
   .filter-panel > .filter-pill-group,
-  .filter-panel > .sort-field,
   .filter-panel > .status-text {
     flex-wrap: nowrap;
     flex-shrink: 0;
@@ -836,19 +852,24 @@ select, input[type="text"], .deck-name-input {
   }
 }
 
-/* Phone portrait: collapse the header into a single compact, horizontally-scrollable
-   bar pinned to the top so the nav/action "dashboard" stops eating the viewport. */
+/* Phone portrait: a slim title line, then nav+header-actions collapse into a single
+   compact, horizontally-scrollable bar below it - between the two, the nav/action
+   "dashboard" stays out of most of the viewport instead of eating it. */
 @media (max-width: 600px) and (orientation: portrait) {
   .app-header {
-    flex-direction: row;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .app-header h1 { font-size: 15px; }
+  .header-controls-row {
+    display: flex;
     flex-wrap: nowrap;
     align-items: center;
     gap: 8px;
-    padding: 8px 10px;
+    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .app-header h1 { display: none; }
   .tabs { flex-wrap: nowrap; gap: 6px; }
   .tab-link { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
   .tab-group { flex-shrink: 0; padding: 4px; gap: 6px; }

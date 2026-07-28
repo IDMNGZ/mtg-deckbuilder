@@ -12,7 +12,7 @@ var CardFilters = (function () {
     { value: "Artifact", label: "Artifact" },
     { value: "Enchantment", label: "Enchantment" },
     { value: "Land", label: "Land" },
-    { value: "Planeswalker", label: "Planeswalker/Battle", match: ["Planeswalker", "Battle"] },
+    { value: "Planeswalker", label: "Planes / Battle", match: ["Planeswalker", "Battle"] },
   ];
 
   // Icon-only buttons using Scryfall's official mana symbol SVGs (same CORS-enabled,
@@ -108,6 +108,26 @@ var CardFilters = (function () {
     return copy;
   }
 
+  var SORT_MODES = [
+    { value: "", label: "Sort: Default" },
+    { value: "cmc-asc", label: "Sort: Cost ↑" },
+    { value: "cmc-desc", label: "Sort: Cost ↓" },
+  ];
+
+  // A plain <select> for this took up a whole row of its own on narrow-ish desktop
+  // widths (a native dropdown's own chrome + "Mana Cost: Low -> High" is wide). A single
+  // cycling button is pill-sized like the type/color/rarity buttons next to it, so it
+  // joins their row instead of needing one to itself.
+  function wireSortCycle(btn, onChange) {
+    var index = 0;
+    btn.textContent = SORT_MODES[0].label;
+    btn.addEventListener("click", function () {
+      index = (index + 1) % SORT_MODES.length;
+      btn.textContent = SORT_MODES[index].label;
+      onChange(SORT_MODES[index].value);
+    });
+  }
+
   return {
     TYPES: TYPES,
     COLORS: COLORS,
@@ -117,5 +137,6 @@ var CardFilters = (function () {
     matchesColors: matchesColors,
     matchesRarity: matchesRarity,
     sortCards: sortCards,
+    wireSortCycle: wireSortCycle,
   };
 })();

@@ -17,6 +17,7 @@
 
 <header class="app-header">
   <h1>MTG Deck Builder</h1>
+  <div class="header-controls-row">
   <nav class="tabs">
     <div class="tab-group tab-group-primary">
       <a href="#browse" class="tab-link" data-tab="browse">Browse</a>
@@ -47,6 +48,7 @@
       <button id="btn-import" class="btn btn-ghost" title="Load a JSON backup">Import</button>
       <input type="file" id="file-import" accept="application/json" hidden>
     </div>
+  </div>
   </div>
 </header>
 
@@ -94,15 +96,8 @@
           <div id="browse-color-filters" class="type-filter-row"></div>
           <div id="browse-type-filters" class="type-filter-row"></div>
           <div id="browse-rarity-filters" class="type-filter-row"></div>
+          <button type="button" id="browse-sort" class="type-filter-btn sort-toggle-btn" title="Cycle sort order"></button>
         </div>
-        <label class="field sort-field">
-          Sort by
-          <select id="browse-sort">
-            <option value="">Default order</option>
-            <option value="cmc-asc">Mana Cost: Low → High</option>
-            <option value="cmc-desc">Mana Cost: High → Low</option>
-          </select>
-        </label>
         <span id="browse-status" class="status-text"></span>
         </div>
       </div>
@@ -127,15 +122,8 @@
           <div id="collection-color-filters" class="type-filter-row"></div>
           <div id="collection-type-filters" class="type-filter-row"></div>
           <div id="collection-rarity-filters" class="type-filter-row"></div>
+          <button type="button" id="collection-sort" class="type-filter-btn sort-toggle-btn" title="Cycle sort order"></button>
         </div>
-        <label class="field sort-field">
-          Sort by
-          <select id="collection-sort">
-            <option value="">Default order</option>
-            <option value="cmc-asc">Mana Cost: Low → High</option>
-            <option value="cmc-desc">Mana Cost: High → Low</option>
-          </select>
-        </label>
         <span id="collection-status" class="status-text"></span>
         </div>
       </div>

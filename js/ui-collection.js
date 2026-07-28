@@ -72,7 +72,7 @@ var CollectionUI = (function () {
 
     els.filter.addEventListener("input", render);
     CardView.attachClearButton(els.filter, document.getElementById("collection-filter-clear"));
-    els.sort.addEventListener("change", function () { state.sort = els.sort.value; render(); });
+    CardFilters.wireSortCycle(els.sort, function (value) { state.sort = value; render(); });
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, render);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);
