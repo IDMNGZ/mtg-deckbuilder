@@ -667,8 +667,10 @@ select, input[type="text"], .deck-name-input {
 .about-bio { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .about-photo-placeholder,
 .about-photo {
-  width: 205px;
-  height: 205px;
+  /* Source photo is 1812x1720, so 240px is nowhere near its ceiling - picked as a round,
+     comfortably-sized bio-avatar number rather than another arbitrary percentage bump. */
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
   border: 2px solid var(--gold);
   flex-shrink: 0;
