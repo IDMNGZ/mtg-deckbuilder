@@ -636,9 +636,22 @@ select, input[type="text"], .deck-name-input {
 }
 
 .rule-entry {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
   border-top: 1px solid var(--border);
   padding-top: 8px;
 }
+
+/* Trial run (Evergreen Keywords only) - a real example card next to the rule text. */
+.rule-entry-example {
+  width: 84px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.rule-entry-body { flex: 1; min-width: 0; }
 
 .rule-term { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
 

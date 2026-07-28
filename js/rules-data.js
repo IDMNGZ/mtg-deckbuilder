@@ -27,22 +27,28 @@ var RULES_DATA = [
     id: "evergreen",
     label: "Evergreen Keywords",
     blurb: "Core abilities reprinted in nearly every set, forming the game's baseline vocabulary.",
+    // example: a real card (verified against Scryfall's API) that carries this keyword,
+    // picked via `keyword:"X" type:creature order:edhrec` - not necessarily the single
+    // most iconic printing of the ability, but a real, currently-relevant illustration
+    // of what a card with it actually looks like. Image is Scryfall's deterministic CDN
+    // path (https://cards.scryfall.io/{size}/front/{id[0]}/{id[1]}/{id}.jpg), so only the
+    // id needs to be stored.
     entries: [
-      { term: "Flying", bullets: ["Can only be blocked by creatures with flying or reach."] },
-      { term: "Reach", bullets: ["Can block creatures with flying.", "Doesn't grant flying itself."] },
-      { term: "First Strike", bullets: ["Deals combat damage before creatures without first strike, in its own damage step."] },
-      { term: "Double Strike", bullets: ["Deals combat damage in both the first-strike and regular damage steps."] },
-      { term: "Trample", bullets: ["Excess combat damage beyond what's needed to kill blockers carries over to the defending player or planeswalker."] },
-      { term: "Vigilance", bullets: ["Attacking doesn't cause this creature to tap."] },
-      { term: "Haste", bullets: ["Can attack and use tap abilities the turn it enters the battlefield, ignoring summoning sickness."] },
-      { term: "Lifelink", bullets: ["Damage this deals also gains its controller that much life."] },
-      { term: "Deathtouch", bullets: ["Any amount of damage this deals to a creature is considered lethal."] },
-      { term: "Menace", bullets: ["Can only be blocked by two or more creatures."] },
-      { term: "Defender", bullets: ["Can't attack."] },
-      { term: "Hexproof", bullets: ["Can't be the target of spells or abilities your opponents control."] },
-      { term: "Indestructible", bullets: ["Isn't destroyed by lethal damage or 'destroy' effects.", "Can still be sacrificed, exiled, or have its toughness reduced to 0."] },
-      { term: "Flash", bullets: ["Can be cast any time you could cast an instant, not just during your main phase with an empty stack."] },
-      { term: "Ward", bullets: ["Whenever this becomes the target of a spell or ability an opponent controls, counter it unless they pay the ward cost."] },
+      { term: "Flying", bullets: ["Can only be blocked by creatures with flying or reach."], example: { id: "492c2f9a-51e7-4e0f-9899-23bf43ea988b", name: "Birds of Paradise" } },
+      { term: "Reach", bullets: ["Can block creatures with flying.", "Doesn't grant flying itself."], example: { id: "f9246b68-580f-4f53-883d-7900880e4b0d", name: "Six" } },
+      { term: "First Strike", bullets: ["Deals combat damage before creatures without first strike, in its own damage step."], example: { id: "f332cd21-46ed-4fff-9fd9-d5975bf0004d", name: "Knight of the White Orchid" } },
+      { term: "Double Strike", bullets: ["Deals combat damage in both the first-strike and regular damage steps."], example: { id: "a747e6cf-c687-4c4f-8e07-d51165d6cb62", name: "Lizard Blades" } },
+      { term: "Trample", bullets: ["Excess combat damage beyond what's needed to kill blockers carries over to the defending player or planeswalker."], example: { id: "84aa18de-6acc-46cc-8e28-3046790a6751", name: "Rampaging Baloths" } },
+      { term: "Vigilance", bullets: ["Attacking doesn't cause this creature to tap."], example: { id: "3d6eacf2-f6c7-4ede-b5a5-7463602699ae", name: "Sun Titan" } },
+      { term: "Haste", bullets: ["Can attack and use tap abilities the turn it enters the battlefield, ignoring summoning sickness."], example: { id: "276f5cee-a501-4658-bd4d-7a044bf1ccbc", name: "Craterhoof Behemoth" } },
+      { term: "Lifelink", bullets: ["Damage this deals also gains its controller that much life."], example: { id: "49d0d7ec-4bee-47d3-91a6-43510be65402", name: "Mangara, the Diplomat" } },
+      { term: "Deathtouch", bullets: ["Any amount of damage this deals to a creature is considered lethal."], example: { id: "be8439e6-f779-49f0-806a-b04995697a6a", name: "Baleful Strix" } },
+      { term: "Menace", bullets: ["Can only be blocked by two or more creatures."], example: { id: "42acbf52-b137-44f0-a815-2817fe8d2da2", name: "Professional Face-Breaker" } },
+      { term: "Defender", bullets: ["Can't attack."], example: { id: "018257cf-8981-4691-92ab-6a33f77c9680", name: "Crashing Drawbridge" } },
+      { term: "Hexproof", bullets: ["Can't be the target of spells or abilities your opponents control."], example: { id: "2662837c-3837-4da9-80b4-79edb0b6c289", name: "Sylvan Caryatid" } },
+      { term: "Indestructible", bullets: ["Isn't destroyed by lethal damage or 'destroy' effects.", "Can still be sacrificed, exiled, or have its toughness reduced to 0."], example: { id: "e82e61d1-488d-4627-a54c-d8496a967814", name: "Toski, Bearer of Secrets" } },
+      { term: "Flash", bullets: ["Can be cast any time you could cast an instant, not just during your main phase with an empty stack."], example: { id: "881b6202-6d02-489b-b79c-62142c42ed1f", name: "Orcish Bowmasters" } },
+      { term: "Ward", bullets: ["Whenever this becomes the target of a spell or ability an opponent controls, counter it unless they pay the ward cost."], example: { id: "32fd8b7c-baf3-4d3d-be6f-044a917b11a0", name: "Roaming Throne" } },
     ],
   },
   {

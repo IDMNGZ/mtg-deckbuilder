@@ -46,10 +46,23 @@ var RulesUI = (function () {
           entry.bullets.map(function (b) { return "<li>" + CardView.escapeHtml(b) + "</li>"; }).join("") +
           "</ul>";
         var sourceHtml = entry.source ? "<div class='rule-source'>" + CardView.escapeHtml(entry.source) + "</div>" : "";
+        // entry.example (currently only on Evergreen Keywords, as a trial) is a real card
+        // id verified against Scryfall - the image URL is Scryfall's documented
+        // deterministic CDN path, so no API call is needed to display it.
+        var exampleHtml = "";
+        if (entry.example) {
+          var id = entry.example.id;
+          var url = "https://cards.scryfall.io/small/front/" + id.charAt(0) + "/" + id.charAt(1) + "/" + id + ".jpg";
+          exampleHtml = "<img class='rule-entry-example' src='" + url + "' alt='" + CardView.escapeHtml(entry.example.name) +
+            "' title='Example card: " + CardView.escapeHtml(entry.example.name) + "' loading='lazy'>";
+        }
         entryEl.innerHTML =
+          exampleHtml +
+          "<div class='rule-entry-body'>" +
           "<div class='rule-term'>" + CardView.escapeHtml(entry.term) + "</div>" +
           bulletsHtml +
-          sourceHtml;
+          sourceHtml +
+          "</div>";
         entriesWrap.appendChild(entryEl);
       });
       section.appendChild(entriesWrap);
