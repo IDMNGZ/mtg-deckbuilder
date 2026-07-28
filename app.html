@@ -217,6 +217,14 @@
             <li>Everything saves automatically to this browser, and optionally syncs to your own Dropbox account across devices.</li>
           </ul>
         </div>
+        <div class="rule-entry">
+          <div class="rule-term">The header controls</div>
+          <ul class="rule-bullets">
+            <li>Tabs are grouped into your data (Browse, Collection, Deck Builder, My Decks) and reference pages (Rules, How To Use, About).</li>
+            <li>"View" applies everywhere at once: "Merge Dupes" collapses duplicate printings into one tile on Browse, Collection, and Deck Builder together, and "Card size" resizes the card grid on every tab, including deck cards on My Decks.</li>
+            <li>"Data" holds Refresh, Sync, Export, and Import - Refresh re-fetches whatever the current tab needs (the selected editions on Browse, or your saved owned cards/decks everywhere else); the rest are covered in "Syncing Your Data" below.</li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -244,8 +252,8 @@
           <div class="rule-term">Narrowing the list</div>
           <ul class="rule-bullets">
             <li>"Filter cards" searches by name or type within whatever's currently shown.</li>
-            <li>Type, color, and rarity buttons combine as filters - click any combination.</li>
-            <li>"Sort by" reorders by mana cost.</li>
+            <li>Color, type, and rarity pills combine as filters - click any combination. Colors are shown as mana symbols; Planeswalker and Battle share one pill since Battle is a small card pool.</li>
+            <li>The "Sort" pill cycles between default order, mana cost low-to-high, and mana cost high-to-low each time you click it.</li>
           </ul>
         </div>
         <div class="rule-entry">
@@ -256,10 +264,10 @@
           </ul>
         </div>
         <div class="rule-entry">
-          <div class="rule-term">Merge duplicate printings</div>
+          <div class="rule-term">Merging duplicate printings</div>
           <ul class="rule-bullets">
             <li>If you've selected several related editions, the same card can show up once per edition it was reprinted in.</li>
-            <li>Turn on "Merge duplicate printings" to collapse those into one tile - check ownership on the exact printing via the image/arrows instead.</li>
+            <li>Turn on "Merge Dupes" (in the header's View group) to collapse those into one tile - check ownership on the exact printing via the image/arrows instead.</li>
           </ul>
         </div>
       </div>
@@ -274,9 +282,9 @@
         <div class="rule-entry">
           <div class="rule-term">Reviewing what you own</div>
           <ul class="rule-bullets">
-            <li>Shows every card you've checked off, across every edition, with the same search/type/color/rarity filters as Browse.</li>
+            <li>Shows every card you've checked off, across every edition, with the same search/color/type/rarity/sort filters as Browse.</li>
             <li>Unchecking "I own this" here removes it from your collection immediately.</li>
-            <li>"Merge duplicate printings" works the same way as in Browse - merged tiles show "Remove all" to drop every printing of that card at once.</li>
+            <li>"Merge Dupes" works the same way as in Browse - merged tiles show a "Remove all" button (with a confirmation) to drop every printing of that card at once.</li>
           </ul>
         </div>
       </div>
@@ -289,19 +297,20 @@
       </div>
       <div class="rule-entries">
         <div class="rule-entry">
-          <div class="rule-term">Adding cards</div>
+          <div class="rule-term">Your deck-in-progress</div>
           <ul class="rule-bullets">
-            <li>The left pool only shows owned cards - search it to find what you want, then click "Add to deck."</li>
-            <li>Non-basic-land cards cap at 4 copies; basic lands are unlimited.</li>
-            <li>Click the &minus; next to a card in your deck list to remove one copy.</li>
-          </ul>
-        </div>
-        <div class="rule-entry">
-          <div class="rule-term">Reading the stats</div>
-          <ul class="rule-bullets">
+            <li>The deck name/stats and the "Current Deck" card list sit at the top - side by side on wider screens, stacked on narrower ones.</li>
             <li>Mana curve and average CMC exclude lands, since a land's cost doesn't reflect deck aggression.</li>
             <li>Color balance counts colored mana symbols across your deck; colorless cards (including lands) count separately.</li>
             <li>Types shows a breakdown of card types in the deck.</li>
+            <li>Click the &minus; next to a card in the "Current Deck" list to remove one copy.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Adding cards</div>
+          <ul class="rule-bullets">
+            <li>The pool below only shows owned cards - search it, or use the same color/type/rarity/sort filters as Browse and Collection, then click "Add to deck."</li>
+            <li>Non-basic-land cards cap at 4 copies; basic lands are unlimited.</li>
           </ul>
         </div>
         <div class="rule-entry">
@@ -322,8 +331,10 @@
         <div class="rule-entry">
           <div class="rule-term">Managing decks</div>
           <ul class="rule-bullets">
+            <li>Each saved deck shows a cover image - the highest-mana-cost card in it - plus its card count and when it was last updated.</li>
             <li>"Open" loads a deck back into the Deck Builder to keep editing it.</li>
             <li>"Delete" removes it permanently - there's a confirmation before it's gone.</li>
+            <li>The header's "Card size" slider resizes these deck cards too.</li>
           </ul>
         </div>
       </div>
@@ -338,8 +349,9 @@
         <div class="rule-entry">
           <div class="rule-term">Using it</div>
           <ul class="rule-bullets">
-            <li>Browse basic rules, evergreen keywords, game formats, and keyword mechanics grouped by era.</li>
-            <li>Toggle which sections show with the buttons at the top, or search for a specific term.</li>
+            <li>Browse basic rules, evergreen keywords, token types, game formats, and keyword mechanics grouped by era.</li>
+            <li>Use "Show All"/"Hide All" or "Filter by Set" to choose which sections show, or search for a specific term.</li>
+            <li>Most keyword entries include a real example card - click its thumbnail to open the same card-detail view used elsewhere in the app.</li>
           </ul>
         </div>
       </div>
