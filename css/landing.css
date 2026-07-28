@@ -58,6 +58,44 @@ body.landing-page {
   box-shadow: 0 6px 28px rgba(201, 165, 54, 0.55);
 }
 
+.landing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.landing-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 13px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f2efe6;
+  background: rgba(242, 239, 230, 0.08);
+  border: 1px solid rgba(242, 239, 230, 0.35);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.landing-share-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(242, 239, 230, 0.16);
+  border-color: rgba(242, 239, 230, 0.55);
+}
+
+.landing-share-feedback {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #c9a536;
+  min-height: 16px;
+}
+
 .landing-version {
   position: absolute;
   bottom: 16px;
