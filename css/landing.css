@@ -66,3 +66,15 @@ body.landing-page {
   font-size: 12px;
   color: rgba(242, 239, 230, 0.45);
 }
+
+/* The source art is portrait (896x1344) - on a wide desktop viewport, "cover" has to
+   scale up well past native resolution to fill the width, cropping most of the image and
+   leaving what's left looking soft/blurry. "contain" shows the whole image at up to its
+   native size instead, letterboxed with the page's own dark background - narrower/taller
+   mobile viewports don't hit this problem since the aspect ratios are already close, so
+   they stay on "cover" to fill edge-to-edge. */
+@media (min-width: 900px) {
+  body.landing-page {
+    background-size: contain;
+  }
+}
