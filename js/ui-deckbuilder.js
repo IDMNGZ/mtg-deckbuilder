@@ -4,7 +4,7 @@ var DeckBuilderUI = (function () {
 
   var els = {};
   var MAX_COPIES = 4;
-  var state = { selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set() };
+  var state = { selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set(), sort: "" };
 
   // In-memory working deck. Each entry keeps a denormalized card snapshot so the
   // deck stays intact even if the card is later unchecked in the collection.
@@ -80,6 +80,7 @@ var DeckBuilderUI = (function () {
         CardFilters.matchesColors(c, state.selectedColors) &&
         CardFilters.matchesRarity(c, state.selectedRarities);
     });
+    visible = CardFilters.sortCards(visible, state.sort);
     var frag = document.createDocumentFragment();
 
     if (Storage.getMergeByName()) {
@@ -234,10 +235,12 @@ var DeckBuilderUI = (function () {
     els.typeFilters = document.getElementById("deckbuilder-type-filters");
     els.colorFilters = document.getElementById("deckbuilder-color-filters");
     els.rarityFilters = document.getElementById("deckbuilder-rarity-filters");
+    els.sort = document.getElementById("deckbuilder-sort");
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, renderPool);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderPool);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, renderPool);
+    CardFilters.wireSortCycle(els.sort, function (value) { state.sort = value; renderPool(); });
 
     els.poolFilter.addEventListener("input", renderPool);
     CardView.attachClearButton(els.poolFilter, document.getElementById("deck-pool-filter-clear"));

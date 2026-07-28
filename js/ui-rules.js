@@ -46,23 +46,31 @@ var RulesUI = (function () {
           entry.bullets.map(function (b) { return "<li>" + CardView.escapeHtml(b) + "</li>"; }).join("") +
           "</ul>";
         var sourceHtml = entry.source ? "<div class='rule-source'>" + CardView.escapeHtml(entry.source) + "</div>" : "";
-        // entry.example (currently only on Evergreen Keywords, as a trial) is a real card
-        // id verified against Scryfall - the image URL is Scryfall's documented
-        // deterministic CDN path, so no API call is needed to display it.
-        var exampleHtml = "";
-        if (entry.example) {
-          var id = entry.example.id;
-          var url = "https://cards.scryfall.io/small/front/" + id.charAt(0) + "/" + id.charAt(1) + "/" + id + ".jpg";
-          exampleHtml = "<img class='rule-entry-example' src='" + url + "' alt='" + CardView.escapeHtml(entry.example.name) +
-            "' title='Example card: " + CardView.escapeHtml(entry.example.name) + "' loading='lazy'>";
-        }
         entryEl.innerHTML =
-          exampleHtml +
           "<div class='rule-entry-body'>" +
           "<div class='rule-term'>" + CardView.escapeHtml(entry.term) + "</div>" +
           bulletsHtml +
           sourceHtml +
           "</div>";
+        // entry.example (currently only on Evergreen Keywords, as a trial) is a real card
+        // id verified against Scryfall - the thumbnail is Scryfall's documented
+        // deterministic CDN path (no API call needed to display it), and clicking it opens
+        // the same card-detail modal used everywhere else, using the full card data cached
+        // in RULES_EXAMPLE_CARDS so that doesn't need an API call either.
+        if (entry.example) {
+          var id = entry.example.id;
+          var img = document.createElement("img");
+          img.className = "rule-entry-example";
+          img.src = "https://cards.scryfall.io/small/front/" + id.charAt(0) + "/" + id.charAt(1) + "/" + id + ".jpg";
+          img.alt = entry.example.name;
+          img.title = "Example card: " + entry.example.name + " (click to view)";
+          img.loading = "lazy";
+          img.addEventListener("click", function () {
+            var fullCard = window.RULES_EXAMPLE_CARDS && window.RULES_EXAMPLE_CARDS[id];
+            if (fullCard) CardView.openModal(fullCard);
+          });
+          entryEl.insertBefore(img, entryEl.firstChild);
+        }
         entriesWrap.appendChild(entryEl);
       });
       section.appendChild(entriesWrap);

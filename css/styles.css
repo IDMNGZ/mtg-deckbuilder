@@ -527,13 +527,31 @@ select, input[type="text"], .deck-name-input {
    actually shrink to the column they were given instead. */
 .deckbuilder-pool, .deckbuilder-current { min-width: 0; }
 
+/* Was a single ~760px-capped box - on anything wider than that, the rest of the row sat
+   empty. Splitting it into two side-by-side panels (meta/stats, and the actual card list)
+   uses that width instead of wasting it, and surfaces the in-progress deck list somewhere
+   more prominent than "scroll down past the stats." */
 .deckbuilder-current {
   order: -1;
-  max-width: 760px;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.deckbuilder-summary,
+.deckbuilder-list-panel {
+  flex: 1 1 360px;
+  min-width: 0;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;
+}
+
+.deckbuilder-list-panel h3 { margin: 0 0 10px; font-size: 14px; }
+
+@media (max-width: 900px) {
+  .deckbuilder-current { flex-direction: column; }
 }
 
 .deck-meta { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -587,7 +605,9 @@ select, input[type="text"], .deck-name-input {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Reuses the same --card-min-w the header's Card size slider already drives for the
+     card grids, so it doubles as a deck-card size control too. */
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min-w), 1fr));
   gap: 14px;
 }
 .deck-card {
@@ -649,7 +669,9 @@ select, input[type="text"], .deck-name-input {
   border-radius: 6px;
   flex-shrink: 0;
   display: block;
+  cursor: pointer;
 }
+.rule-entry-example:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .rule-entry-body { flex: 1; min-width: 0; }
 
