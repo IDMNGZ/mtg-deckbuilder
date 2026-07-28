@@ -1,3 +1,9 @@
 .DS_Store
 Thumbs.db
 *.log
+
+# Raw Midjourney exports for the landing page - kept locally as source material, but
+# the compressed landing-bg/landing-NN.jpg copies (see js/landing-backgrounds.js) are
+# what actually ships. These originals average ~1.9MB each and aren't worth the repo
+# weight once a JPEG copy exists.
+landing-bg/*.png
