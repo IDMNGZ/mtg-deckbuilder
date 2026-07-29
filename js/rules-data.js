@@ -145,7 +145,7 @@ var RULES_DATA = [
   {
     id: "formats",
     label: "Game Types / Formats",
-    blurb: "Different ways to play Magic - each defines its own deckbuilding rules and legal card pool.",
+    blurb: "Different ways to play Magic - each defines its own deckbuilding rules and legal card pool. The Deck Builder tab's Format menu enforces the deckbuilding rules for Commander, Standard, Pioneer, Modern, Legacy, Vintage, Pauper, Brawl, and Speed Magic (plus a Free option with no restrictions) - the rest (Draft, Sealed, Two-Headed Giant) are gameplay/event structures rather than fixed deckbuilding rules, so they're reference-only here.",
     entries: [
       { term: "Commander (EDH)", bullets: ["100-card singleton deck - no duplicate cards except basic lands.", "Built around one legendary creature (or eligible planeswalker) as your Commander.", "Every other card's color must fit within the Commander's color identity.", "Players start at 40 life instead of 20.", "21+ combat damage from a single Commander over the course of the game eliminates that player.", "Usually played multiplayer (3-4 players), with politics and table dynamics a big part of the format." ], source: "Grew from a casual format ('Elder Dragon Highlander'); later adopted and officially supported by Wizards of the Coast." },
       { term: "Standard", bullets: ["60-card minimum deck.", "Only cards from the most recently released sets are legal - a rotating pool, roughly the last ~2 years."] },
@@ -158,6 +158,7 @@ var RULES_DATA = [
       { term: "Sealed Deck", bullets: ["Each player opens a fixed number of booster packs (commonly six) and builds a deck using only those cards.", "40-card minimum, no picking/passing between players."] },
       { term: "Two-Headed Giant", bullets: ["Team format: two players share one 30-life pool and take turns together against another two-player team.", "Either teammate may cast spells/take actions during the team's shared turn.", "Either player on a team can be attacked or targeted."] },
       { term: "Brawl", bullets: ["Commander-style singleton format, but with a 60-card deck instead of 100.", "One legendary Commander restricts the deck's colors to its color identity, same as Commander.", "Players typically start at 25 life instead of Commander's 40."] },
+      { term: "Speed Magic", bullets: ["A homebrew format invented for this app - not an official Wizards of the Coast format.", "10-card deck: exactly 5 lands (any land) and 5 non-land cards (any card).", "Each player starts at 10 life instead of 20.", "Both players draw 3 cards to start (no separate draw step needed to get going).", "On turn one, you may play every land in your opening hand, not just one - e.g. drawing 1 creature and 2 lands lets you play both lands turn one.", "Designed as a fast, low-commitment way to test whether a small handful of cards actually work well together." ], source: "Invented by Ian Dominguez for this app." },
     ],
   },
   {

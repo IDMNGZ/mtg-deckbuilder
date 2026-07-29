@@ -60,6 +60,7 @@ var Scryfall = (function () {
       oracleText: oracleText || "",
       colors: card.colors || [],
       colorIdentity: card.color_identity || [],
+      legalities: card.legalities || null,
       image: image,
       scryfallUri: card.scryfall_uri,
     };

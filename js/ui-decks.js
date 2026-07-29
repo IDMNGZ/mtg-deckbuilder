@@ -44,7 +44,8 @@ var DecksUI = (function () {
 
       var meta = document.createElement("div");
       meta.className = "deck-card-meta";
-      meta.textContent = countCards(deck) + " cards · updated " + new Date(deck.updatedAt).toLocaleString();
+      var formatName = Formats.get(deck.format || "free").name;
+      meta.textContent = countCards(deck) + " cards · " + formatName + " · updated " + new Date(deck.updatedAt).toLocaleString();
       li.appendChild(meta);
 
       var editBtn = document.createElement("button");

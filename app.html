@@ -155,15 +155,23 @@
             </div>
           </div>
         </div>
+        <p id="deck-pool-note" class="deck-pool-note"></p>
         <div id="deck-pool-grid" class="card-grid"></div>
       </div>
       <div class="deckbuilder-current">
         <div class="deckbuilder-summary">
           <div class="deck-meta">
             <input type="text" id="deck-name" placeholder="Deck name…" class="deck-name-input">
+            <label class="field deck-format-field">
+              Format
+              <select id="deck-format-select"></select>
+            </label>
             <button id="btn-new-deck" class="btn btn-ghost">New</button>
             <button id="btn-save-deck" class="btn btn-primary">Save Deck</button>
           </div>
+          <span id="deck-add-feedback" class="deck-add-feedback" aria-live="polite"></span>
+          <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>
+          <div id="deck-format-status" class="deck-format-status hidden"></div>
           <div id="deck-stats" class="deck-stats"></div>
         </div>
         <div class="deckbuilder-list-panel">
@@ -321,10 +329,12 @@
           </ul>
         </div>
         <div class="rule-entry">
-          <div class="rule-term">Adding cards</div>
+          <div class="rule-term">Format</div>
           <ul class="rule-bullets">
-            <li>The pool below only shows owned cards - search it, or use the same color/type/rarity/sort filters as Browse and Collection, then click "Add to deck."</li>
-            <li>Non-basic-land cards cap at 4 copies; basic lands are unlimited.</li>
+            <li>The Format dropdown next to the deck name picks which format's rules apply: Free (no restrictions), Speed Magic (this app's own 10-card format - see the Rules tab), or an official format (Standard/Pioneer/Modern/Legacy/Vintage/Pauper/Commander/Brawl).</li>
+            <li>Choosing a real format filters the pool to only cards legal in it, and enforces its copy limit (4 for constructed formats, singleton for Commander/Brawl - basic lands are always unlimited).</li>
+            <li>Commander and Brawl also require picking a Commander first - the pool switches to showing only eligible legendary creatures until you choose one, then filters everything else to that Commander's color identity.</li>
+            <li>A status line above the deck stats tracks progress toward the format's deck size (and flags anything that's since become illegal, e.g. after switching formats mid-build).</li>
           </ul>
         </div>
         <div class="rule-entry">
@@ -569,6 +579,7 @@
 <script src="js/scryfall.js"></script>
 <script src="js/card-view.js"></script>
 <script src="js/card-filters.js"></script>
+<script src="js/formats.js"></script>
 <script src="js/data-sync.js"></script>
 <script src="js/sync-config.js"></script>
 <script src="js/dropbox-sync.js"></script>

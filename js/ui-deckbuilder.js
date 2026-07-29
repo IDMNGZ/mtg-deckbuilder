@@ -1,9 +1,10 @@
-// "Deck Builder" tab: build a deck out of owned cards only, with live stats.
+// "Deck Builder" tab: build a deck out of owned cards only, with live stats, under
+// whichever format's rules are selected (js/formats.js) - legal card pool, copy limits,
+// deck size, and (Commander/Brawl) singleton + color identity.
 var DeckBuilderUI = (function () {
   "use strict";
 
   var els = {};
-  var MAX_COPIES = 4;
   var state = { selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set(), sort: "" };
 
   // In-memory working deck. Each entry keeps a denormalized card snapshot so the
@@ -11,11 +12,15 @@ var DeckBuilderUI = (function () {
   var deck = freshDeck();
 
   function freshDeck() {
-    return { id: null, name: "", cards: [] }; // cards: [{ card, qty }]
+    return { id: null, name: "", format: "free", commander: null, cards: [] }; // cards: [{ card, qty }]
   }
 
   var isLand = CardView.isLand;
   var mainType = CardView.mainType;
+
+  function currentFormat() {
+    return Formats.get(deck.format);
+  }
 
   function findEntry(cardId) {
     for (var i = 0; i < deck.cards.length; i++) {
@@ -24,11 +29,74 @@ var DeckBuilderUI = (function () {
     return null;
   }
 
+  function showAddFeedback(text) {
+    if (!els.addFeedback) return;
+    els.addFeedback.textContent = text;
+    clearTimeout(showAddFeedback._t);
+    showAddFeedback._t = setTimeout(function () { els.addFeedback.textContent = ""; }, 3500);
+  }
+
+  // ---- Composition counts (used by Speed Magic's 5-land/5-other rule + the status line) ----
+
+  function deckLandNonlandCounts() {
+    var lands = 0, nonlands = 0;
+    deck.cards.forEach(function (e) {
+      if (isLand(e.card)) lands += e.qty; else nonlands += e.qty;
+    });
+    return { lands: lands, nonlands: nonlands };
+  }
+
+  function deckTotalQty() {
+    return deck.cards.reduce(function (sum, e) { return sum + e.qty; }, 0);
+  }
+
   function addCard(card) {
+    var format = currentFormat();
+
+    if (format.legalityKey && !Formats.isLegal(card, format)) {
+      showAddFeedback(card.name + " isn't legal in " + format.name + ".");
+      return;
+    }
+    if (format.needsCommander && deck.commander) {
+      if (card.id === deck.commander.id) {
+        showAddFeedback(card.name + " is already your Commander.");
+        return;
+      }
+      if (!Formats.colorIdentityOk(card, deck.commander)) {
+        showAddFeedback(card.name + " is outside " + deck.commander.name + "'s color identity.");
+        return;
+      }
+    }
+    if (format.speedMagic) {
+      // Counts every copy toward the 5/5 split, including repeat copies of a card already
+      // in the deck (e.g. a 2nd Forest still counts as a 2nd land) - unlike a per-card
+      // copy cap, this is a total-composition rule.
+      var counts = deckLandNonlandCounts();
+      if (isLand(card) && counts.lands >= 5) {
+        showAddFeedback("Speed Magic decks only run 5 lands.");
+        return;
+      }
+      if (!isLand(card) && counts.nonlands >= 5) {
+        showAddFeedback("Speed Magic decks only run 5 non-land cards.");
+        return;
+      }
+    }
+    if (format.deckSize && format.deckSize.exact) {
+      var reserved = format.needsCommander ? 1 : 0;
+      var cap = format.deckSize.exact - reserved;
+      if (!findEntry(card.id) && deckTotalQty() >= cap) {
+        showAddFeedback(format.name + " decks hold " + cap + " cards" + (reserved ? " plus your Commander" : "") + ".");
+        return;
+      }
+    }
+
     var entry = findEntry(card.id);
-    var cap = isLand(card) && /basic/i.test(card.typeLine) ? Infinity : MAX_COPIES;
+    var cap = Formats.maxCopies(card, format);
     if (entry) {
-      if (entry.qty >= cap) return;
+      if (entry.qty >= cap) {
+        showAddFeedback(format.singleton ? format.name + " decks are singleton - one copy of " + card.name + "." : "Only " + cap + " copies of " + card.name + " allowed in " + format.name + ".");
+        return;
+      }
       entry.qty++;
     } else {
       deck.cards.push({ card: card, qty: 1 });
@@ -44,6 +112,106 @@ var DeckBuilderUI = (function () {
       deck.cards = deck.cards.filter(function (e) { return e.card.id !== cardId; });
     }
     renderDeck();
+  }
+
+  // ---- Commander (Commander/Brawl only) ----
+
+  function setCommander(card) {
+    var format = currentFormat();
+    if (!Formats.eligibleCommander(card)) {
+      showAddFeedback(card.name + " can't be a Commander - needs to be a legendary creature (or explicitly say it can be your commander).");
+      return;
+    }
+    if (format.legalityKey && !Formats.isLegal(card, format)) {
+      showAddFeedback(card.name + " isn't legal in " + format.name + ".");
+      return;
+    }
+    deck.commander = card;
+    renderAll();
+  }
+
+  function clearCommander() {
+    deck.commander = null;
+    renderAll();
+  }
+
+  function renderCommanderPanel() {
+    var format = currentFormat();
+    if (!format.needsCommander) {
+      els.commanderPanel.innerHTML = "";
+      els.commanderPanel.classList.add("hidden");
+      return;
+    }
+    els.commanderPanel.classList.remove("hidden");
+    if (!deck.commander) {
+      els.commanderPanel.innerHTML = '<p class="empty-hint">No Commander chosen yet - pick one from the pool on the left (only eligible legendary creatures are shown).</p>';
+      return;
+    }
+    var card = deck.commander;
+    els.commanderPanel.innerHTML = "";
+    var row = document.createElement("div");
+    row.className = "deck-commander-row";
+    if (card.image) {
+      var img = document.createElement("img");
+      img.className = "deck-commander-thumb";
+      img.src = card.image.small || card.image.normal;
+      img.alt = card.name;
+      row.appendChild(img);
+    }
+    var info = document.createElement("div");
+    info.className = "deck-commander-info";
+    info.innerHTML = '<div class="deck-commander-label">Commander</div><div class="deck-commander-name">' + CardView.escapeHtml(card.name) + "</div>";
+    row.appendChild(info);
+    var changeBtn = document.createElement("button");
+    changeBtn.className = "btn btn-ghost";
+    changeBtn.textContent = "Change";
+    changeBtn.addEventListener("click", clearCommander);
+    row.appendChild(changeBtn);
+    els.commanderPanel.appendChild(row);
+  }
+
+  // ---- Format status / legality banner ----
+
+  function renderStatus() {
+    var format = currentFormat();
+    var totalQty = deckTotalQty();
+    var messages = [];
+
+    if (format.needsCommander) {
+      var grandTotal = totalQty + (deck.commander ? 1 : 0);
+      if (format.deckSize && format.deckSize.exact) {
+        messages.push(grandTotal + " / " + format.deckSize.exact + " cards (including Commander)");
+      }
+      if (deck.commander) {
+        var offIdentity = deck.cards.filter(function (e) { return !Formats.colorIdentityOk(e.card, deck.commander); });
+        if (offIdentity.length) {
+          messages.push(offIdentity.length + " card(s) outside " + deck.commander.name + "'s color identity: " + offIdentity.map(function (e) { return e.card.name; }).join(", "));
+        }
+        if (format.legalityKey && !Formats.isLegal(deck.commander, format)) {
+          messages.push(deck.commander.name + " isn't legal in " + format.name + ".");
+        }
+      }
+    } else if (format.speedMagic) {
+      var counts = deckLandNonlandCounts();
+      messages.push(counts.lands + " / 5 lands, " + counts.nonlands + " / 5 other cards");
+    } else if (format.deckSize && format.deckSize.min) {
+      messages.push(totalQty + " / " + format.deckSize.min + "+ cards required");
+    }
+
+    if (format.legalityKey) {
+      var illegal = deck.cards.filter(function (e) { return !Formats.isLegal(e.card, format); });
+      if (illegal.length) {
+        messages.push(illegal.length + " card(s) not legal in " + format.name + ": " + illegal.map(function (e) { return e.card.name; }).join(", "));
+      }
+    }
+
+    if (format.id === "free") {
+      els.statusBanner.innerHTML = "";
+      els.statusBanner.classList.add("hidden");
+      return;
+    }
+    els.statusBanner.classList.remove("hidden");
+    els.statusBanner.innerHTML = '<div class="deck-format-status-line">' + messages.map(CardView.escapeHtml).join(" &middot; ") + "</div>";
   }
 
   // ---- Pool (owned cards available to add) ----
@@ -62,16 +230,21 @@ var DeckBuilderUI = (function () {
     deck.cards.forEach(function (entry) {
       if (result.freshMap[entry.card.id]) entry.card = result.freshMap[entry.card.id];
     });
+    if (deck.commander && result.freshMap[deck.commander.id]) deck.commander = result.freshMap[deck.commander.id];
     renderDeck();
     renderPool();
   }
 
   function renderPool() {
+    var format = currentFormat();
+    var pickingCommander = format.needsCommander && !deck.commander;
+
     var owned = Storage.getOwnedCards();
     var needle = els.poolFilter.value.trim();
     els.poolGrid.innerHTML = "";
     if (owned.length === 0) {
       els.poolGrid.innerHTML = '<p class="empty-hint">No owned cards yet — check some off in the Browse tab first.</p>';
+      els.poolNote.textContent = "";
       return;
     }
     var visible = owned.filter(function (c) {
@@ -80,23 +253,39 @@ var DeckBuilderUI = (function () {
         CardFilters.matchesColors(c, state.selectedColors) &&
         CardFilters.matchesRarity(c, state.selectedRarities);
     });
+
+    if (pickingCommander) {
+      visible = visible.filter(function (c) { return Formats.eligibleCommander(c) && Formats.isLegal(c, format); });
+      els.poolNote.textContent = "Showing only cards eligible to be your Commander.";
+    } else {
+      if (format.legalityKey) visible = visible.filter(function (c) { return Formats.isLegal(c, format); });
+      if (format.needsCommander && deck.commander) {
+        // The Commander itself lives in deck.commander, not deck.cards - keep it out of
+        // the "Add to deck" pool so it can't also be added as one of the 99/59.
+        visible = visible.filter(function (c) { return c.id !== deck.commander.id && Formats.colorIdentityOk(c, deck.commander); });
+      }
+      els.poolNote.textContent = format.id === "free" ? "" : "Showing only cards legal in " + format.name + (format.needsCommander && deck.commander ? " and within " + deck.commander.name + "'s color identity." : ".");
+    }
+
     visible = CardFilters.sortCards(visible, state.sort);
     var frag = document.createDocumentFragment();
+    var addLabel = pickingCommander ? "Set as Commander" : "Add to deck";
+    var onAdd = pickingCommander ? setCommander : addCard;
 
     if (Storage.getMergeByName()) {
       // Which specific printing gets added doesn't matter for deck-building - name, cost,
       // colors, and type are the same across reprints, so any one representative works.
       CardView.groupByName(visible).forEach(function (group) {
         frag.appendChild(CardView.renderTile(group.representative, {
-          onAdd: function (card) { addCard(card); },
-          addLabel: "Add to deck",
+          onAdd: onAdd,
+          addLabel: addLabel,
         }));
       });
     } else {
       visible.forEach(function (card) {
         frag.appendChild(CardView.renderTile(card, {
-          onAdd: function (card) { addCard(card); },
-          addLabel: "Add to deck",
+          onAdd: onAdd,
+          addLabel: addLabel,
         }));
       });
     }
@@ -121,7 +310,14 @@ var DeckBuilderUI = (function () {
         els.list.appendChild(li);
       });
     }
+    renderStatus();
     renderStats();
+  }
+
+  function renderAll() {
+    renderCommanderPanel();
+    renderPool();
+    renderDeck();
   }
 
   function renderStats() {
@@ -195,7 +391,8 @@ var DeckBuilderUI = (function () {
     if (deck.cards.length && !window.confirm("Discard the current unsaved deck and start a new one?")) return;
     deck = freshDeck();
     els.nameInput.value = "";
-    renderDeck();
+    els.formatSelect.value = deck.format;
+    renderAll();
   }
 
   function saveDeck() {
@@ -218,24 +415,53 @@ var DeckBuilderUI = (function () {
   function loadDeck(deckId) {
     var stored = Storage.getDeck(deckId);
     if (!stored) return;
-    deck = { id: stored.id, name: stored.name, cards: stored.cards.map(function (e) { return { card: e.card, qty: e.qty }; }) };
+    deck = {
+      id: stored.id,
+      name: stored.name,
+      format: stored.format || "free",
+      commander: stored.commander || null,
+      cards: stored.cards.map(function (e) { return { card: e.card, qty: e.qty }; }),
+    };
     els.nameInput.value = deck.name;
-    renderDeck();
+    els.formatSelect.value = deck.format;
+    renderAll();
     location.hash = "#deckbuilder";
+  }
+
+  function onFormatChange() {
+    var newFormatId = els.formatSelect.value;
+    var newFormat = Formats.get(newFormatId);
+    deck.format = newFormat.id;
+    // A commander only means something in Commander/Brawl - drop it when leaving those
+    // (the deck's cards themselves are left alone; renderStatus() will flag anything that
+    // no longer fits the new format instead of silently deleting a user's picks).
+    if (!newFormat.needsCommander) deck.commander = null;
+    renderAll();
   }
 
   function init() {
     els.poolFilter = document.getElementById("deck-pool-filter");
     els.poolGrid = document.getElementById("deck-pool-grid");
+    els.poolNote = document.getElementById("deck-pool-note");
     els.nameInput = document.getElementById("deck-name");
+    els.formatSelect = document.getElementById("deck-format-select");
+    els.commanderPanel = document.getElementById("deck-commander-panel");
+    els.statusBanner = document.getElementById("deck-format-status");
     els.stats = document.getElementById("deck-stats");
     els.list = document.getElementById("deck-list");
     els.newBtn = document.getElementById("btn-new-deck");
     els.saveBtn = document.getElementById("btn-save-deck");
+    els.addFeedback = document.getElementById("deck-add-feedback");
     els.typeFilters = document.getElementById("deckbuilder-type-filters");
     els.colorFilters = document.getElementById("deckbuilder-color-filters");
     els.rarityFilters = document.getElementById("deckbuilder-rarity-filters");
     els.sort = document.getElementById("deckbuilder-sort");
+
+    els.formatSelect.innerHTML = Formats.LIST.map(function (f) {
+      return '<option value="' + f.id + '">' + CardView.escapeHtml(f.name) + "</option>";
+    }).join("");
+    els.formatSelect.value = deck.format;
+    els.formatSelect.addEventListener("change", onFormatChange);
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, renderPool);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderPool);
@@ -251,7 +477,7 @@ var DeckBuilderUI = (function () {
     document.addEventListener("mtg:ownership-changed", renderPool);
     document.addEventListener("mtg:merge-changed", renderPool);
 
-    renderDeck();
+    renderAll();
   }
 
   function activate() {

@@ -8,13 +8,14 @@ var Storage = (function () {
   var KEY_DECKS = NS + "decks";
   var KEY_SETS_CACHE = NS + "cache:sets";
   // Bumped to "cards2" when the fetch mode changed from unique=prints to unique=cards
-  // (dedupes reprints within a set) - the prefix change forces a fresh fetch instead of
-  // serving stale, duplicate-laden cached data for sets browsed before the change.
-  var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards2:";
+  // (dedupes reprints within a set), then to "cards3" when normalizeCard started keeping
+  // each card's format legalities (needed for the Deck Builder's format rules) - both prefix
+  // bumps force a fresh fetch instead of serving stale data missing the new shape.
+  var KEY_CARDS_CACHE_PREFIX = NS + "cache:cards3:";
   // Bumped to "prints2" when the lookup switched from the card's own (sometimes-missing)
-  // prints_search_uri field to a name-based query, so previously-cached single-print
-  // "degraded" results don't linger for their TTL - they force a fresh, correct fetch.
-  var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints2:";
+  // prints_search_uri field to a name-based query, then to "prints3" alongside the cards3
+  // bump above for the same legalities reason.
+  var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints3:";
   var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
   var KEY_MERGE_BY_NAME = NS + "mergeByName";
   var KEY_CARD_GRID_SIZE = NS + "cardGridSize";

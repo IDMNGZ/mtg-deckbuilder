@@ -588,8 +588,46 @@ select, input[type="text"], .deck-name-input {
   .deckbuilder-current { flex-direction: column; }
 }
 
-.deck-meta { display: flex; gap: 8px; margin-bottom: 12px; }
+@media (max-width: 500px) {
+  .deck-meta { flex-wrap: wrap; }
+  .deck-format-field { flex: 1 1 100%; }
+}
+
+.deck-meta { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 12px; }
 .deck-name-input { flex: 1; }
+.deck-format-field { flex: 0 0 auto; min-width: 140px; }
+
+.deck-pool-note { font-size: 12px; color: var(--text-dim); margin: 0 0 8px; }
+
+.deck-add-feedback { display: block; font-size: 13px; color: var(--danger); min-height: 16px; margin-bottom: 4px; }
+
+.deck-commander-panel { margin-bottom: 14px; }
+.deck-commander-panel.hidden { display: none; }
+.deck-commander-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+.deck-commander-thumb { width: 48px; border-radius: 4px; flex-shrink: 0; }
+.deck-commander-info { flex: 1; min-width: 0; }
+.deck-commander-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
+.deck-commander-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.deck-format-status {
+  font-size: 12px;
+  color: var(--gold);
+  background: rgba(201, 165, 54, 0.1);
+  border: 1px solid rgba(201, 165, 54, 0.35);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+.deck-format-status.hidden { display: none; }
 
 .deck-stats { margin-bottom: 14px; }
 
