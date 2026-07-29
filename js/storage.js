@@ -68,18 +68,35 @@ var Storage = (function () {
   // Runs once: if this browser has real data sitting under the old flat (pre-profile) keys,
   // move it into a new default profile instead of leaving it orphaned/inaccessible. A
   // brand-new install has nothing under those keys, so this is a no-op there.
+  //
+  // Deliberately paranoid: a single key failing to copy (e.g. localStorage's ~5-10MB quota
+  // getting hit mid-migration on a large collection) must not (a) lose that key's original
+  // data or (b) leave KEY_PROFILES unwritten/empty, since every single read/write in this
+  // module resolves an active profile first - an empty profiles list previously crashed
+  // that resolution, which took down whichever tab happened to be showing with it (the
+  // page's own markup rendered fine since that's static HTML, but the tab content itself
+  // never did). Each key is migrated independently and only ever removed from its old
+  // location after a successful copy, and a valid profiles list is guaranteed to exist by
+  // the end no matter what.
   function migrateLegacyDataIfNeeded() {
-    if (readJSON(KEY_PROFILES, null)) return; // already migrated (or already multi-profile)
+    var existing = readJSON(KEY_PROFILES, null);
+    if (existing && existing.length > 0) return; // already migrated (or already multi-profile)
 
     var profile = { id: "default", name: "Player 1", createdAt: new Date().toISOString() };
     var hadLegacyData = false;
     PROFILE_DATA_KEYS.forEach(function (base) {
       var legacyKey = NS + base;
-      var raw = localStorage.getItem(legacyKey);
-      if (raw !== null) {
-        hadLegacyData = true;
-        localStorage.setItem(profileKey(profile.id, base), raw);
-        localStorage.removeItem(legacyKey);
+      try {
+        var raw = localStorage.getItem(legacyKey);
+        if (raw !== null) {
+          hadLegacyData = true;
+          localStorage.setItem(profileKey(profile.id, base), raw);
+          localStorage.removeItem(legacyKey);
+        }
+      } catch (err) {
+        // Leave this one key under its legacy location rather than lose it - the
+        // activeKey() read-through fallback below still finds it there.
+        console.error("Storage: couldn't migrate '" + base + "' to the new profile format", err);
       }
     });
     writeJSON(KEY_PROFILES, [profile]);
@@ -92,15 +109,21 @@ var Storage = (function () {
   }
 
   function getProfiles() {
-    return readJSON(KEY_PROFILES, []);
+    var profiles = readJSON(KEY_PROFILES, []);
+    if (profiles.length > 0) return profiles;
+    // Should be unreachable (migration above always leaves at least one profile behind,
+    // even on partial failure) - self-heals instead of leaving every profile-scoped read/
+    // write with nothing to resolve to.
+    var fallback = [{ id: "default", name: "Player 1", createdAt: new Date().toISOString() }];
+    writeJSON(KEY_PROFILES, fallback);
+    if (!localStorage.getItem(KEY_ACTIVE_PROFILE)) localStorage.setItem(KEY_ACTIVE_PROFILE, fallback[0].id);
+    return fallback;
   }
 
   function getActiveProfileId() {
     var id = localStorage.getItem(KEY_ACTIVE_PROFILE);
-    var profiles = getProfiles();
+    var profiles = getProfiles(); // never empty - see getProfiles()'s self-heal
     if (id && profiles.some(function (p) { return p.id === id; })) return id;
-    // Active id missing/stale (shouldn't normally happen) - fall back to the first profile
-    // rather than error, since every read/write below assumes there's always an active one.
     return profiles[0].id;
   }
 
@@ -158,13 +181,28 @@ var Storage = (function () {
     return profileKey(getActiveProfileId(), base);
   }
 
+  // Reads a per-profile value, falling back to the pre-profile flat key if the migrated
+  // key is missing - only the original "default" profile could ever have leftover legacy
+  // data (a newly created profile never had any), and only for a key that failed to copy
+  // during migration (see migrateLegacyDataIfNeeded's per-key try/catch). Without this, a
+  // key stuck at its legacy location would silently read back as empty forever, looking
+  // exactly like data loss even though nothing was actually deleted.
+  function readActiveJSON(base, fallback) {
+    var key = activeKey(base);
+    if (localStorage.getItem(key) !== null) return readJSON(key, fallback);
+    if (getActiveProfileId() === "default" && localStorage.getItem(NS + base) !== null) {
+      return readJSON(NS + base, fallback);
+    }
+    return fallback;
+  }
+
   // ---- Owned cards (keyed by Scryfall print id) ----
 
   // Values are denormalized card snapshots (not just `true`) so the Collection
   // and Deck Builder views work even if a set's card cache has expired or been
   // cleared, and so an exported backup is self-contained.
   function getOwnedMap() {
-    return readJSON(activeKey("owned"), {});
+    return readActiveJSON("owned", {});
   }
 
   function isOwned(scryfallId) {
@@ -219,7 +257,7 @@ var Storage = (function () {
   // ---- Decks ----
 
   function getDecks() {
-    return readJSON(activeKey("decks"), []);
+    return readActiveJSON("decks", []);
   }
 
   function getDeck(deckId) {
@@ -263,7 +301,7 @@ var Storage = (function () {
   // transparently migrates the older single-string format from before that existed.
 
   function getSelectedBrowseSets() {
-    var val = readJSON(activeKey("lastBrowseSet"), []);
+    var val = readActiveJSON("lastBrowseSet", []);
     if (typeof val === "string") return val ? [val] : [];
     return Array.isArray(val) ? val : [];
   }
@@ -275,7 +313,7 @@ var Storage = (function () {
   // ---- "Merge duplicate printings by name" toggle (Collection + Deck Builder pool) ----
 
   function getMergeByName() {
-    return readJSON(activeKey("mergeByName"), false);
+    return readActiveJSON("mergeByName", false);
   }
 
   function setMergeByName(value) {
@@ -287,7 +325,7 @@ var Storage = (function () {
   // the user actually moves the slider, at which point their choice sticks everywhere.
 
   function getCardGridSize() {
-    return readJSON(activeKey("cardGridSize"), null);
+    return readActiveJSON("cardGridSize", null);
   }
 
   function setCardGridSize(px) {
@@ -303,7 +341,7 @@ var Storage = (function () {
   // account (or none at all) independent of any other profile on this device.
 
   function getDropboxAuth() {
-    return readJSON(activeKey("dropboxAuth"), null); // { accessToken, refreshToken, expiresAt, accountEmail }
+    return readActiveJSON("dropboxAuth", null); // { accessToken, refreshToken, expiresAt, accountEmail }
   }
 
   function setDropboxAuth(auth) {
@@ -315,7 +353,7 @@ var Storage = (function () {
   }
 
   function getLastSyncedAt() {
-    return readJSON(activeKey("lastSyncedAt"), null);
+    return readActiveJSON("lastSyncedAt", null);
   }
 
   function setLastSyncedAt(isoString) {
