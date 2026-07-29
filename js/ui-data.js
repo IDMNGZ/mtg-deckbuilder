@@ -41,7 +41,7 @@ var DataTabUI = (function () {
     var status = DropboxSync.getStatus();
     var html = "";
 
-    html += "<div class='rules-section-header'><h2>Automatic Sync (Dropbox)</h2><p>Keep your collection and decks the same across every device you use this app on.</p></div>";
+    html += "<div class='rules-section-header'><h2>Automatic Sync (Dropbox)</h2><p>One connection for this whole device - every profile here (see \"Switch Profiles\") backs up together under it.</p></div>";
 
     if (status.connected) {
       html += "<div class='sync-status-row'>" + (status.accountEmail ? "Connected as <strong>" + CardView.escapeHtml(status.accountEmail) + "</strong>" : "Connected") + "</div>";
@@ -53,10 +53,10 @@ var DataTabUI = (function () {
     } else if (!status.configured) {
       html += "<p class='sync-note'>Dropbox sync isn't set up for this deployment yet - see README.md for the one-time setup. Everything still works fully local without it.</p>";
     } else {
-      html += "<p class='sync-note'>Connect your own Dropbox account to automatically keep your collection and decks in sync across every device you use this app on. Your data goes into a private folder Dropbox creates just for this app - nobody else, including other people who use this app, can see it.</p>";
+      html += "<p class='sync-note'>Connect a Dropbox account to automatically keep every profile on this device in sync with your other devices. Your data goes into a private folder Dropbox creates just for this app - nobody else, including other people who use this app, can see it.</p>";
       html += "<ol class='sync-setup-steps'>";
-      html += "<li>Click \"Connect Dropbox\" below and log into your own Dropbox account.</li>";
-      html += "<li>Connect that same account on another device (like your phone) to pull your data down there too.</li>";
+      html += "<li>Click \"Connect Dropbox\" below and log into the Dropbox account you want this device to sync through.</li>";
+      html += "<li>Connect that same account on another device (like your phone) to pull everything down there too.</li>";
       html += "<li>After that, changes push a few seconds after you make them, and pull whenever you switch back to this tab - nothing else to do.</li>";
       html += "</ol>";
       html += "<button type='button' id='btn-sync-connect' class='btn btn-primary'>Connect Dropbox</button>";
@@ -102,9 +102,11 @@ var DataTabUI = (function () {
 
   function deleteProfilePrompt(profile) {
     var stats = Storage.getProfileStats(profile.id);
+    var dropboxNote = DropboxSync.getStatus().connected
+      ? " This device syncs to Dropbox, so it's removed from there too on the next sync, not just locally."
+      : "";
     var msg = 'Delete profile "' + profile.name + '"? This permanently removes its ' +
-      stats.owned + ' owned card(s) and ' + stats.decks + ' deck(s) - not just from this device, ' +
-      'this data isn\'t stored anywhere else unless it has its own Dropbox connection. This cannot be undone.';
+      stats.owned + ' owned card(s) and ' + stats.decks + ' deck(s).' + dropboxNote + ' This cannot be undone.';
     if (!window.confirm(msg)) return;
     var wasActive = profile.id === Storage.getActiveProfileId();
     Storage.deleteProfile(profile.id);

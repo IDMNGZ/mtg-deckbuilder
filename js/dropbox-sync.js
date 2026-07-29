@@ -204,12 +204,15 @@ var DropboxSync = (function () {
 
   // ---- Push / Pull ----
 
+  // v2: every local profile, not just whichever one happens to be active - one Dropbox
+  // connection backs up everyone sharing this device (see the Data tab's "Switch Profiles"),
+  // so the file needs to carry all of them for another device connecting the same account
+  // to see every profile, not just whichever was active at the moment of the last push.
   function buildPayload() {
     return {
-      version: 1,
+      version: 2,
       syncedAt: new Date().toISOString(),
-      ownedCards: Storage.getOwnedMap(),
-      decks: Storage.getDecks(),
+      profiles: Storage.getAllProfilesData(),
     };
   }
 
@@ -271,7 +274,14 @@ var DropboxSync = (function () {
       var remote = JSON.parse(text);
       var lastKnown = Storage.getLastSyncedAt();
       if (!lastKnown || remote.syncedAt > lastKnown) {
-        Storage.importData(text, "merge");
+        if (remote.profiles) {
+          // Current (v2) shape: every profile together.
+          Storage.mergeAllProfilesData(remote.profiles);
+        } else if (remote.ownedCards) {
+          // Old (v1) shape from before profiles existed - one flat owned/decks payload.
+          // Merge it into whichever profile is active here rather than dropping it.
+          Storage.importData(text, "merge");
+        }
         Storage.setLastSyncedAt(remote.syncedAt);
         document.dispatchEvent(new CustomEvent("mtg:remote-sync-applied"));
       }

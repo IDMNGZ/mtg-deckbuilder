@@ -1,19 +1,23 @@
 // Persistence layer: everything lives in localStorage, namespaced so it never
 // collides with anything else on the same origin (e.g. GitHub Pages user site).
 //
-// Profiles: owned cards, decks, Dropbox connection, and view preferences all live under a
-// per-profile namespace (NS + "profile:" + profileId + ":" + key) so separate people sharing
-// one browser/device (see the Data tab's "Switch Profiles") each get their own independent
-// collection and their own independent Dropbox account, if any. The Scryfall response
-// caches (sets/cards/prints) are NOT per-profile - they're just cached copies of public card
-// data, identical no matter who's using the app, so sharing one copy avoids every profile
-// re-fetching the same sets from Scryfall.
+// Profiles: owned cards, decks, and view preferences all live under a per-profile namespace
+// (NS + "profile:" + profileId + ":" + key) so separate people sharing one browser/device
+// (see the Data tab's "Switch Profiles") each get their own independent collection. The
+// Dropbox connection is deliberately NOT per-profile - it's one shared connection for the
+// whole device, backing up every local profile together, so connecting once covers
+// everyone instead of each person needing to log into their own Dropbox separately. The
+// Scryfall response caches (sets/cards/prints) aren't per-profile either, for the same
+// "not actually user data" reason - they're just cached copies of public card data,
+// identical no matter who's using the app.
 var Storage = (function () {
   "use strict";
 
   var NS = "mtg-deckbuilder:v1:";
   var KEY_PROFILES = NS + "profiles"; // [{ id, name, createdAt }]
   var KEY_ACTIVE_PROFILE = NS + "activeProfile"; // profile id (plain string, not JSON)
+  var KEY_DROPBOX_AUTH = NS + "dropboxAuth"; // shared across all profiles on this device
+  var KEY_LAST_SYNCED_AT = NS + "lastSyncedAt";
   var KEY_SETS_CACHE = NS + "cache:sets";
   // Bumped to "cards2" when the fetch mode changed from unique=prints to unique=cards
   // (dedupes reprints within a set), then to "cards3" when normalizeCard started keeping
@@ -60,9 +64,11 @@ var Storage = (function () {
 
   // Every per-profile piece of user data this app has ever stored under a flat (pre-profile)
   // key - moving these under a profile namespace is exactly what one-time migration and
-  // deleteProfile() both need the list for.
+  // deleteProfile() both need the list for. Dropbox auth/lastSyncedAt are deliberately NOT
+  // in this list - they're shared across every profile on this device (see the module
+  // comment above), not per-profile.
   var PROFILE_DATA_KEYS = [
-    "owned", "decks", "lastBrowseSet", "mergeByName", "cardGridSize", "dropboxAuth", "lastSyncedAt",
+    "owned", "decks", "lastBrowseSet", "mergeByName", "cardGridSize",
   ];
 
   // Runs once: if this browser has real data sitting under the old flat (pre-profile) keys,
@@ -102,6 +108,32 @@ var Storage = (function () {
     writeJSON(KEY_PROFILES, [profile]);
     localStorage.setItem(KEY_ACTIVE_PROFILE, profile.id);
     return hadLegacyData;
+  }
+
+  // Corrective step for anyone who loaded a short-lived earlier version of this feature
+  // that put dropboxAuth/lastSyncedAt under each profile - consolidates whichever profile
+  // still has a connection back to the shared global key (preferring the active profile's,
+  // since that's the one most likely to be the one actually in use), then cleans up every
+  // profile-scoped copy so there's exactly one connection going forward. A no-op for
+  // everyone else (nothing to find at those old locations).
+  function consolidateDropboxAuthToGlobal() {
+    if (localStorage.getItem(KEY_DROPBOX_AUTH) !== null) return;
+    var profiles = getProfiles();
+    var activeId = getActiveProfileId();
+    var orderedIds = [activeId].concat(profiles.map(function (p) { return p.id; }).filter(function (id) { return id !== activeId; }));
+    for (var i = 0; i < orderedIds.length; i++) {
+      var authRaw = localStorage.getItem(profileKey(orderedIds[i], "dropboxAuth"));
+      if (authRaw !== null) {
+        localStorage.setItem(KEY_DROPBOX_AUTH, authRaw);
+        var syncedRaw = localStorage.getItem(profileKey(orderedIds[i], "lastSyncedAt"));
+        if (syncedRaw !== null) localStorage.setItem(KEY_LAST_SYNCED_AT, syncedRaw);
+        break;
+      }
+    }
+    profiles.forEach(function (p) {
+      localStorage.removeItem(profileKey(p.id, "dropboxAuth"));
+      localStorage.removeItem(profileKey(p.id, "lastSyncedAt"));
+    });
   }
 
   function profileKey(profileId, base) {
@@ -172,6 +204,57 @@ var Storage = (function () {
     if (getActiveProfileId() === id || localStorage.getItem(KEY_ACTIVE_PROFILE) === id) {
       setActiveProfileId(profiles[0].id);
     }
+  }
+
+  // ---- Every profile's data together (for DropboxSync - one connection backs up every
+  // local profile, not just whichever one happens to be active) ----
+
+  function getAllProfilesData() {
+    return getProfiles().map(function (p) {
+      return {
+        id: p.id,
+        name: p.name,
+        createdAt: p.createdAt,
+        ownedCards: readJSON(profileKey(p.id, "owned"), {}),
+        decks: readJSON(profileKey(p.id, "decks"), []),
+      };
+    });
+  }
+
+  // Merges a remote snapshot of every profile back in: a profile that doesn't exist locally
+  // yet (created on another device sharing this same Dropbox account) is added; for a
+  // profile that already exists here, owned cards union (remote wins on a shared id) and
+  // decks match by id with the more-recently-updated copy winning - same semantics as
+  // importData's merge mode, just applied per-profile instead of to whichever one is active.
+  function mergeAllProfilesData(remoteProfiles) {
+    if (!Array.isArray(remoteProfiles)) return;
+    var profiles = getProfiles();
+    var byId = {};
+    profiles.forEach(function (p) { byId[p.id] = p; });
+
+    remoteProfiles.forEach(function (remote) {
+      if (!byId[remote.id]) {
+        var newProfile = { id: remote.id, name: remote.name, createdAt: remote.createdAt || new Date().toISOString() };
+        profiles.push(newProfile);
+        byId[remote.id] = newProfile;
+      }
+
+      var localOwned = readJSON(profileKey(remote.id, "owned"), {});
+      Object.keys(remote.ownedCards || {}).forEach(function (id) { localOwned[id] = remote.ownedCards[id]; });
+      writeJSON(profileKey(remote.id, "owned"), localOwned);
+
+      var localDecksById = {};
+      readJSON(profileKey(remote.id, "decks"), []).forEach(function (d) { localDecksById[d.id] = d; });
+      (remote.decks || []).forEach(function (incoming) {
+        var existing = localDecksById[incoming.id];
+        if (!existing || (incoming.updatedAt || "") > (existing.updatedAt || "")) {
+          localDecksById[incoming.id] = incoming;
+        }
+      });
+      writeJSON(profileKey(remote.id, "decks"), Object.keys(localDecksById).map(function (id) { return localDecksById[id]; }));
+    });
+
+    writeJSON(KEY_PROFILES, profiles);
   }
 
   // Every per-profile getter/setter below reads/writes under the CURRENTLY ACTIVE profile -
@@ -337,27 +420,28 @@ var Storage = (function () {
   }
 
   // ---- Dropbox sync connection (optional; app works fully local without it) ----
-  // Per-profile, like everything else here - each profile can connect its own Dropbox
-  // account (or none at all) independent of any other profile on this device.
+  // One shared connection for the whole device, not per-profile - every local profile syncs
+  // through it together (see mergeAllProfilesData/getAllProfilesData below), so connecting
+  // once covers everyone sharing this device instead of each person needing their own login.
 
   function getDropboxAuth() {
-    return readActiveJSON("dropboxAuth", null); // { accessToken, refreshToken, expiresAt, accountEmail }
+    return readJSON(KEY_DROPBOX_AUTH, null); // { accessToken, refreshToken, expiresAt, accountEmail }
   }
 
   function setDropboxAuth(auth) {
-    writeJSON(activeKey("dropboxAuth"), auth);
+    writeJSON(KEY_DROPBOX_AUTH, auth);
   }
 
   function clearDropboxAuth() {
-    localStorage.removeItem(activeKey("dropboxAuth"));
+    localStorage.removeItem(KEY_DROPBOX_AUTH);
   }
 
   function getLastSyncedAt() {
-    return readActiveJSON("lastSyncedAt", null);
+    return readJSON(KEY_LAST_SYNCED_AT, null);
   }
 
   function setLastSyncedAt(isoString) {
-    writeJSON(activeKey("lastSyncedAt"), isoString);
+    writeJSON(KEY_LAST_SYNCED_AT, isoString);
   }
 
   // ---- Scryfall response caches (shared across profiles, safe to clear) ----
@@ -449,6 +533,7 @@ var Storage = (function () {
   }
 
   migrateLegacyDataIfNeeded();
+  consolidateDropboxAuthToGlobal();
 
   return {
     isOwned: isOwned,
@@ -489,5 +574,7 @@ var Storage = (function () {
     createProfile: createProfile,
     renameProfile: renameProfile,
     deleteProfile: deleteProfile,
+    getAllProfilesData: getAllProfilesData,
+    mergeAllProfilesData: mergeAllProfilesData,
   };
 })();
