@@ -131,11 +131,6 @@ body {
   border-color: rgba(76, 175, 110, 0.55);
 }
 .header-action-group-view .header-group-label { color: var(--green); }
-.header-action-group-data {
-  background: rgba(201, 165, 54, 0.18);
-  border-color: rgba(201, 165, 54, 0.55);
-}
-.header-action-group-data .header-group-label { color: var(--gold); }
 
 /* Buttons/tabs inside a tinted group pick up a touch of that group's color themselves,
    instead of staying the same neutral --bg-input as everything else - otherwise the
@@ -151,10 +146,6 @@ body {
 .header-action-group-view .btn {
   background: rgba(76, 175, 110, 0.14);
   border-color: rgba(76, 175, 110, 0.4);
-}
-.header-action-group-data .btn {
-  background: rgba(201, 165, 54, 0.14);
-  border-color: rgba(201, 165, 54, 0.4);
 }
 
 .btn {
@@ -753,6 +744,12 @@ select, input[type="text"], .deck-name-input {
   align-items: flex-start;
   border-top: 1px solid var(--border);
   padding-top: 8px;
+  /* As a CSS Grid item, a flex container's default min-width is "auto," which resolves to
+     its content's own minimum intrinsic width - a long line of bullet text (or one long
+     unbroken run like a slash-separated list) could refuse to shrink to the grid track's
+     actual 1fr width and instead overflow sideways into the next column. min-width: 0
+     overrides that, letting the column's own width win and the text wrap normally instead. */
+  min-width: 0;
 }
 
 /* Trial run (Evergreen Keywords only) - a real example card next to the rule text. */
@@ -906,12 +903,13 @@ select, input[type="text"], .deck-name-input {
 .modal-body-text { white-space: pre-wrap; font-size: 14px; line-height: 1.5; }
 .modal-body-text h2 { margin-top: 0; font-size: 18px; }
 
-.sync-modal-content { flex-direction: column; align-items: stretch; text-align: left; max-width: 480px; }
-.sync-modal-content h2 { margin: 0 0 14px; font-size: 18px; }
-.sync-section h3 { margin: 0 0 10px; font-size: 14px; }
 .sync-note { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin: 0 0 12px; }
 .sync-status-row { font-size: 13px; margin-bottom: 6px; }
 .sync-error { font-size: 12px; color: var(--danger); margin-bottom: 10px; }
+.sync-setup-steps { margin: 0 0 14px; padding-left: 20px; font-size: 13px; color: var(--text); line-height: 1.6; }
+.sync-setup-steps li { margin-bottom: 4px; }
+
+.data-tab-actions { display: flex; gap: 10px; }
 
 .sync-actions-primary { margin-top: 12px; }
 .sync-actions-primary .btn { width: 100%; padding: 11px; font-size: 14px; }

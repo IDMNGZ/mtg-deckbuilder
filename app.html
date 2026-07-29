@@ -29,6 +29,7 @@
       <a href="#rules" class="tab-link" data-tab="rules">Rules</a>
       <a href="#howto" class="tab-link" data-tab="howto">How To Use</a>
       <a href="#links" class="tab-link" data-tab="links">Links</a>
+      <a href="#data" class="tab-link" data-tab="data">Data</a>
       <a href="#about" class="tab-link" data-tab="about">About</a>
     </div>
   </nav>
@@ -40,14 +41,6 @@
         Card size
         <input type="range" class="card-size-slider" min="100" max="260" step="10" title="Zoom the card grid in or out">
       </label>
-    </div>
-    <div class="header-action-group header-action-group-data">
-      <span class="header-group-label">Data</span>
-      <button id="btn-refresh-global" class="btn btn-ghost" title="Refresh the current tab's card data">Refresh</button>
-      <button id="btn-sync" class="btn btn-ghost" title="Sync your data across devices">Sync</button>
-      <button id="btn-export" class="btn btn-ghost" title="Download your owned cards + decks as a JSON backup">Export</button>
-      <button id="btn-import" class="btn btn-ghost" title="Load a JSON backup">Import</button>
-      <input type="file" id="file-import" accept="application/json" hidden>
     </div>
   </div>
   </div>
@@ -242,9 +235,9 @@
         <div class="rule-entry">
           <div class="rule-term">The header controls</div>
           <ul class="rule-bullets">
-            <li>Tabs are grouped into your data (Browse, Collection, Deck Builder, My Decks) and reference pages (Rules, How To Use, Links, About).</li>
+            <li>Tabs are grouped into your data (Browse, Collection, Deck Builder, My Decks) and reference pages (Rules, How To Use, Links, Data, About).</li>
             <li>"View" applies everywhere at once: "Merge Dupes" collapses duplicate printings into one tile on Browse, Collection, and Deck Builder together, and "Card size" resizes the card grid on every tab, including deck cards on My Decks.</li>
-            <li>"Data" holds Refresh, Sync, Export, and Import - Refresh re-fetches whatever the current tab needs (the selected editions on Browse, or your saved owned cards/decks everywhere else); the rest are covered in "Syncing Your Data" below.</li>
+            <li>The Data tab holds everything about where your collection/decks live - Dropbox sync, manual Export/Import, and Refresh (covered in "Syncing Your Data" below).</li>
           </ul>
         </div>
       </div>
@@ -314,7 +307,7 @@
         <div class="rule-entry">
           <div class="rule-term">Format</div>
           <ul class="rule-bullets">
-            <li>The Format dropdown next to the deck name picks which format's rules apply: Free (no restrictions), Speed Magic (this app's own 10-card format - see the Rules tab), or an official format (Standard/Pioneer/Modern/Legacy/Vintage/Pauper/Commander/Brawl).</li>
+            <li>The Format dropdown next to the deck name picks which format's rules apply: Free (no restrictions), Speed Magic (this app's own 10-card format - see the Rules tab), or an official format (Standard, Pioneer, Modern, Legacy, Vintage, Pauper, Commander, or Brawl).</li>
             <li>Choosing a real format filters the pool to only cards legal in it, and enforces its copy limit (4 for constructed formats, singleton for Commander/Brawl - basic lands are always unlimited).</li>
             <li>Commander and Brawl also require picking a Commander first - the pool switches to showing only eligible legendary creatures until you choose one, then filters everything else to that Commander's color identity.</li>
             <li>A status line above the deck stats tracks progress toward the format's deck size (and flags anything that's since become illegal, e.g. after switching formats mid-build).</li>
@@ -395,16 +388,16 @@
         <div class="rule-entry">
           <div class="rule-term">Automatic sync (Dropbox)</div>
           <ul class="rule-bullets">
-            <li>Click "Sync" in the header, then "Connect Dropbox," and log into your own Dropbox account.</li>
+            <li>Open the Data tab and click "Connect Dropbox," then log into your own Dropbox account.</li>
             <li>Your data is written to a private folder Dropbox creates just for this app - it's not visible to anyone else, including other people using this same site.</li>
             <li>Connect the same Dropbox account on another device (like your phone) and it'll pull your data down automatically.</li>
-            <li>Changes push a few seconds after you make them, and pull whenever you switch back to the tab.</li>
+            <li>Changes push a few seconds after you make them, and pull whenever you switch back to the tab - "Sync now" in the Data tab also does both immediately.</li>
           </ul>
         </div>
         <div class="rule-entry">
           <div class="rule-term">Manual backup (no account needed)</div>
           <ul class="rule-bullets">
-            <li>"Export" in the header downloads a JSON file of your owned cards and decks.</li>
+            <li>"Export" in the Data tab downloads a JSON file of your owned cards and decks.</li>
             <li>"Import" on another device/browser loads that file back in, merging it with whatever's already there.</li>
             <li>Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</li>
           </ul>
@@ -471,6 +464,37 @@
         <li><a href="https://www.hipstersofthecoast.com" target="_blank" rel="noopener">Hipsters of the Coast</a> - strategy &amp; culture articles</li>
         <li><a href="https://www.reddit.com/r/magicTCG" target="_blank" rel="noopener">r/magicTCG</a> - community discussion</li>
       </ul>
+    </section>
+  </section>
+
+  <section id="tab-data" class="tab-panel">
+    <p class="rules-disclaimer">Manage where your collection and decks live - automatic sync, manual backup, and refreshing card data.</p>
+
+    <section class="rules-section">
+      <div id="data-sync-section"></div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Manual Backup</h2>
+        <p>No account needed - move your data yourself.</p>
+      </div>
+      <p class="sync-note">Export downloads a JSON file of your owned cards and decks. Import loads that file back in (on this device or another), merging it with whatever's already here. Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</p>
+      <div class="data-tab-actions">
+        <button id="btn-export" class="btn btn-ghost">Export</button>
+        <button id="btn-import" class="btn btn-ghost">Import</button>
+        <input type="file" id="file-import" accept="application/json" hidden>
+      </div>
+    </section>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Refresh Card Data</h2>
+        <p>Re-fetch the latest Scryfall data for whatever you were last viewing.</p>
+      </div>
+      <div class="data-tab-actions">
+        <button id="btn-refresh-global" class="btn btn-ghost">Refresh</button>
+      </div>
     </section>
   </section>
 
@@ -569,15 +593,6 @@
   </div>
 </div>
 
-<div id="sync-modal" class="modal hidden">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content sync-modal-content">
-    <button id="sync-modal-close" class="modal-close">&times;</button>
-    <h2>Sync your data</h2>
-    <div id="sync-panel-body"></div>
-  </div>
-</div>
-
 <script src="js/version.js"></script>
 <script src="js/share.js"></script>
 <script src="js/storage.js"></script>
@@ -588,7 +603,7 @@
 <script src="js/data-sync.js"></script>
 <script src="js/sync-config.js"></script>
 <script src="js/dropbox-sync.js"></script>
-<script src="js/ui-sync.js"></script>
+<script src="js/ui-data.js"></script>
 <script src="js/rules-data.js"></script>
 <script src="js/ui-browse.js"></script>
 <script src="js/ui-collection.js"></script>

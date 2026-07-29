@@ -2,14 +2,21 @@
 (function () {
   "use strict";
 
-  var TABS = ["browse", "collection", "deckbuilder", "decks", "rules", "howto", "links", "about"];
+  var TABS = ["browse", "collection", "deckbuilder", "decks", "rules", "howto", "links", "data", "about"];
 
   var activators = {
     browse: function () { BrowseUI.activate(); },
     collection: function () { CollectionUI.activate(); },
     deckbuilder: function () { DeckBuilderUI.activate(); },
     decks: function () { DecksUI.activate(); },
+    data: function () { DataTabUI.activate(); },
   };
+
+  // Which real content tab (i.e. not Data itself) was last visited - the Data tab's Refresh
+  // button uses this to decide whether "refresh" means Browse's selected editions or
+  // everyone else's saved owned-cards/decks, since by the time it's clicked the hash is
+  // always "#data" and can't tell those apart on its own.
+  var lastContentTab = "browse";
 
   function currentTab() {
     var hash = location.hash.replace("#", "");
@@ -17,6 +24,7 @@
   }
 
   function showTab(tab) {
+    if (tab !== "data") lastContentTab = tab;
     TABS.forEach(function (t) {
       document.getElementById("tab-" + t).classList.toggle("active", t === tab);
     });
@@ -26,6 +34,13 @@
     if (activators[tab]) activators[tab]();
     syncHeaderHeight(); // switching tabs can add/remove the scrollbar, which can rewrap the header
   }
+
+  // Small surface DataTabUI needs without every module having to know about app.js's
+  // internal tab-routing state directly.
+  window.AppRouter = {
+    lastContentTab: function () { return lastContentTab; },
+    refreshCurrentTab: function () { showTab(currentTab()); },
+  };
 
   // Merge Dupes and Card size used to be duplicated in every tab's own filter row (they're
   // shared preferences, not tab-specific) - now there's exactly one of each, living in the
@@ -39,62 +54,6 @@
       Storage.setMergeByName(!Storage.getMergeByName());
       sync();
       document.dispatchEvent(new CustomEvent("mtg:merge-changed"));
-    });
-  }
-
-  // "Refresh" means something different depending on which tab is active - Browse
-  // refetches the selected edition(s), Collection/Deck Builder refetch owned+deck card
-  // data (identical for both, so one shared call covers them). Dispatching on the active
-  // tab here is what lets a single header button replace three separate ones.
-  function wireGlobalRefresh() {
-    var btn = document.getElementById("btn-refresh-global");
-    var originalLabel = btn.textContent;
-    function busy(label) { btn.disabled = true; btn.textContent = label; }
-    function done(label) {
-      btn.textContent = label;
-      setTimeout(function () { btn.textContent = originalLabel; btn.disabled = false; }, 2000);
-    }
-    btn.addEventListener("click", function () {
-      if (currentTab() === "browse") {
-        busy("Refreshing…");
-        BrowseUI.refresh().then(function () { done("Refreshed"); })
-          .catch(function (err) { console.error("Refresh failed:", err); done("Refresh failed"); });
-        return;
-      }
-      busy("Refreshing…");
-      DataSync.refreshAllSavedCardData().then(function (result) {
-        CollectionUI.refresh();
-        DeckBuilderUI.refresh(result);
-        done(result.total === 0 ? "Nothing to refresh" : "Refreshed " + result.updated + "/" + result.total);
-      }).catch(function (err) { console.error("Refresh failed:", err); done("Refresh failed"); });
-    });
-  }
-
-  function wireHeaderActions() {
-    document.getElementById("btn-export").addEventListener("click", function () {
-      Storage.exportData();
-    });
-
-    var fileInput = document.getElementById("file-import");
-    document.getElementById("btn-import").addEventListener("click", function () {
-      fileInput.value = "";
-      fileInput.click();
-    });
-    fileInput.addEventListener("change", function () {
-      var file = fileInput.files[0];
-      if (!file) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        try {
-          var result = Storage.importData(reader.result, "merge");
-          DropboxSync.push(); // no-op if not connected; otherwise carries the import to other devices
-          window.alert("Imported: " + result.owned + " owned cards, " + result.decks + " decks.");
-          showTab(currentTab());
-        } catch (err) {
-          window.alert("Import failed: " + err.message);
-        }
-      };
-      reader.readAsText(file);
     });
   }
 
@@ -174,10 +133,8 @@
     DeckBuilderUI.init();
     DecksUI.init();
     RulesUI.init();
-    UiSyncPanel.init();
-    wireHeaderActions();
+    DataTabUI.init();
     wireGlobalMergeToggle();
-    wireGlobalRefresh();
     watchHeaderHeight();
     applyMobileFilterDefaults();
     wireCardSizeSliders();
