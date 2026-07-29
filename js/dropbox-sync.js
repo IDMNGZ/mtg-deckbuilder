@@ -236,9 +236,17 @@ var DropboxSync = (function () {
     });
   }
 
-  // Pulls the remote file and applies it locally only if it's newer than the last sync we
-  // know about - a simple last-write-wins policy. If no remote file exists yet, seeds it
-  // with whatever's local.
+  // Pulls the remote file and merges it in (Storage.importData's "merge" mode: matched by
+  // deck id, newer updatedAt wins, nothing ever silently dropped). Deliberately NOT
+  // "replace" - this used to be a last-write-wins full overwrite gated on "remote is newer
+  // than the last sync we know about," but that gate has a sharp edge: the very first pull
+  // after a (re)connect has no "last known sync" to compare against, so it fell through to
+  // an UNCONDITIONAL overwrite - any local-only change made since the previous device's
+  // last push (e.g. a deck saved locally right before a refresh beat the 3s auto-push to
+  // Dropbox) would be silently destroyed by an older remote snapshot. Merging instead means
+  // even that unconditional case can only add/update from the remote, never delete
+  // something newer that's only local so far. If no remote file exists yet, seeds it with
+  // whatever's local.
   function pull() {
     if (!Storage.getDropboxAuth()) return Promise.resolve();
     updateState({ syncing: true });
@@ -259,7 +267,7 @@ var DropboxSync = (function () {
       var remote = JSON.parse(text);
       var lastKnown = Storage.getLastSyncedAt();
       if (!lastKnown || remote.syncedAt > lastKnown) {
-        Storage.importData(text, "replace");
+        Storage.importData(text, "merge");
         Storage.setLastSyncedAt(remote.syncedAt);
         document.dispatchEvent(new CustomEvent("mtg:remote-sync-applied"));
       }

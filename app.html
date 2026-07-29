@@ -297,23 +297,6 @@
 
     <section class="rules-section">
       <div class="rules-section-header">
-        <h2>Collection</h2>
-        <p>Everything you've checked off, in one place.</p>
-      </div>
-      <div class="rule-entries">
-        <div class="rule-entry">
-          <div class="rule-term">Reviewing what you own</div>
-          <ul class="rule-bullets">
-            <li>Shows every card you've checked off, across every edition, with the same search/color/type/rarity/sort filters as Browse.</li>
-            <li>Unchecking "I own this" here removes it from your collection immediately.</li>
-            <li>"Merge Dupes" works the same way as in Browse - merged tiles show a "Remove all" button (with a confirmation) to drop every printing of that card at once.</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="rules-section">
-      <div class="rules-section-header">
         <h2>Deck Builder</h2>
         <p>Build a deck from cards you actually own, with live stats.</p>
       </div>
@@ -346,40 +329,62 @@
       </div>
     </section>
 
-    <section class="rules-section">
-      <div class="rules-section-header">
-        <h2>My Decks</h2>
-        <p>Manage everything you've saved.</p>
-      </div>
-      <div class="rule-entries">
-        <div class="rule-entry">
-          <div class="rule-term">Managing decks</div>
-          <ul class="rule-bullets">
-            <li>Each saved deck shows a cover image - the highest-mana-cost card in it - plus its card count and when it was last updated.</li>
-            <li>"Open" loads a deck back into the Deck Builder to keep editing it.</li>
-            <li>"Delete" removes it permanently - there's a confirmation before it's gone.</li>
-            <li>The header's "Card size" slider resizes these deck cards too.</li>
-          </ul>
+    <!-- These four sections are each short enough on their own to leave a lot of unused
+         width if stacked full-width like the longer sections above - grouped into one
+         responsive row instead so the space actually gets used. -->
+    <div class="howto-compact-row">
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Collection</h2>
+          <p>Everything you've checked off, in one place.</p>
         </div>
-      </div>
-    </section>
+        <div class="rule-entries">
+          <div class="rule-entry">
+            <div class="rule-term">Reviewing what you own</div>
+            <ul class="rule-bullets">
+              <li>Shows every card you've checked off, across every edition, with the same search/color/type/rarity/sort filters as Browse.</li>
+              <li>Unchecking "I own this" here removes it from your collection immediately.</li>
+              <li>"Merge Dupes" works the same way as in Browse - merged tiles show a "Remove all" button (with a confirmation) to drop every printing of that card at once.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-    <section class="rules-section">
-      <div class="rules-section-header">
-        <h2>Rules</h2>
-        <p>A quick-reference glossary, not part of your collection.</p>
-      </div>
-      <div class="rule-entries">
-        <div class="rule-entry">
-          <div class="rule-term">Using it</div>
-          <ul class="rule-bullets">
-            <li>Browse basic rules, evergreen keywords, token types, game formats, and keyword mechanics grouped by era.</li>
-            <li>Use "Show All"/"Hide All" or "Filter by Set" to choose which sections show, or search for a specific term.</li>
-            <li>Most keyword entries include a real example card - click its thumbnail to open the same card-detail view used elsewhere in the app.</li>
-          </ul>
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>My Decks</h2>
+          <p>Manage everything you've saved.</p>
         </div>
-      </div>
-    </section>
+        <div class="rule-entries">
+          <div class="rule-entry">
+            <div class="rule-term">Managing decks</div>
+            <ul class="rule-bullets">
+              <li>Each saved deck shows a cover image - the highest-mana-cost card in it - plus its card count, format, and when it was last updated.</li>
+              <li>"Open" loads a deck back into the Deck Builder to keep editing it.</li>
+              <li>"Delete" removes it permanently - there's a confirmation before it's gone.</li>
+              <li>The header's "Card size" slider resizes these deck cards too.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Rules</h2>
+          <p>A quick-reference glossary, not part of your collection.</p>
+        </div>
+        <div class="rule-entries">
+          <div class="rule-entry">
+            <div class="rule-term">Using it</div>
+            <ul class="rule-bullets">
+              <li>Browse basic rules, evergreen keywords, token types, game formats, and keyword mechanics grouped by era.</li>
+              <li>Use "Show All"/"Hide All" or "Filter by Set" to choose which sections show, or search for a specific term.</li>
+              <li>Most keyword entries include a real example card - click its thumbnail to open the same card-detail view used elsewhere in the app.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
 
     <section class="rules-section">
       <div class="rules-section-header">

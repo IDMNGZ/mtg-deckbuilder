@@ -729,7 +729,23 @@ select, input[type="text"], .deck-name-input {
      stuck in a narrow strip with dead space beside it. */
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
+  /* Default grid behavior stretches every entry in a row to match the tallest one -
+     fine when they're close in length, but a short entry (e.g. "Saving") next to a much
+     longer one (e.g. "Format") ended up as a tall card with a lot of empty space at the
+     bottom. Letting each entry size to its own content instead keeps that from happening. */
+  align-items: start;
 }
+
+/* Several How To Use sections are individually short enough that stacked full-width (like
+   the longer sections) they'd each leave a lot of unused horizontal space - grouped into
+   one responsive row of their own cards instead. */
+.howto-compact-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.howto-compact-row .rules-section { margin-bottom: 0; }
 
 .rule-entry {
   display: flex;
@@ -896,7 +912,30 @@ select, input[type="text"], .deck-name-input {
 .sync-note { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin: 0 0 12px; }
 .sync-status-row { font-size: 13px; margin-bottom: 6px; }
 .sync-error { font-size: 12px; color: var(--danger); margin-bottom: 10px; }
-.sync-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+.sync-actions-primary { margin-top: 12px; }
+.sync-actions-primary .btn { width: 100%; padding: 11px; font-size: 14px; }
+
+/* Deliberately separated from "Sync now" (a divider + real vertical gap, not just a
+   different color) and shrunk to a plain text-style link, not a solid button - this used
+   to sit right next to Sync Now as an equally-weighted button, which made it too easy to
+   hit by mistake. */
+.sync-actions-secondary {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.btn-text-danger {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+.btn-text-danger:hover { color: #ff8790; }
 
 /* Phone (either orientation): the controls row's fixed min-widths force nearly every
    field onto its own line, and the edition-chip list wraps to as many rows as there are

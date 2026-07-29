@@ -276,17 +276,23 @@ var Storage = (function () {
       return { owned: Object.keys(parsed.ownedCards).length, decks: parsed.decks.length };
     }
 
-    // merge: union owned cards, append decks that don't already exist by id
+    // merge: union owned cards (incoming wins on a shared id - just an ownership flag, low
+    // stakes either way), decks matched by id with the more-recently-updated copy winning
+    // (never silently dropped) - this is what makes it safe for DropboxSync.pull() to call
+    // unconditionally instead of needing its own now-or-never timestamp gate.
     var owned = getOwnedMap();
     Object.keys(parsed.ownedCards).forEach(function (id) { owned[id] = parsed.ownedCards[id]; });
     writeJSON(KEY_OWNED, owned);
 
-    var decks = getDecks();
-    var existingIds = {};
-    decks.forEach(function (d) { existingIds[d.id] = true; });
-    parsed.decks.forEach(function (d) {
-      if (!existingIds[d.id]) decks.push(d);
+    var byId = {};
+    getDecks().forEach(function (d) { byId[d.id] = d; });
+    parsed.decks.forEach(function (incoming) {
+      var existing = byId[incoming.id];
+      if (!existing || (incoming.updatedAt || "") > (existing.updatedAt || "")) {
+        byId[incoming.id] = incoming;
+      }
     });
+    var decks = Object.keys(byId).map(function (id) { return byId[id]; });
     writeJSON(KEY_DECKS, decks);
 
     return { owned: Object.keys(owned).length, decks: decks.length };

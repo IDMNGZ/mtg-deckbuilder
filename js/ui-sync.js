@@ -25,9 +25,11 @@ var UiSyncPanel = (function () {
       html += "<div class='sync-status-row'><span>" + (status.accountEmail ? "Connected as <strong>" + CardView.escapeHtml(status.accountEmail) + "</strong>" : "Connected") + "</span></div>";
       html += "<div class='sync-status-row'><span>Last synced: " + formatTime(status.lastSyncedAt) + (status.syncing ? " (syncing…)" : "") + "</span></div>";
       if (status.lastError) html += "<div class='sync-error'>" + CardView.escapeHtml(status.lastError) + "</div>";
-      html += "<div class='sync-actions'>";
-      html += "<button type='button' id='btn-sync-now' class='btn btn-ghost'" + (status.syncing ? " disabled" : "") + ">Sync now</button>";
-      html += "<button type='button' id='btn-sync-disconnect' class='btn btn-danger'>Disconnect</button>";
+      html += "<div class='sync-actions-primary'>";
+      html += "<button type='button' id='btn-sync-now' class='btn btn-primary'" + (status.syncing ? " disabled" : "") + ">" + (status.syncing ? "Syncing…" : "Sync now") + "</button>";
+      html += "</div>";
+      html += "<div class='sync-actions-secondary'>";
+      html += "<button type='button' id='btn-sync-disconnect' class='btn-text-danger'>Disconnect Dropbox</button>";
       html += "</div>";
     } else if (!status.configured) {
       html += "<p class='sync-note'>Dropbox sync isn't set up for this deployment yet - see README.md for the one-time setup. Everything still works fully local without it.</p>";

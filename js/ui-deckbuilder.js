@@ -409,6 +409,11 @@ var DeckBuilderUI = (function () {
     deck.name = name;
     Storage.saveDeck(deck);
     if (window.DecksUI) window.DecksUI.activate();
+    // A saved deck is exactly the kind of change worth backing up right away rather than
+    // waiting on the usual few-seconds debounce (see DropboxSync.scheduleAutoPush) - it's a
+    // deliberate, often lengthy piece of work, not a rapid-fire ownership toggle. Pushing
+    // immediately shrinks the window where a refresh/close could catch it before it's synced.
+    if (window.DropboxSync) DropboxSync.push();
     els.stats.insertAdjacentHTML("afterbegin", '<p class="empty-hint">Saved ' + new Date().toLocaleTimeString() + '</p>');
   }
 
