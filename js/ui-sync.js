@@ -51,7 +51,7 @@ var UiSyncPanel = (function () {
     if (!status.connected && status.configured) {
       document.getElementById("btn-sync-connect").addEventListener("click", DropboxSync.connect);
     } else if (status.connected) {
-      document.getElementById("btn-sync-now").addEventListener("click", function () { DropboxSync.push().then(DropboxSync.pull); });
+      document.getElementById("btn-sync-now").addEventListener("click", DropboxSync.push);
       document.getElementById("btn-sync-disconnect").addEventListener("click", function () {
         if (window.confirm("Disconnect Dropbox? Your data stays exactly as-is locally and in your Dropbox - this just stops automatic syncing.")) {
           DropboxSync.disconnect();

@@ -213,7 +213,11 @@ var DropboxSync = (function () {
     };
   }
 
-  function push() {
+  // Uploads whatever's local right now, unconditionally - the raw building block. Callers
+  // almost always want push() below instead, which merges in the remote first; this is only
+  // safe to call directly once that merge has already happened (or there's nothing to
+  // merge, e.g. no remote file exists yet).
+  function uploadSnapshot() {
     if (!Storage.getDropboxAuth()) return Promise.resolve();
     updateState({ syncing: true });
     var payload = buildPayload();
@@ -262,7 +266,7 @@ var DropboxSync = (function () {
     }).then(function (text) {
       if (text === null) {
         updateState({ syncing: false });
-        return push();
+        return uploadSnapshot();
       }
       var remote = JSON.parse(text);
       var lastKnown = Storage.getLastSyncedAt();
@@ -275,6 +279,17 @@ var DropboxSync = (function () {
     }).catch(function (err) {
       updateState({ syncing: false, lastError: "Sync from Dropbox failed: " + err.message });
     });
+  }
+
+  // The "push" every caller actually wants: pull-and-merge the remote in first, THEN
+  // upload. With two devices in play, a device that's fallen behind would otherwise upload
+  // its own (comparatively stale) local view with mode:"overwrite" and blow away whatever
+  // the OTHER device had already synced to Dropbox in the meantime, even though pull()
+  // itself now merges safely once data is back on this device - that protection only
+  // covers the local side, not the shared file. Pulling first means whatever gets
+  // uploaded already reflects both devices' known changes.
+  function push() {
+    return pull().then(uploadSnapshot);
   }
 
   // ---- Wiring: auto-push on local changes, auto-pull when the tab regains focus ----
