@@ -79,8 +79,9 @@ var LandingFit = (function () {
     run();
     window.addEventListener("resize", scheduleRun);
     window.addEventListener("orientationchange", scheduleRun);
-    // Cinzel's metrics differ from the Georgia/serif fallback used before it loads -
-    // re-measure once the real font is in so the title isn't sized for the wrong font.
+    // The title's custom webfont has different metrics than the Georgia/serif fallback
+    // shown before it loads - re-measure once the real font is in so it isn't sized for
+    // the wrong font.
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(run);
     }
