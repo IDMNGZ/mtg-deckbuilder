@@ -911,6 +911,65 @@ select, input[type="text"], .deck-name-input {
 
 .data-tab-actions { display: flex; gap: 10px; }
 
+/* A prominent, always-visible summary above the section cards - which profile you're in,
+   whether it's synced, and how big it is - answered in one glance instead of having to
+   read into each card below. */
+.data-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+}
+.data-status-item { display: flex; flex-direction: column; gap: 2px; }
+.data-status-label { font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim); }
+.data-status-value { font-size: 15px; font-weight: 600; }
+.data-status-value.data-status-error { color: var(--danger); }
+
+/* The section cards (Sync/Manual Backup/Refresh/Switch Profiles) were each stretching to
+   the full content width even though most only need a fraction of it - side by side
+   instead, same auto-fit-collapses-empty-tracks approach as .rule-entries. */
+.data-tab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.data-tab-grid .rules-section { margin-bottom: 0; }
+
+.data-profile-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.data-profile-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.data-profile-item.active { border-color: var(--accent); }
+.data-profile-info { min-width: 0; }
+.data-profile-name { font-size: 14px; font-weight: 600; }
+.data-profile-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #101116;
+  background: var(--accent);
+  border-radius: 10px;
+  padding: 2px 7px;
+  vertical-align: middle;
+}
+.data-profile-meta { font-size: 12px; color: var(--text-dim); }
+.data-profile-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.data-profile-create { display: flex; gap: 8px; }
+.data-profile-create input { flex: 1; }
+
 .sync-actions-primary { margin-top: 12px; }
 .sync-actions-primary .btn { width: 100%; padding: 11px; font-size: 14px; }
 

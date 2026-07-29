@@ -468,34 +468,50 @@
   </section>
 
   <section id="tab-data" class="tab-panel">
-    <p class="rules-disclaimer">Manage where your collection and decks live - automatic sync, manual backup, and refreshing card data.</p>
+    <p class="rules-disclaimer">Manage where your collection and decks live - automatic sync, manual backup, refreshing card data, and switching profiles.</p>
 
-    <section class="rules-section">
-      <div id="data-sync-section"></div>
-    </section>
+    <div id="data-status-bar" class="data-status-bar"></div>
 
-    <section class="rules-section">
-      <div class="rules-section-header">
-        <h2>Manual Backup</h2>
-        <p>No account needed - move your data yourself.</p>
-      </div>
-      <p class="sync-note">Export downloads a JSON file of your owned cards and decks. Import loads that file back in (on this device or another), merging it with whatever's already here. Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</p>
-      <div class="data-tab-actions">
-        <button id="btn-export" class="btn btn-ghost">Export</button>
-        <button id="btn-import" class="btn btn-ghost">Import</button>
-        <input type="file" id="file-import" accept="application/json" hidden>
-      </div>
-    </section>
+    <div class="data-tab-grid">
+      <section class="rules-section">
+        <div id="data-sync-section"></div>
+      </section>
 
-    <section class="rules-section">
-      <div class="rules-section-header">
-        <h2>Refresh Card Data</h2>
-        <p>Re-fetch the latest Scryfall data for whatever you were last viewing.</p>
-      </div>
-      <div class="data-tab-actions">
-        <button id="btn-refresh-global" class="btn btn-ghost">Refresh</button>
-      </div>
-    </section>
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Manual Backup</h2>
+          <p>No account needed - move your data yourself.</p>
+        </div>
+        <p class="sync-note">Export downloads a JSON file of your owned cards and decks. Import loads that file back in (on this device or another), merging it with whatever's already here. Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</p>
+        <div class="data-tab-actions">
+          <button id="btn-export" class="btn btn-ghost">Export</button>
+          <button id="btn-import" class="btn btn-ghost">Import</button>
+          <input type="file" id="file-import" accept="application/json" hidden>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Refresh Card Data</h2>
+          <p>Re-fetch the latest Scryfall data for whatever you were last viewing.</p>
+        </div>
+        <div class="data-tab-actions">
+          <button id="btn-refresh-global" class="btn btn-ghost">Refresh</button>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Switch Profiles</h2>
+          <p>Separate collections/decks - and their own Dropbox connection - for different people sharing this device.</p>
+        </div>
+        <ul id="data-profile-list" class="data-profile-list"></ul>
+        <div class="data-profile-create">
+          <input type="text" id="data-new-profile-name" placeholder="New profile name…">
+          <button id="btn-create-profile" class="btn btn-ghost">Create</button>
+        </div>
+      </section>
+    </div>
   </section>
 
   <section id="tab-about" class="tab-panel">

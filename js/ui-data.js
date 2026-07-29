@@ -1,7 +1,9 @@
 // "Data" tab: everything about where your collection/decks live - automatic Dropbox sync,
-// manual JSON export/import, and refreshing saved card data from Scryfall. Used to be split
-// across header buttons + a separate Sync modal; consolidated here since automatic sync
-// made the header buttons themselves mostly one-and-done setup rather than everyday actions.
+// manual JSON export/import, refreshing saved card data from Scryfall, and switching between
+// profiles (separate collections/decks for different people sharing one device). Used to be
+// split across header buttons + a separate Sync modal; consolidated here since automatic
+// sync made the header buttons themselves mostly one-and-done setup rather than everyday
+// actions.
 var DataTabUI = (function () {
   "use strict";
 
@@ -11,6 +13,29 @@ var DataTabUI = (function () {
     if (!isoString) return "never";
     return new Date(isoString).toLocaleString();
   }
+
+  // ---- Live status bar (profile, sync state, collection size) ----
+
+  function renderStatusBar() {
+    var profile = Storage.getActiveProfile();
+    var status = DropboxSync.getStatus();
+    var ownedCount = Storage.getOwnedCards().length;
+    var deckCount = Storage.getDecks().length;
+
+    var syncLabel;
+    if (!status.configured) syncLabel = "Local only";
+    else if (!status.connected) syncLabel = "Not connected";
+    else if (status.syncing) syncLabel = "Syncing…";
+    else if (status.lastError) syncLabel = "Sync error";
+    else syncLabel = "Synced " + formatTime(status.lastSyncedAt);
+
+    els.statusBar.innerHTML =
+      "<div class='data-status-item'><span class='data-status-label'>Profile</span><span class='data-status-value'>" + CardView.escapeHtml(profile.name) + "</span></div>" +
+      "<div class='data-status-item'><span class='data-status-label'>Sync</span><span class='data-status-value" + (status.lastError ? " data-status-error" : "") + "'>" + CardView.escapeHtml(syncLabel) + "</span></div>" +
+      "<div class='data-status-item'><span class='data-status-label'>Collection</span><span class='data-status-value'>" + ownedCount + " cards, " + deckCount + " decks</span></div>";
+  }
+
+  // ---- Sync section ----
 
   function renderSync() {
     var status = DropboxSync.getStatus();
@@ -49,7 +74,116 @@ var DataTabUI = (function () {
         }
       });
     }
+
+    renderStatusBar();
   }
+
+  // ---- Profiles ----
+
+  // A profile switch changes which localStorage keys every module reads from underneath
+  // them (Storage.activeKey), which none of Browse/Collection/Deck Builder/etc. are set up
+  // to notice mid-session - a full reload is the simplest way to guarantee every module
+  // (including DropboxSync's in-memory connection state) picks up the new profile cleanly,
+  // rather than trying to hand-reset each one.
+  function switchProfile(id) {
+    Storage.setActiveProfileId(id);
+    location.reload();
+  }
+
+  function renameProfilePrompt(profile) {
+    var name = window.prompt("Rename profile:", profile.name);
+    if (!name) return;
+    name = name.trim();
+    if (!name || name === profile.name) return;
+    Storage.renameProfile(profile.id, name);
+    renderProfiles();
+    renderStatusBar();
+  }
+
+  function deleteProfilePrompt(profile) {
+    var stats = Storage.getProfileStats(profile.id);
+    var msg = 'Delete profile "' + profile.name + '"? This permanently removes its ' +
+      stats.owned + ' owned card(s) and ' + stats.decks + ' deck(s) - not just from this device, ' +
+      'this data isn\'t stored anywhere else unless it has its own Dropbox connection. This cannot be undone.';
+    if (!window.confirm(msg)) return;
+    var wasActive = profile.id === Storage.getActiveProfileId();
+    Storage.deleteProfile(profile.id);
+    if (wasActive) {
+      location.reload();
+    } else {
+      renderProfiles();
+    }
+  }
+
+  function createProfilePrompt() {
+    var name = els.newProfileName.value.trim();
+    if (!name) {
+      window.alert("Give the new profile a name first.");
+      return;
+    }
+    Storage.createProfile(name);
+    els.newProfileName.value = "";
+    renderProfiles();
+  }
+
+  function renderProfiles() {
+    var profiles = Storage.getProfiles();
+    var activeId = Storage.getActiveProfileId();
+    els.profileList.innerHTML = "";
+
+    profiles.forEach(function (profile) {
+      var isActive = profile.id === activeId;
+      var stats = Storage.getProfileStats(profile.id);
+
+      var li = document.createElement("li");
+      li.className = "data-profile-item" + (isActive ? " active" : "");
+
+      var info = document.createElement("div");
+      info.className = "data-profile-info";
+      info.innerHTML =
+        "<div class='data-profile-name'>" + CardView.escapeHtml(profile.name) + (isActive ? " <span class='data-profile-badge'>Active</span>" : "") + "</div>" +
+        "<div class='data-profile-meta'>" + stats.owned + " cards owned · " + stats.decks + " decks</div>";
+      li.appendChild(info);
+
+      var actions = document.createElement("div");
+      actions.className = "data-profile-actions";
+
+      if (!isActive) {
+        var switchBtn = document.createElement("button");
+        switchBtn.className = "btn btn-ghost";
+        switchBtn.textContent = "Switch";
+        switchBtn.addEventListener("click", function () { switchProfile(profile.id); });
+        actions.appendChild(switchBtn);
+      }
+
+      var renameBtn = document.createElement("button");
+      renameBtn.className = "btn btn-ghost";
+      renameBtn.textContent = "Rename";
+      renameBtn.addEventListener("click", function () { renameProfilePrompt(profile); });
+      actions.appendChild(renameBtn);
+
+      if (profiles.length > 1) {
+        var deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn btn-danger";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", function () { deleteProfilePrompt(profile); });
+        actions.appendChild(deleteBtn);
+      }
+
+      li.appendChild(actions);
+      els.profileList.appendChild(li);
+    });
+  }
+
+  function wireProfiles() {
+    els.createProfileBtn.addEventListener("click", createProfilePrompt);
+    els.newProfileName.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") createProfilePrompt();
+    });
+    renderProfiles();
+  }
+
+  // ---- Refresh ----
 
   // "Refresh" means something different depending on which tab you were last actually
   // looking at - Browse refetches the selected edition(s), everything else refetches
@@ -75,10 +209,13 @@ var DataTabUI = (function () {
       DataSync.refreshAllSavedCardData().then(function (result) {
         CollectionUI.refresh();
         DeckBuilderUI.refresh(result);
+        renderStatusBar();
         done(result.total === 0 ? "Nothing to refresh" : "Refreshed " + result.updated + "/" + result.total);
       }).catch(function (err) { console.error("Refresh failed:", err); done("Refresh failed"); });
     });
   }
+
+  // ---- Manual backup ----
 
   function wireBackup() {
     document.getElementById("btn-export").addEventListener("click", function () {
@@ -100,6 +237,7 @@ var DataTabUI = (function () {
           DropboxSync.push(); // no-op if not connected; otherwise carries the import to other devices
           window.alert("Imported: " + result.owned + " owned cards, " + result.decks + " decks.");
           if (window.AppRouter) window.AppRouter.refreshCurrentTab();
+          renderStatusBar();
         } catch (err) {
           window.alert("Import failed: " + err.message);
         }
@@ -108,19 +246,33 @@ var DataTabUI = (function () {
     });
   }
 
+  function activate() {
+    renderSync();
+    renderProfiles();
+  }
+
   function init() {
+    els.statusBar = document.getElementById("data-status-bar");
     els.syncSection = document.getElementById("data-sync-section");
     els.refreshBtn = document.getElementById("btn-refresh-global");
+    els.profileList = document.getElementById("data-profile-list");
+    els.newProfileName = document.getElementById("data-new-profile-name");
+    els.createProfileBtn = document.getElementById("btn-create-profile");
 
     renderSync();
+    renderProfiles();
     wireRefresh();
     wireBackup();
+    wireProfiles();
 
     document.addEventListener("mtg:sync-status-changed", function () {
       var tab = document.getElementById("tab-data");
       if (tab && tab.classList.contains("active")) renderSync();
     });
+    // Ownership/deck changes made from other tabs should keep the status bar's counts
+    // live even if the Data tab isn't the one currently visible when they happen.
+    document.addEventListener("mtg:data-changed", renderStatusBar);
   }
 
-  return { init: init, activate: renderSync };
+  return { init: init, activate: activate };
 })();

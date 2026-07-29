@@ -1,11 +1,19 @@
 // Persistence layer: everything lives in localStorage, namespaced so it never
 // collides with anything else on the same origin (e.g. GitHub Pages user site).
+//
+// Profiles: owned cards, decks, Dropbox connection, and view preferences all live under a
+// per-profile namespace (NS + "profile:" + profileId + ":" + key) so separate people sharing
+// one browser/device (see the Data tab's "Switch Profiles") each get their own independent
+// collection and their own independent Dropbox account, if any. The Scryfall response
+// caches (sets/cards/prints) are NOT per-profile - they're just cached copies of public card
+// data, identical no matter who's using the app, so sharing one copy avoids every profile
+// re-fetching the same sets from Scryfall.
 var Storage = (function () {
   "use strict";
 
   var NS = "mtg-deckbuilder:v1:";
-  var KEY_OWNED = NS + "owned";
-  var KEY_DECKS = NS + "decks";
+  var KEY_PROFILES = NS + "profiles"; // [{ id, name, createdAt }]
+  var KEY_ACTIVE_PROFILE = NS + "activeProfile"; // profile id (plain string, not JSON)
   var KEY_SETS_CACHE = NS + "cache:sets";
   // Bumped to "cards2" when the fetch mode changed from unique=prints to unique=cards
   // (dedupes reprints within a set), then to "cards3" when normalizeCard started keeping
@@ -16,11 +24,6 @@ var Storage = (function () {
   // prints_search_uri field to a name-based query, then to "prints3" alongside the cards3
   // bump above for the same legalities reason.
   var KEY_PRINTS_CACHE_PREFIX = NS + "cache:prints3:";
-  var KEY_LAST_BROWSE_SET = NS + "lastBrowseSet";
-  var KEY_MERGE_BY_NAME = NS + "mergeByName";
-  var KEY_CARD_GRID_SIZE = NS + "cardGridSize";
-  var KEY_DROPBOX_AUTH = NS + "dropboxAuth";
-  var KEY_LAST_SYNCED_AT = NS + "lastSyncedAt";
 
   // Fired whenever owned cards or decks are mutated (not on cache/setting writes), so a
   // sync module can listen without every UI module needing to know sync exists.
@@ -49,13 +52,119 @@ var Storage = (function () {
     }
   }
 
+  // ---- Profiles ----
+
+  function makeProfileId() {
+    return "profile_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+  }
+
+  // Every per-profile piece of user data this app has ever stored under a flat (pre-profile)
+  // key - moving these under a profile namespace is exactly what one-time migration and
+  // deleteProfile() both need the list for.
+  var PROFILE_DATA_KEYS = [
+    "owned", "decks", "lastBrowseSet", "mergeByName", "cardGridSize", "dropboxAuth", "lastSyncedAt",
+  ];
+
+  // Runs once: if this browser has real data sitting under the old flat (pre-profile) keys,
+  // move it into a new default profile instead of leaving it orphaned/inaccessible. A
+  // brand-new install has nothing under those keys, so this is a no-op there.
+  function migrateLegacyDataIfNeeded() {
+    if (readJSON(KEY_PROFILES, null)) return; // already migrated (or already multi-profile)
+
+    var profile = { id: "default", name: "Player 1", createdAt: new Date().toISOString() };
+    var hadLegacyData = false;
+    PROFILE_DATA_KEYS.forEach(function (base) {
+      var legacyKey = NS + base;
+      var raw = localStorage.getItem(legacyKey);
+      if (raw !== null) {
+        hadLegacyData = true;
+        localStorage.setItem(profileKey(profile.id, base), raw);
+        localStorage.removeItem(legacyKey);
+      }
+    });
+    writeJSON(KEY_PROFILES, [profile]);
+    localStorage.setItem(KEY_ACTIVE_PROFILE, profile.id);
+    return hadLegacyData;
+  }
+
+  function profileKey(profileId, base) {
+    return NS + "profile:" + profileId + ":" + base;
+  }
+
+  function getProfiles() {
+    return readJSON(KEY_PROFILES, []);
+  }
+
+  function getActiveProfileId() {
+    var id = localStorage.getItem(KEY_ACTIVE_PROFILE);
+    var profiles = getProfiles();
+    if (id && profiles.some(function (p) { return p.id === id; })) return id;
+    // Active id missing/stale (shouldn't normally happen) - fall back to the first profile
+    // rather than error, since every read/write below assumes there's always an active one.
+    return profiles[0].id;
+  }
+
+  function getActiveProfile() {
+    var id = getActiveProfileId();
+    return getProfiles().filter(function (p) { return p.id === id; })[0];
+  }
+
+  function setActiveProfileId(id) {
+    localStorage.setItem(KEY_ACTIVE_PROFILE, id);
+  }
+
+  // Card/deck counts for a profile WITHOUT switching to it - lets the Data tab's profile
+  // list show every profile's size at once.
+  function getProfileStats(id) {
+    var owned = readJSON(profileKey(id, "owned"), {});
+    var decks = readJSON(profileKey(id, "decks"), []);
+    return { owned: Object.keys(owned).length, decks: decks.length };
+  }
+
+  function createProfile(name) {
+    var profile = { id: makeProfileId(), name: name, createdAt: new Date().toISOString() };
+    var profiles = getProfiles();
+    profiles.push(profile);
+    writeJSON(KEY_PROFILES, profiles);
+    return profile;
+  }
+
+  function renameProfile(id, name) {
+    var profiles = getProfiles();
+    profiles.forEach(function (p) { if (p.id === id) p.name = name; });
+    writeJSON(KEY_PROFILES, profiles);
+  }
+
+  // Removes the profile from the list and deletes all of its namespaced data. Refuses to
+  // delete the last remaining profile - there must always be at least one to be "active."
+  // If the deleted profile was the active one, switches active to whichever profile is
+  // first afterward (caller is still responsible for reloading/re-rendering the app so
+  // every module picks up the new active profile's data).
+  function deleteProfile(id) {
+    var profiles = getProfiles();
+    if (profiles.length <= 1) throw new Error("Can't delete the only profile.");
+    PROFILE_DATA_KEYS.forEach(function (base) { localStorage.removeItem(profileKey(id, base)); });
+    profiles = profiles.filter(function (p) { return p.id !== id; });
+    writeJSON(KEY_PROFILES, profiles);
+    if (getActiveProfileId() === id || localStorage.getItem(KEY_ACTIVE_PROFILE) === id) {
+      setActiveProfileId(profiles[0].id);
+    }
+  }
+
+  // Every per-profile getter/setter below reads/writes under the CURRENTLY ACTIVE profile -
+  // switching profiles (Storage.setActiveProfileId + a full page reload, see the Data tab)
+  // is what makes them transparently point at a different person's data.
+  function activeKey(base) {
+    return profileKey(getActiveProfileId(), base);
+  }
+
   // ---- Owned cards (keyed by Scryfall print id) ----
 
   // Values are denormalized card snapshots (not just `true`) so the Collection
   // and Deck Builder views work even if a set's card cache has expired or been
   // cleared, and so an exported backup is self-contained.
   function getOwnedMap() {
-    return readJSON(KEY_OWNED, {});
+    return readJSON(activeKey("owned"), {});
   }
 
   function isOwned(scryfallId) {
@@ -70,7 +179,7 @@ var Storage = (function () {
     } else {
       delete map[card.id];
     }
-    writeJSON(KEY_OWNED, map);
+    writeJSON(activeKey("owned"), map);
     dispatchDataChanged();
   }
 
@@ -94,7 +203,7 @@ var Storage = (function () {
     Object.keys(owned).forEach(function (id) {
       if (freshMap[id]) { owned[id] = freshMap[id]; updated++; }
     });
-    writeJSON(KEY_OWNED, owned);
+    writeJSON(activeKey("owned"), owned);
 
     var decks = getDecks();
     decks.forEach(function (deck) {
@@ -102,7 +211,7 @@ var Storage = (function () {
         if (freshMap[entry.card.id]) { entry.card = freshMap[entry.card.id]; updated++; }
       });
     });
-    writeJSON(KEY_DECKS, decks);
+    writeJSON(activeKey("decks"), decks);
 
     return updated;
   }
@@ -110,7 +219,7 @@ var Storage = (function () {
   // ---- Decks ----
 
   function getDecks() {
-    return readJSON(KEY_DECKS, []);
+    return readJSON(activeKey("decks"), []);
   }
 
   function getDeck(deckId) {
@@ -134,14 +243,14 @@ var Storage = (function () {
       deck.createdAt = deck.createdAt || deck.updatedAt;
       decks.push(deck);
     }
-    writeJSON(KEY_DECKS, decks);
+    writeJSON(activeKey("decks"), decks);
     dispatchDataChanged();
     return deck;
   }
 
   function deleteDeck(deckId) {
     var decks = getDecks().filter(function (d) { return d.id !== deckId; });
-    writeJSON(KEY_DECKS, decks);
+    writeJSON(activeKey("decks"), decks);
     dispatchDataChanged();
   }
 
@@ -154,23 +263,23 @@ var Storage = (function () {
   // transparently migrates the older single-string format from before that existed.
 
   function getSelectedBrowseSets() {
-    var val = readJSON(KEY_LAST_BROWSE_SET, []);
+    var val = readJSON(activeKey("lastBrowseSet"), []);
     if (typeof val === "string") return val ? [val] : [];
     return Array.isArray(val) ? val : [];
   }
 
   function setSelectedBrowseSets(setCodes) {
-    writeJSON(KEY_LAST_BROWSE_SET, setCodes || []);
+    writeJSON(activeKey("lastBrowseSet"), setCodes || []);
   }
 
   // ---- "Merge duplicate printings by name" toggle (Collection + Deck Builder pool) ----
 
   function getMergeByName() {
-    return readJSON(KEY_MERGE_BY_NAME, false);
+    return readJSON(activeKey("mergeByName"), false);
   }
 
   function setMergeByName(value) {
-    writeJSON(KEY_MERGE_BY_NAME, !!value);
+    writeJSON(activeKey("mergeByName"), !!value);
   }
 
   // ---- Card grid zoom (Browse/Collection/Deck Builder pool tile size) ----
@@ -178,40 +287,42 @@ var Storage = (function () {
   // the user actually moves the slider, at which point their choice sticks everywhere.
 
   function getCardGridSize() {
-    return readJSON(KEY_CARD_GRID_SIZE, null);
+    return readJSON(activeKey("cardGridSize"), null);
   }
 
   function setCardGridSize(px) {
     if (px == null) {
-      localStorage.removeItem(KEY_CARD_GRID_SIZE);
+      localStorage.removeItem(activeKey("cardGridSize"));
     } else {
-      writeJSON(KEY_CARD_GRID_SIZE, px);
+      writeJSON(activeKey("cardGridSize"), px);
     }
   }
 
   // ---- Dropbox sync connection (optional; app works fully local without it) ----
+  // Per-profile, like everything else here - each profile can connect its own Dropbox
+  // account (or none at all) independent of any other profile on this device.
 
   function getDropboxAuth() {
-    return readJSON(KEY_DROPBOX_AUTH, null); // { accessToken, refreshToken, expiresAt, accountEmail }
+    return readJSON(activeKey("dropboxAuth"), null); // { accessToken, refreshToken, expiresAt, accountEmail }
   }
 
   function setDropboxAuth(auth) {
-    writeJSON(KEY_DROPBOX_AUTH, auth);
+    writeJSON(activeKey("dropboxAuth"), auth);
   }
 
   function clearDropboxAuth() {
-    localStorage.removeItem(KEY_DROPBOX_AUTH);
+    localStorage.removeItem(activeKey("dropboxAuth"));
   }
 
   function getLastSyncedAt() {
-    return readJSON(KEY_LAST_SYNCED_AT, null);
+    return readJSON(activeKey("lastSyncedAt"), null);
   }
 
   function setLastSyncedAt(isoString) {
-    writeJSON(KEY_LAST_SYNCED_AT, isoString);
+    writeJSON(activeKey("lastSyncedAt"), isoString);
   }
 
-  // ---- Scryfall response caches (separate from user data, safe to clear) ----
+  // ---- Scryfall response caches (shared across profiles, safe to clear) ----
 
   function getSetsCache() {
     return readJSON(KEY_SETS_CACHE, null); // { timestamp, data }
@@ -238,6 +349,7 @@ var Storage = (function () {
   }
 
   // ---- Export / Import (owned cards + decks only, not the bulky card cache) ----
+  // Both operate on whichever profile is currently active.
 
   function exportData() {
     var payload = {
@@ -271,8 +383,8 @@ var Storage = (function () {
     }
 
     if (mode === "replace") {
-      writeJSON(KEY_OWNED, parsed.ownedCards);
-      writeJSON(KEY_DECKS, parsed.decks);
+      writeJSON(activeKey("owned"), parsed.ownedCards);
+      writeJSON(activeKey("decks"), parsed.decks);
       return { owned: Object.keys(parsed.ownedCards).length, decks: parsed.decks.length };
     }
 
@@ -282,7 +394,7 @@ var Storage = (function () {
     // unconditionally instead of needing its own now-or-never timestamp gate.
     var owned = getOwnedMap();
     Object.keys(parsed.ownedCards).forEach(function (id) { owned[id] = parsed.ownedCards[id]; });
-    writeJSON(KEY_OWNED, owned);
+    writeJSON(activeKey("owned"), owned);
 
     var byId = {};
     getDecks().forEach(function (d) { byId[d.id] = d; });
@@ -293,10 +405,12 @@ var Storage = (function () {
       }
     });
     var decks = Object.keys(byId).map(function (id) { return byId[id]; });
-    writeJSON(KEY_DECKS, decks);
+    writeJSON(activeKey("decks"), decks);
 
     return { owned: Object.keys(owned).length, decks: decks.length };
   }
+
+  migrateLegacyDataIfNeeded();
 
   return {
     isOwned: isOwned,
@@ -329,5 +443,13 @@ var Storage = (function () {
     setLastSyncedAt: setLastSyncedAt,
     exportData: exportData,
     importData: importData,
+    getProfiles: getProfiles,
+    getActiveProfileId: getActiveProfileId,
+    getActiveProfile: getActiveProfile,
+    setActiveProfileId: setActiveProfileId,
+    getProfileStats: getProfileStats,
+    createProfile: createProfile,
+    renameProfile: renameProfile,
+    deleteProfile: deleteProfile,
   };
 })();
