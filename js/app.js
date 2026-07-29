@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var TABS = ["browse", "collection", "deckbuilder", "decks", "rules", "howto", "about"];
+  var TABS = ["browse", "collection", "deckbuilder", "decks", "rules", "howto", "links", "about"];
 
   var activators = {
     browse: function () { BrowseUI.activate(); },
