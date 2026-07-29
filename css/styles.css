@@ -22,6 +22,13 @@
   --card-min-w-compact: 160px;
 }
 
+@font-face {
+  font-family: "MTGTitle";
+  src: url("../fonts/Magic-the-Gathering-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
 * { box-sizing: border-box; }
 
 /* Hard guarantee against the page becoming horizontally pannable - grid/flex children
@@ -50,7 +57,14 @@ body {
   z-index: 10;
 }
 
-.app-header h1 { font-size: 20px; margin: 0; text-align: center; }
+.app-header h1 {
+  font-family: "MTGTitle", Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  margin: 0;
+  text-align: center;
+}
 
 /* Invisible to layout everywhere except phone portrait (see that media query) - lets
    nav+header-actions become one combined horizontally-scrolling row there without
