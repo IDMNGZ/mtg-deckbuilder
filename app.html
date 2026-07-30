@@ -512,6 +512,18 @@
 
     <p class="rules-disclaimer">Manage where your collection and decks live - automatic sync, manual backup, refreshing card data, and switching profiles.</p>
 
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Switch Profiles</h2>
+        <p>Separate collections/decks for different people sharing this device - all backed up through the same Dropbox connection below.</p>
+      </div>
+      <ul id="data-profile-list" class="data-profile-list"></ul>
+      <div class="data-profile-create">
+        <input type="text" id="data-new-profile-name" placeholder="New profile name…">
+        <button id="btn-create-profile" class="btn btn-ghost">Create</button>
+      </div>
+    </section>
+
     <div class="data-tab-grid">
       <section class="rules-section">
         <div id="data-sync-section"></div>
@@ -537,18 +549,6 @@
         </div>
         <div class="data-tab-actions">
           <button id="btn-refresh-global" class="btn btn-ghost">Refresh</button>
-        </div>
-      </section>
-
-      <section class="rules-section">
-        <div class="rules-section-header">
-          <h2>Switch Profiles</h2>
-          <p>Separate collections/decks for different people sharing this device - all backed up through the same Dropbox connection above.</p>
-        </div>
-        <ul id="data-profile-list" class="data-profile-list"></ul>
-        <div class="data-profile-create">
-          <input type="text" id="data-new-profile-name" placeholder="New profile name…">
-          <button id="btn-create-profile" class="btn btn-ghost">Create</button>
         </div>
       </section>
 

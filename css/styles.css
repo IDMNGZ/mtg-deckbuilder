@@ -946,6 +946,7 @@ select, input[type="text"], .deck-name-input {
 .sync-setup-steps li { margin-bottom: 4px; }
 
 .data-tab-actions { display: flex; gap: 10px; }
+.data-tab-actions .btn { flex: 1; }
 
 .update-banner {
   display: flex;
@@ -977,16 +978,16 @@ select, input[type="text"], .deck-name-input {
 .data-status-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 24px;
+  gap: 18px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 14px 20px;
+  padding: 8px 16px;
   margin-bottom: 16px;
 }
-.data-status-item { display: flex; flex-direction: column; gap: 2px; }
-.data-status-label { font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim); }
-.data-status-value { font-size: 15px; font-weight: 600; }
+.data-status-item { display: flex; flex-direction: column; gap: 1px; }
+.data-status-label { font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim); }
+.data-status-value { font-size: 13px; font-weight: 600; }
 .data-status-value.data-status-error { color: var(--danger); }
 
 /* The section cards (Sync/Manual Backup/Refresh/Switch Profiles) were each stretching to

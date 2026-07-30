@@ -22,17 +22,18 @@ var DataTabUI = (function () {
     var ownedCount = Storage.getOwnedCards().length;
     var deckCount = Storage.getDecks().length;
 
+    // Label already says "Sync" - the value doesn't need to repeat that word too.
     var syncLabel;
     if (!status.configured) syncLabel = "Local only";
     else if (!status.connected) syncLabel = "Not connected";
     else if (status.syncing) syncLabel = "Syncing…";
     else if (status.lastError) syncLabel = "Sync error";
-    else syncLabel = "Synced " + formatTime(status.lastSyncedAt);
+    else syncLabel = formatTime(status.lastSyncedAt);
 
     els.statusBar.innerHTML =
       "<div class='data-status-item'><span class='data-status-label'>Profile</span><span class='data-status-value'>" + CardView.escapeHtml(profile.name) + "</span></div>" +
-      "<div class='data-status-item'><span class='data-status-label'>Sync</span><span class='data-status-value" + (status.lastError ? " data-status-error" : "") + "'>" + CardView.escapeHtml(syncLabel) + "</span></div>" +
-      "<div class='data-status-item'><span class='data-status-label'>Collection</span><span class='data-status-value'>" + ownedCount + " cards, " + deckCount + " decks</span></div>";
+      "<div class='data-status-item'><span class='data-status-label'>Collection</span><span class='data-status-value'>" + ownedCount + " cards, " + deckCount + " decks</span></div>" +
+      "<div class='data-status-item'><span class='data-status-label'>Sync</span><span class='data-status-value" + (status.lastError ? " data-status-error" : "") + "'>" + CardView.escapeHtml(syncLabel) + "</span></div>";
   }
 
   // ---- Sync section ----

@@ -313,6 +313,21 @@ var DropboxSync = (function () {
     autoPushTimer = setTimeout(push, AUTO_PUSH_DEBOUNCE_MS);
   }
 
+  // A pending debounced push doesn't actually run in the background: mobile Safari (and
+  // most browsers) throttle or fully suspend a backgrounded tab's timers, so a change made
+  // right before switching apps/locking the phone could sit local-only indefinitely - no
+  // error, no indication, just silently never reaching Dropbox even though the on-screen
+  // "Synced [time]" is left over from an earlier sync and looks fine. Flushing immediately
+  // the moment the tab is about to hide (still fully running, right up to that instant)
+  // is the reliable point to actually send it, instead of hoping the 3s debounce survives.
+  function flushPendingPush() {
+    if (autoPushTimer) {
+      clearTimeout(autoPushTimer);
+      autoPushTimer = null;
+      push();
+    }
+  }
+
   function init() {
     var auth = Storage.getDropboxAuth();
     if (auth) updateState({ connected: true, accountEmail: auth.accountEmail, lastSyncedAt: Storage.getLastSyncedAt() });
@@ -320,7 +335,11 @@ var DropboxSync = (function () {
     document.addEventListener("mtg:data-changed", scheduleAutoPush);
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible" && Storage.getDropboxAuth()) pull();
+      else if (document.visibilityState === "hidden") flushPendingPush();
     });
+    // Backstop for cases where the tab is closed/navigated away outright rather than just
+    // backgrounded - visibilitychange normally fires first, but pagehide catches it too.
+    window.addEventListener("pagehide", flushPendingPush);
 
     if (auth) pull();
   }
