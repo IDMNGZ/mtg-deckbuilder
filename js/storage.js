@@ -602,6 +602,39 @@ var Storage = (function () {
 
   // ---- Scryfall response caches (shared across profiles, safe to clear) ----
 
+  // Reactively clearing everything once a write already fails (see writeJSON/
+  // clearAllCaches above) turned out not to be enough on its own: Browse loads several
+  // sets in parallel (Promise.all), so multiple writes can each hit quota within
+  // milliseconds of each other, and normal browsing over time had already grown this
+  // cache to 9+MB - most of localStorage's real ~5-10MB per-origin cap, which has nothing
+  // to do with the much larger quota the browser reports for IndexedDB/Cache Storage.
+  // This keeps it under a fixed byte budget proactively, evicting the least-recently-
+  // written entries (each already carries its own timestamp) before every write, so normal
+  // browsing never gets anywhere near the quota instead of only reacting once it's hit.
+  var CARDS_CACHE_BUDGET_BYTES = 3 * 1024 * 1024;
+  var PRINTS_CACHE_BUDGET_BYTES = 1 * 1024 * 1024;
+
+  function evictCacheUnderBudget(prefix, maxBytes) {
+    var entries = [];
+    var total = 0;
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key.indexOf(prefix) === 0) {
+        var value = localStorage.getItem(key) || "";
+        total += key.length + value.length;
+        var timestamp = 0;
+        try { timestamp = JSON.parse(value).timestamp || 0; } catch (e) { /* treat as oldest */ }
+        entries.push({ key: key, size: key.length + value.length, timestamp: timestamp });
+      }
+    }
+    if (total <= maxBytes) return;
+    entries.sort(function (a, b) { return a.timestamp - b.timestamp; }); // oldest first
+    for (var j = 0; j < entries.length && total > maxBytes; j++) {
+      localStorage.removeItem(entries[j].key);
+      total -= entries[j].size;
+    }
+  }
+
   function getSetsCache() {
     return readJSON(KEY_SETS_CACHE, null); // { timestamp, data }
   }
@@ -615,6 +648,7 @@ var Storage = (function () {
   }
 
   function setCardsCache(setCode, data) {
+    evictCacheUnderBudget(KEY_CARDS_CACHE_PREFIX, CARDS_CACHE_BUDGET_BYTES);
     writeJSON(KEY_CARDS_CACHE_PREFIX + setCode, { timestamp: Date.now(), data: data });
   }
 
@@ -623,6 +657,7 @@ var Storage = (function () {
   }
 
   function setPrintsCache(cardName, data) {
+    evictCacheUnderBudget(KEY_PRINTS_CACHE_PREFIX, PRINTS_CACHE_BUDGET_BYTES);
     writeJSON(KEY_PRINTS_CACHE_PREFIX + cardName, { timestamp: Date.now(), data: data });
   }
 
@@ -706,6 +741,12 @@ var Storage = (function () {
   migrateLegacyDataIfNeeded();
   consolidateDropboxAuthToGlobal();
   repairStuckLegacyDataIfNeeded();
+  // Prunes any cache that already grew past budget before this cap existed (setCardsCache/
+  // setPrintsCache only enforce it going forward, on their own next write) - runs once per
+  // load so a device that's already over quota gets relief immediately, not only the next
+  // time it happens to browse a new set/card.
+  evictCacheUnderBudget(KEY_CARDS_CACHE_PREFIX, CARDS_CACHE_BUDGET_BYTES);
+  evictCacheUnderBudget(KEY_PRINTS_CACHE_PREFIX, PRINTS_CACHE_BUDGET_BYTES);
 
   return {
     isOwned: isOwned,
