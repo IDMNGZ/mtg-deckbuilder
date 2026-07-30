@@ -965,28 +965,32 @@ select, input[type="text"], .deck-name-input {
 
 /* A prominent, always-visible summary above the section cards - which profile you're in,
    whether it's synced, and how big it is - answered in one glance instead of having to
-   read into each card below. Two rows stacked: the live status/actions on top, the View
-   display-preference controls (formerly their own row in the header) underneath. */
+   read into each card below. One row: live status items, then View (Merge Dupes/Card
+   size), then Sync/Share pinned to the right - #data-status-dynamic uses display: contents
+   so its own children (the status items + the actions wrapper) flow directly into this
+   row instead of being boxed off as one unit, letting the static View controls sit
+   between them in source order without needing to live inside the JS-regenerated HTML
+   (keeping the slider's drag state safe from being wiped out by an unrelated re-render). */
 .data-status-bar {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 14px;
   margin-bottom: 16px;
 }
-.data-status-dynamic { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.data-status-dynamic { display: contents; }
 .data-status-item { display: flex; flex-direction: column; gap: 0; }
 .data-status-label { font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim); }
 .data-status-value { font-size: 12px; font-weight: 600; }
 .data-status-value.data-status-error { color: var(--danger); }
-/* The ONLY margin-left: auto in this row - both buttons sit inside it with a normal gap,
-   so they land flush together at the right edge instead of each claiming their own share
-   of the free space (which is what pushed "Sync" out to float in the middle with a gap on
-   both sides, when it had its own auto-margin alongside Share's). */
-.data-status-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+/* order: 10 (everything else defaults to source order, i.e. 0) is what actually keeps this
+   pinned as the last thing in the row regardless of where View sits in the markup -
+   margin-left: auto still does the job of soaking up the leftover space in front of it. */
+.data-status-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; order: 10; }
 .data-status-sync-btn { padding: 5px 12px; font-size: 12px; flex-shrink: 0; }
 .data-status-share-btn {
   display: inline-flex;
@@ -998,16 +1002,15 @@ select, input[type="text"], .deck-name-input {
 }
 .data-status-share-feedback { font-size: 11px; color: var(--gold); flex-shrink: 0; }
 
-/* View controls - moved here from their own row in the header, which (now that Sync/
-   Export/etc. have all relocated to this bar or the System tab) was left holding just
-   these two controls alone, an oddly sparse full-width row on wide screens. */
+/* View controls - sits inline in the same row (between the live status items and the
+   Sync/Share actions), not a separate row of its own. */
 .data-status-view {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
 }
 .data-status-view-label {
   font-size: 9px;
