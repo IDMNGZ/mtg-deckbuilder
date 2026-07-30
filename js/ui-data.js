@@ -185,6 +185,28 @@ var DataTabUI = (function () {
     renderProfiles();
   }
 
+  // ---- Reset this device ----
+  // A clean-slate escape hatch for when this device's local data is corrupted or mixed up
+  // (e.g. two devices that each locally migrated their own pre-profile data independently
+  // could, before this was fixed, end up with colliding profile ids that Dropbox's sync
+  // then blended together) - wipes every key this app has ever written on THIS device only
+  // and starts fresh. Deliberately doesn't touch Dropbox itself: if this device was
+  // connected, reconnecting afterward pulls the good copy back down with nothing local
+  // left to conflict with it.
+  function resetDevicePrompt() {
+    var msg = "Reset this device? This permanently deletes every profile, all owned cards, " +
+      "and all decks stored HERE, and disconnects Dropbox on this device. Nothing in your " +
+      "Dropbox account itself is touched - reconnecting afterward pulls it back down. " +
+      "This cannot be undone locally.";
+    if (!window.confirm(msg)) return;
+    Storage.resetThisDevice();
+    location.reload();
+  }
+
+  function wireResetDevice() {
+    els.resetDeviceBtn.addEventListener("click", resetDevicePrompt);
+  }
+
   // ---- Refresh ----
 
   // "Refresh" means something different depending on which tab you were last actually
@@ -260,12 +282,14 @@ var DataTabUI = (function () {
     els.profileList = document.getElementById("data-profile-list");
     els.newProfileName = document.getElementById("data-new-profile-name");
     els.createProfileBtn = document.getElementById("btn-create-profile");
+    els.resetDeviceBtn = document.getElementById("btn-reset-device");
 
     renderSync();
     renderProfiles();
     wireRefresh();
     wireBackup();
     wireProfiles();
+    wireResetDevice();
 
     document.addEventListener("mtg:sync-status-changed", function () {
       var tab = document.getElementById("tab-data");

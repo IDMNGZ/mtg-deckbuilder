@@ -539,6 +539,21 @@ var Storage = (function () {
     return { owned: Object.keys(owned).length, decks: decks.length };
   }
 
+  // ---- Full local reset (this device only - never touches Dropbox itself) ----
+  // Wipes every key this app has ever written, including the Dropbox connection and the
+  // Scryfall response caches, and starts the next load completely fresh (a brand-new
+  // "Player 1" default profile gets created by migrateLegacyDataIfNeeded() finding nothing
+  // to migrate). Exists for exactly the situation that motivated it: a device's local data
+  // got corrupted or cross-contaminated (e.g. the profile-id collision bug) and the
+  // straightforward fix is a clean slate + reconnect Dropbox to pull the good copy back
+  // down, rather than fighting the browser's own site-data settings UI to achieve the same
+  // thing (which, on iOS Safari in particular, doesn't reliably even list every site).
+  function resetThisDevice() {
+    Object.keys(localStorage).forEach(function (key) {
+      if (key.indexOf(NS) === 0) localStorage.removeItem(key);
+    });
+  }
+
   migrateLegacyDataIfNeeded();
   consolidateDropboxAuthToGlobal();
 
@@ -583,5 +598,6 @@ var Storage = (function () {
     deleteProfile: deleteProfile,
     getAllProfilesData: getAllProfilesData,
     mergeAllProfilesData: mergeAllProfilesData,
+    resetThisDevice: resetThisDevice,
   };
 })();
