@@ -358,11 +358,11 @@ var Storage = (function () {
   }
 
   // Reads a per-profile value, falling back to the pre-profile flat key if the migrated
-  // key is missing - only the original "default" profile could ever have leftover legacy
-  // data (a newly created profile never had any), and only for a key that failed to copy
-  // during migration (see migrateLegacyDataIfNeeded's per-key try/catch). Without this, a
-  // key stuck at its legacy location would silently read back as empty forever, looking
-  // exactly like data loss even though nothing was actually deleted.
+  // key is missing - only the one profile this device's own migration originally created
+  // could ever have leftover legacy data (a newly created profile never had any), and only
+  // for a key repairStuckLegacyDataIfNeeded() hasn't caught up to yet. Without this, a key
+  // stuck at its legacy location would silently read back as empty, looking exactly like
+  // data loss even though nothing was actually deleted.
   function readActiveJSON(base, fallback) {
     var key = activeKey(base);
     if (localStorage.getItem(key) !== null) return readJSON(key, fallback);
