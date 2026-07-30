@@ -16,6 +16,12 @@ var Storage = (function () {
   var NS = "mtg-deckbuilder:v1:";
   var KEY_PROFILES = NS + "profiles"; // [{ id, name, createdAt }]
   var KEY_ACTIVE_PROFILE = NS + "activeProfile"; // profile id (plain string, not JSON)
+  // Which profile absorbed this device's pre-profile flat data, if any - set once by
+  // migrateLegacyDataIfNeeded() and used by repairStuckLegacyDataIfNeeded() so repair still
+  // targets the right profile even if the user has since switched to a different one
+  // (repair used to just assume "whichever profile is active right now," which stops being
+  // true the moment someone switches away from the profile that was active at the time).
+  var KEY_LEGACY_PROFILE_ID = NS + "legacyProfileId";
   var KEY_DROPBOX_AUTH = NS + "dropboxAuth"; // shared across all profiles on this device
   var KEY_LAST_SYNCED_AT = NS + "lastSyncedAt";
   var KEY_SETS_CACHE = NS + "cache:sets";
@@ -113,6 +119,7 @@ var Storage = (function () {
     });
     writeJSON(KEY_PROFILES, [profile]);
     localStorage.setItem(KEY_ACTIVE_PROFILE, profile.id);
+    localStorage.setItem(KEY_LEGACY_PROFILE_ID, profile.id);
     return hadLegacyData;
   }
 
@@ -154,9 +161,60 @@ var Storage = (function () {
   // uploaded to Dropbox - exactly what happened here: a push built from the incomplete
   // getAllProfilesData() read silently overwrote Dropbox with an empty snapshot for an
   // otherwise-correct 447-card collection.
+  //
+  // owned/decks get a real MERGE, not a "only if the proper key is completely unset" move
+  // - a previous sync cycle (mergeAllProfilesData, running before this repair existed)
+  // could easily have already written an EMPTY-but-present {}/[] to the profile-scoped key,
+  // which a plain presence check treats as "already migrated, nothing to do" and leaves
+  // the real data stranded at the legacy key forever. This was the actual bug the first
+  // version of this function had: it never even looked at what the legacy data was for
+  // the reported 447-card collection, because the profile-scoped "owned" key already
+  // existed (as {}), so the presence check short-circuited before comparing content.
   function repairStuckLegacyDataIfNeeded() {
-    var activeId = getActiveProfileId();
-    PROFILE_DATA_KEYS.forEach(function (base) {
+    // Falls back to whichever profile is active if the marker isn't set - true for any
+    // device that already migrated before this marker existed (this device's original
+    // profile IS the one that needs repairing, and it's also the currently active one).
+    var activeId = localStorage.getItem(KEY_LEGACY_PROFILE_ID) || getActiveProfileId();
+
+    var legacyOwnedRaw = localStorage.getItem(NS + "owned");
+    if (legacyOwnedRaw !== null) {
+      try {
+        var properOwned = readJSON(profileKey(activeId, "owned"), {});
+        var legacyOwned = JSON.parse(legacyOwnedRaw);
+        Object.keys(legacyOwned).forEach(function (id) {
+          if (!(id in properOwned)) properOwned[id] = legacyOwned[id];
+        });
+        writeJSON(profileKey(activeId, "owned"), properOwned);
+        localStorage.removeItem(NS + "owned");
+      } catch (err) {
+        console.error("Storage: couldn't repair 'owned' into the profile format", err);
+      }
+    }
+
+    var legacyDecksRaw = localStorage.getItem(NS + "decks");
+    if (legacyDecksRaw !== null) {
+      try {
+        var properDecks = readJSON(profileKey(activeId, "decks"), []);
+        var legacyDecks = JSON.parse(legacyDecksRaw);
+        var byId = {};
+        properDecks.forEach(function (d) { byId[d.id] = d; });
+        legacyDecks.forEach(function (incoming) {
+          var existing = byId[incoming.id];
+          if (!existing || (incoming.updatedAt || "") > (existing.updatedAt || "")) {
+            byId[incoming.id] = incoming;
+          }
+        });
+        writeJSON(profileKey(activeId, "decks"), Object.keys(byId).map(function (id) { return byId[id]; }));
+        localStorage.removeItem(NS + "decks");
+      } catch (err) {
+        console.error("Storage: couldn't repair 'decks' into the profile format", err);
+      }
+    }
+
+    // Lower-stakes view preferences: a plain presence check is fine here - losing a stray
+    // "merge dupes" toggle or card-grid-size preference isn't the kind of thing that
+    // silently erases a collection.
+    ["lastBrowseSet", "mergeByName", "cardGridSize"].forEach(function (base) {
       var properKey = profileKey(activeId, base);
       var legacyKey = NS + base;
       if (localStorage.getItem(properKey) !== null) return;
@@ -166,7 +224,7 @@ var Storage = (function () {
         localStorage.setItem(properKey, raw);
         localStorage.removeItem(legacyKey);
       } catch (err) {
-        console.error("Storage: couldn't finish repairing '" + base + "' into the profile format", err);
+        console.error("Storage: couldn't repair '" + base + "' into the profile format", err);
       }
     });
   }
