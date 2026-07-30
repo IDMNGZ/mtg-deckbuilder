@@ -142,6 +142,35 @@ var Storage = (function () {
     });
   }
 
+  // Finishes any per-key migration that didn't complete the first time (see
+  // migrateLegacyDataIfNeeded's per-key try/catch) by actually moving the data into the
+  // active profile's namespaced location, instead of leaving it for readActiveJSON's
+  // read-through fallback to paper over. That fallback only covers getOwnedMap/getDecks/
+  // etc. (the "read whatever the active profile has" getters) - it does NOT cover
+  // getProfileStats() or getAllProfilesData(), which read a profile's namespaced key
+  // directly (they have to, since they're used for profiles that AREN'T necessarily
+  // active). Left unrepaired, a profile's real data could show correctly in the app itself
+  // while reading back as empty in the Data tab's profile list AND in what actually gets
+  // uploaded to Dropbox - exactly what happened here: a push built from the incomplete
+  // getAllProfilesData() read silently overwrote Dropbox with an empty snapshot for an
+  // otherwise-correct 447-card collection.
+  function repairStuckLegacyDataIfNeeded() {
+    var activeId = getActiveProfileId();
+    PROFILE_DATA_KEYS.forEach(function (base) {
+      var properKey = profileKey(activeId, base);
+      var legacyKey = NS + base;
+      if (localStorage.getItem(properKey) !== null) return;
+      var raw = localStorage.getItem(legacyKey);
+      if (raw === null) return;
+      try {
+        localStorage.setItem(properKey, raw);
+        localStorage.removeItem(legacyKey);
+      } catch (err) {
+        console.error("Storage: couldn't finish repairing '" + base + "' into the profile format", err);
+      }
+    });
+  }
+
   function profileKey(profileId, base) {
     return NS + "profile:" + profileId + ":" + base;
   }
@@ -556,6 +585,7 @@ var Storage = (function () {
 
   migrateLegacyDataIfNeeded();
   consolidateDropboxAuthToGlobal();
+  repairStuckLegacyDataIfNeeded();
 
   return {
     isOwned: isOwned,
