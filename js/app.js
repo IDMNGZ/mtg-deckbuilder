@@ -140,15 +140,48 @@
     return isNaN(n) ? 200 : n;
   }
 
+  // A fixed pixel range can't mean the same thing on every screen: on a ~375px phone,
+  // 150px and 200px minimums both round down to the same 1-2 grid columns - there's
+  // nowhere for the rest of the slider's range to go, so most of it "does nothing." The
+  // same range spans many more possible column counts on a desktop-width screen. Rather
+  // than one global range (either too cramped on mobile or leaving desktop's low end
+  // pressed right up against button-collision territory), each breakpoint gets its own -
+  // same three breakpoints already used throughout the CSS, so this stays in step with
+  // whatever those definitions are.
+  function cardSizeRangeForViewport() {
+    var isPortrait = window.matchMedia("(max-width: 600px) and (orientation: portrait)").matches;
+    var isLandscape = window.matchMedia("(orientation: landscape) and (max-height: 500px)").matches;
+    if (isPortrait) return { min: 110, max: 190 };
+    if (isLandscape) return { min: 100, max: 180 };
+    return { min: 170, max: 280 };
+  }
+
   // One shared preference, several sliders (Browse/Collection/Deck Builder pool) - all
-  // three stay in sync so switching tabs never shows a stale handle position.
+  // three stay in sync so switching tabs never shows a stale handle position. The
+  // preference itself is still just one raw pixel number - synced across every device on
+  // the same Dropbox account, it can't simultaneously be "correct" on both a phone and a
+  // desktop, so it's clamped into whatever range fits the CURRENT device/orientation
+  // instead of applied verbatim - re-clamped on resize/rotation too, since that's a
+  // breakpoint change same as loading fresh on a different device.
   function wireCardSizeSliders() {
     var sliders = document.querySelectorAll(".card-size-slider");
-    var stored = Storage.getCardGridSize();
-    var initial = stored != null ? stored : currentEffectiveCardSize();
-    if (stored != null) applyCardGridSize(stored);
+
+    function applyRange() {
+      var range = cardSizeRangeForViewport();
+      sliders.forEach(function (slider) { slider.min = range.min; slider.max = range.max; });
+      var stored = Storage.getCardGridSize();
+      if (stored != null) {
+        var clamped = Math.min(Math.max(stored, range.min), range.max);
+        sliders.forEach(function (s) { s.value = clamped; });
+        applyCardGridSize(clamped);
+      } else {
+        var effective = Math.min(Math.max(currentEffectiveCardSize(), range.min), range.max);
+        sliders.forEach(function (s) { s.value = effective; });
+      }
+    }
+
+    applyRange();
     sliders.forEach(function (slider) {
-      slider.value = initial;
       slider.addEventListener("input", function () {
         var px = parseInt(slider.value, 10);
         Storage.setCardGridSize(px);
@@ -156,6 +189,7 @@
         sliders.forEach(function (s) { if (s !== slider) s.value = px; });
       });
     });
+    window.addEventListener("resize", applyRange);
   }
 
   function init() {

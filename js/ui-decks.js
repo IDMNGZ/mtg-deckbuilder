@@ -25,12 +25,13 @@ var DecksUI = (function () {
     var li = document.createElement("li");
     li.className = "deck-card";
 
+    // The name is what identifies a deck at a glance - it used to share the header row
+    // with the format badge, which crowded it into a truncated sliver at narrow widths.
+    // Full width of its own here; format moves down to join the rest of the deck's
+    // metadata instead.
     var header = document.createElement("div");
     header.className = "deck-card-header";
-    var formatName = Formats.get(deck.format || "free").name;
-    header.innerHTML =
-      '<div class="deck-card-name">' + CardView.escapeHtml(deck.name) + '</div>' +
-      '<span class="deck-card-format-badge">' + CardView.escapeHtml(formatName) + '</span>';
+    header.innerHTML = '<div class="deck-card-name">' + CardView.escapeHtml(deck.name) + '</div>';
     li.appendChild(header);
 
     var cover = highestCmcCard(deck);
@@ -46,7 +47,10 @@ var DecksUI = (function () {
     var meta = document.createElement("div");
     meta.className = "deck-card-meta";
     var cardCount = countCards(deck);
-    meta.textContent = cardCount + " card" + (cardCount === 1 ? "" : "s") + " · updated " + new Date(deck.updatedAt).toLocaleString();
+    var formatName = Formats.get(deck.format || "free").name;
+    meta.innerHTML =
+      '<span>' + cardCount + ' card' + (cardCount === 1 ? '' : 's') + ' · updated ' + CardView.escapeHtml(new Date(deck.updatedAt).toLocaleString()) + '</span>' +
+      '<span class="deck-card-format-badge">' + CardView.escapeHtml(formatName) + '</span>';
     li.appendChild(meta);
 
     var editBtn = document.createElement("button");
