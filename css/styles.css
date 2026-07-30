@@ -1056,6 +1056,9 @@ select, input[type="text"], .deck-name-input {
   vertical-align: middle;
 }
 .data-profile-meta { font-size: 13px; color: var(--text-dim); }
+/* Temporary sync-debugging aid - see the comment in ui-data.js. Deliberately quiet
+   (monospace, low contrast) so it reads as diagnostic info, not a real feature. */
+.data-profile-id { font-size: 10px; font-family: ui-monospace, monospace; color: var(--text-dim); opacity: 0.6; margin-top: 4px; }
 .data-profile-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 .data-profile-actions .btn { flex: 1; }
 

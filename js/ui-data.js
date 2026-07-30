@@ -145,7 +145,13 @@ var DataTabUI = (function () {
       info.className = "data-profile-info";
       info.innerHTML =
         "<div class='data-profile-name'>" + CardView.escapeHtml(profile.name) + (isActive ? " <span class='data-profile-badge'>Active</span>" : "") + "</div>" +
-        "<div class='data-profile-meta'>" + stats.owned + " cards owned · " + stats.decks + " deck" + (stats.decks === 1 ? "" : "s") + "</div>";
+        "<div class='data-profile-meta'>" + stats.owned + " cards owned · " + stats.decks + " deck" + (stats.decks === 1 ? "" : "s") + "</div>" +
+        // Temporary diagnostic: two profiles with the same NAME on different devices are
+        // only the same profile for sync purposes if this ID also matches - a same-named
+        // profile with a different id (e.g. rebuilt via Import after a Reset, then renamed
+        // to match) would never converge no matter how many times you sync, since merging
+        // only updates a profile bucket when the id matches.
+        "<div class='data-profile-id'>id: " + CardView.escapeHtml(profile.id) + "</div>";
       li.appendChild(info);
 
       var actions = document.createElement("div");
