@@ -577,6 +577,12 @@ select, input[type="text"], .deck-name-input {
 
 @media (max-width: 900px) {
   .deckbuilder-current { flex-direction: column; }
+  /* flex: 1 1 360px was written for the side-by-side desktop layout, where 360px is a
+     sensible WIDTH floor for each panel. Stacked in a column here, that same basis
+     becomes a HEIGHT floor instead - stretching a short "Current Deck" list (a couple of
+     cards) down to at least 360px tall regardless of how little content it actually has.
+     auto lets each panel size to its own content instead. */
+  .deckbuilder-summary, .deckbuilder-list-panel { flex: 0 1 auto; }
 }
 
 @media (max-width: 500px) {
@@ -681,11 +687,31 @@ select, input[type="text"], .deck-name-input {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: border-color 0.15s ease;
 }
-.deck-card .deck-card-name { font-weight: 600; font-size: 15px; }
+.deck-card:hover { border-color: var(--accent); }
+.deck-card .deck-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.deck-card .deck-card-name { font-weight: 600; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.deck-card .deck-card-format-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-dim);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .deck-card .deck-card-image { width: 100%; border-radius: 6px; display: block; }
 .deck-card .deck-card-meta { font-size: 12px; color: var(--text-dim); }
-.deck-card .deck-card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 4px; }
+/* Divider makes the button row read as its own footer instead of floating right under
+   whatever text happens to end above it - margin-top: auto still does the actual work of
+   pinning it to the bottom of the card when a grid row stretches shorter cards to match
+   a taller neighbor. */
+.deck-card .deck-card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
 .deck-card .deck-card-actions .btn { flex: 1; }
 
 /* Rules */
@@ -763,6 +789,16 @@ select, input[type="text"], .deck-name-input {
 .rule-entry-example:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 .rule-entry-body { flex: 1; min-width: 0; }
+
+/* How To Use's entries (unlike the Rules tab's) put the term/bullets directly in
+   .rule-entry with no .rule-entry-body wrapper, so .rule-entry's own row layout (needed
+   elsewhere to sit an example-card thumbnail beside its text) put the bold header beside
+   its own bullet list instead of above it - stack those specifically, leaving the
+   thumbnail layout untouched. */
+.rule-entry:not(:has(.rule-entry-body)) {
+  flex-direction: column;
+  gap: 6px;
+}
 
 .rule-term { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
 
@@ -911,6 +947,30 @@ select, input[type="text"], .deck-name-input {
 
 .data-tab-actions { display: flex; gap: 10px; }
 
+.update-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(201, 165, 54, 0.14);
+  border: 1px solid rgba(201, 165, 54, 0.5);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.update-banner.hidden { display: none; }
+.update-banner-dismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.update-banner-dismiss:hover { color: var(--text); }
+
 /* A prominent, always-visible summary above the section cards - which profile you're in,
    whether it's synced, and how big it is - answered in one glance instead of having to
    read into each card below. */
@@ -940,20 +1000,32 @@ select, input[type="text"], .deck-name-input {
 }
 .data-tab-grid .rules-section { margin-bottom: 0; }
 
-.data-profile-list { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+/* Cards, not thin list rows - each profile gets a proper card sized to actually show its
+   name/stats clearly, with Switch/Rename/Delete anchored to the bottom of the frame
+   (margin-top: auto) so a row of mixed-height cards (e.g. "Active" badge on one, not the
+   other) still lines its buttons up evenly instead of each button row floating right
+   under whatever text happens to be above it. */
+.data-profile-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
 .data-profile-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  flex-direction: column;
+  gap: 14px;
   background: var(--bg-input);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 8px 10px;
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 120px;
 }
 .data-profile-item.active { border-color: var(--accent); }
 .data-profile-info { min-width: 0; }
-.data-profile-name { font-size: 14px; font-weight: 600; }
+.data-profile-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
 .data-profile-badge {
   font-size: 10px;
   font-weight: 700;
@@ -965,8 +1037,9 @@ select, input[type="text"], .deck-name-input {
   padding: 2px 7px;
   vertical-align: middle;
 }
-.data-profile-meta { font-size: 12px; color: var(--text-dim); }
-.data-profile-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.data-profile-meta { font-size: 13px; color: var(--text-dim); }
+.data-profile-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
+.data-profile-actions .btn { flex: 1; }
 .data-profile-create { display: flex; gap: 8px; }
 .data-profile-create input { flex: 1; }
 

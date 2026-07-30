@@ -245,15 +245,19 @@ var DropboxSync = (function () {
 
   // Pulls the remote file and merges it in (Storage.importData's "merge" mode: matched by
   // deck id, newer updatedAt wins, nothing ever silently dropped). Deliberately NOT
-  // "replace" - this used to be a last-write-wins full overwrite gated on "remote is newer
-  // than the last sync we know about," but that gate has a sharp edge: the very first pull
-  // after a (re)connect has no "last known sync" to compare against, so it fell through to
-  // an UNCONDITIONAL overwrite - any local-only change made since the previous device's
-  // last push (e.g. a deck saved locally right before a refresh beat the 3s auto-push to
-  // Dropbox) would be silently destroyed by an older remote snapshot. Merging instead means
-  // even that unconditional case can only add/update from the remote, never delete
-  // something newer that's only local so far. If no remote file exists yet, seeds it with
-  // whatever's local.
+  // "replace" - a full overwrite means one device blows away another's changes on any given
+  // sync, so this always merges (additive-only: union owned cards, decks match by id with
+  // newer updatedAt winning) rather than replacing anything.
+  //
+  // ALWAYS merges when a remote file exists - it used to be gated on "remote.syncedAt is
+  // newer than the last sync timestamp this device knows about," but that compared
+  // timestamps written by two different devices' clocks against each other. Any clock skew
+  // between devices (a phone a few minutes off, a timezone quirk, no NTP) makes a genuinely
+  // newer remote save look "older" by string comparison, so the merge gets silently skipped
+  // and the other device's changes never show up - exactly the "phone synced but web never
+  // saw it" bug this was replaced for. Since merging is safe and non-destructive (nothing is
+  // ever deleted or overwritten by older data), there's no benefit to gating it at all -
+  // merging redundantly when nothing changed is a cheap no-op, so just always do it.
   function pull() {
     if (!Storage.getDropboxAuth()) return Promise.resolve();
     updateState({ syncing: true });
@@ -272,19 +276,18 @@ var DropboxSync = (function () {
         return uploadSnapshot();
       }
       var remote = JSON.parse(text);
-      var lastKnown = Storage.getLastSyncedAt();
-      if (!lastKnown || remote.syncedAt > lastKnown) {
-        if (remote.profiles) {
-          // Current (v2) shape: every profile together.
-          Storage.mergeAllProfilesData(remote.profiles);
-        } else if (remote.ownedCards) {
-          // Old (v1) shape from before profiles existed - one flat owned/decks payload.
-          // Merge it into whichever profile is active here rather than dropping it.
-          Storage.importData(text, "merge");
-        }
-        Storage.setLastSyncedAt(remote.syncedAt);
-        document.dispatchEvent(new CustomEvent("mtg:remote-sync-applied"));
+      if (remote.profiles) {
+        // Current (v2) shape: every profile together.
+        Storage.mergeAllProfilesData(remote.profiles);
+      } else if (remote.ownedCards) {
+        // Old (v1) shape from before profiles existed - one flat owned/decks payload.
+        // Merge it into whichever profile is active here rather than dropping it.
+        Storage.importData(text, "merge");
       }
+      // Purely informational from here on (shown in the Data tab) - no longer used to
+      // decide whether to merge, so this device's own clock is fine to stamp it with.
+      Storage.setLastSyncedAt(new Date().toISOString());
+      document.dispatchEvent(new CustomEvent("mtg:remote-sync-applied"));
       updateState({ syncing: false, lastSyncedAt: Storage.getLastSyncedAt(), lastError: null });
     }).catch(function (err) {
       updateState({ syncing: false, lastError: "Sync from Dropbox failed: " + err.message });

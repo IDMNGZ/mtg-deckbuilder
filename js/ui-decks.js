@@ -24,7 +24,14 @@ var DecksUI = (function () {
   function renderDeckRow(deck) {
     var li = document.createElement("li");
     li.className = "deck-card";
-    li.innerHTML = '<div class="deck-card-name">' + CardView.escapeHtml(deck.name) + '</div>';
+
+    var header = document.createElement("div");
+    header.className = "deck-card-header";
+    var formatName = Formats.get(deck.format || "free").name;
+    header.innerHTML =
+      '<div class="deck-card-name">' + CardView.escapeHtml(deck.name) + '</div>' +
+      '<span class="deck-card-format-badge">' + CardView.escapeHtml(formatName) + '</span>';
+    li.appendChild(header);
 
     var cover = highestCmcCard(deck);
     if (cover && cover.image) {
@@ -38,8 +45,8 @@ var DecksUI = (function () {
 
     var meta = document.createElement("div");
     meta.className = "deck-card-meta";
-    var formatName = Formats.get(deck.format || "free").name;
-    meta.textContent = countCards(deck) + " cards · " + formatName + " · updated " + new Date(deck.updatedAt).toLocaleString();
+    var cardCount = countCards(deck);
+    meta.textContent = cardCount + " card" + (cardCount === 1 ? "" : "s") + " · updated " + new Date(deck.updatedAt).toLocaleString();
     li.appendChild(meta);
 
     var editBtn = document.createElement("button");

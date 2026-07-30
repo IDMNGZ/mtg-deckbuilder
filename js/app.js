@@ -57,6 +57,38 @@
     });
   }
 
+  // A stale cached copy of this app has already caused real confusion once (the CDN this
+  // is hosted on has independent, delayed per-file cache propagation - see storage.js's
+  // sync history) - polling for a version bump means a tab left open for a while surfaces
+  // that instead of silently running old code. Only checks version.js itself (tiny, cheap)
+  // rather than anything that'd actually force a reload - refreshing is always the user's
+  // own choice via the banner's button.
+  var UPDATE_CHECK_INTERVAL_MS = 10 * 60 * 1000;
+  function watchForNewVersion() {
+    var banner = document.getElementById("update-banner");
+    var dismissed = false;
+
+    function checkNow() {
+      if (dismissed) return;
+      fetch("js/version.js?_=" + Date.now(), { cache: "no-store" }).then(function (res) {
+        return res.text();
+      }).then(function (text) {
+        var match = text.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+        if (match && match[1] !== APP_VERSION) banner.classList.remove("hidden");
+      }).catch(function () { /* offline or blocked - not worth surfacing as an error */ });
+    }
+
+    document.getElementById("btn-update-refresh").addEventListener("click", function () { location.reload(); });
+    document.getElementById("btn-update-dismiss").addEventListener("click", function () {
+      dismissed = true;
+      banner.classList.add("hidden");
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") checkNow();
+    });
+    setInterval(checkNow, UPDATE_CHECK_INTERVAL_MS);
+  }
+
   // The header can wrap to extra lines on narrow viewports (or when a scrollbar appears/
   // disappears and shaves a few px off the available width), changing its height. Keep
   // --header-h in sync so the sticky filter bars stick right below it, not under it.
@@ -136,10 +168,13 @@
     DataTabUI.init();
     wireGlobalMergeToggle();
     watchHeaderHeight();
+    watchForNewVersion();
     applyMobileFilterDefaults();
     wireCardSizeSliders();
     ShareApp.wire(document.getElementById("btn-share-howto"), document.getElementById("share-feedback-howto"));
     ShareApp.wire(document.getElementById("btn-share-about"), document.getElementById("share-feedback-about"));
+    ShareApp.wire(document.getElementById("btn-share-links"), document.getElementById("share-feedback-links"));
+    ShareApp.wire(document.getElementById("btn-share-data"), document.getElementById("share-feedback-data"));
     document.getElementById("about-version").textContent = APP_VERSION;
 
     // A pull replacing local data (from another device's changes) needs whatever tab is

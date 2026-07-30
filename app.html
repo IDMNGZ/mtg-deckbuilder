@@ -48,6 +48,14 @@
 
 <main id="app">
 
+  <div id="update-banner" class="update-banner hidden">
+    <span>A new version of this app is available.</span>
+    <button type="button" id="btn-update-refresh" class="btn btn-primary">Refresh</button>
+    <button type="button" id="btn-update-dismiss" class="update-banner-dismiss" title="Dismiss">&times;</button>
+  </div>
+
+  <div id="data-status-bar" class="data-status-bar"></div>
+
   <section id="tab-browse" class="tab-panel">
     <div class="sticky-controls">
       <div class="browse-controls">
@@ -118,7 +126,6 @@
           <div id="collection-rarity-filters" class="type-filter-row"></div>
           <button type="button" id="collection-sort" class="type-filter-btn sort-toggle-btn" title="Cycle sort order"></button>
         </div>
-        <span id="collection-status" class="status-text"></span>
         </div>
       </div>
     </div>
@@ -422,6 +429,19 @@
   </section>
 
   <section id="tab-links" class="tab-panel">
+    <div class="share-inline-row">
+      <button type="button" id="btn-share-links" class="btn share-inline-btn" title="Share this app">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        Share this app
+      </button>
+      <span id="share-feedback-links" class="share-inline-feedback" aria-live="polite"></span>
+    </div>
     <p class="rules-disclaimer">External sites, not affiliated with or endorsed by this app - provided as a convenience for deckbuilding help, official rules, places to buy cards, and community discussion.</p>
 
     <section class="rules-section">
@@ -476,9 +496,21 @@
   </section>
 
   <section id="tab-data" class="tab-panel">
-    <p class="rules-disclaimer">Manage where your collection and decks live - automatic sync, manual backup, refreshing card data, and switching profiles.</p>
+    <div class="share-inline-row">
+      <button type="button" id="btn-share-data" class="btn share-inline-btn" title="Share this app">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        Share this app
+      </button>
+      <span id="share-feedback-data" class="share-inline-feedback" aria-live="polite"></span>
+    </div>
 
-    <div id="data-status-bar" class="data-status-bar"></div>
+    <p class="rules-disclaimer">Manage where your collection and decks live - automatic sync, manual backup, refreshing card data, and switching profiles.</p>
 
     <div class="data-tab-grid">
       <section class="rules-section">
@@ -535,6 +567,20 @@
 
   <section id="tab-about" class="tab-panel">
     <div class="about-content">
+      <div class="share-inline-row">
+        <button type="button" id="btn-share-about" class="btn share-inline-btn" title="Share this app">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          Share this app
+        </button>
+        <span id="share-feedback-about" class="share-inline-feedback" aria-live="polite"></span>
+      </div>
+
       <div class="about-header">
         <div class="about-eyebrow">About</div>
         <h1 class="about-name">Created by Ian Dominguez</h1>
@@ -554,20 +600,6 @@
           </div>
         </div>
       </section>
-
-      <div class="share-inline-row">
-        <button type="button" id="btn-share-about" class="btn share-inline-btn" title="Share this app">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="18" cy="5" r="3"></circle>
-            <circle cx="6" cy="12" r="3"></circle>
-            <circle cx="18" cy="19" r="3"></circle>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-          </svg>
-          Share this app
-        </button>
-        <span id="share-feedback-about" class="share-inline-feedback" aria-live="polite"></span>
-      </div>
 
       <section class="rules-section">
         <div class="rules-section-header"><h2>Links</h2></div>

@@ -144,7 +144,7 @@ var DataTabUI = (function () {
       info.className = "data-profile-info";
       info.innerHTML =
         "<div class='data-profile-name'>" + CardView.escapeHtml(profile.name) + (isActive ? " <span class='data-profile-badge'>Active</span>" : "") + "</div>" +
-        "<div class='data-profile-meta'>" + stats.owned + " cards owned · " + stats.decks + " decks</div>";
+        "<div class='data-profile-meta'>" + stats.owned + " cards owned · " + stats.decks + " deck" + (stats.decks === 1 ? "" : "s") + "</div>";
       li.appendChild(info);
 
       var actions = document.createElement("div");
@@ -292,6 +292,10 @@ var DataTabUI = (function () {
     wireResetDevice();
 
     document.addEventListener("mtg:sync-status-changed", function () {
+      // The status bar is global now (visible on every tab), so its sync label has to
+      // stay live regardless of which tab is active - only the full Sync panel markup
+      // itself is skipped while Data isn't the visible tab.
+      renderStatusBar();
       var tab = document.getElementById("tab-data");
       if (tab && tab.classList.contains("active")) renderSync();
     });

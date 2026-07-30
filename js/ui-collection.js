@@ -33,7 +33,6 @@ var CollectionUI = (function () {
     visible = CardFilters.sortCards(visible, state.sort);
     var merged = Storage.getMergeByName();
 
-    els.status.textContent = owned.length + " card" + (owned.length === 1 ? "" : "s") + " owned";
     els.grid.innerHTML = "";
     var frag = document.createDocumentFragment();
 
@@ -65,7 +64,6 @@ var CollectionUI = (function () {
     els.filter = document.getElementById("collection-filter");
     els.sort = document.getElementById("collection-sort");
     els.grid = document.getElementById("collection-grid");
-    els.status = document.getElementById("collection-status");
     els.typeFilters = document.getElementById("collection-type-filters");
     els.colorFilters = document.getElementById("collection-color-filters");
     els.rarityFilters = document.getElementById("collection-rarity-filters");

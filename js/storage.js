@@ -489,8 +489,13 @@ var Storage = (function () {
 
   // ---- "Merge duplicate printings by name" toggle (Collection + Deck Builder pool) ----
 
+  // Defaults to true - most collections have the same card across several printings,
+  // and the merged view is what people expect to see first (per-printing tracking is
+  // still one click away via the modal's version cycler). A profile that's explicitly
+  // turned this off keeps that choice (readActiveJSON only falls back to this default
+  // when nothing's been stored yet).
   function getMergeByName() {
-    return readActiveJSON("mergeByName", false);
+    return readActiveJSON("mergeByName", true);
   }
 
   function setMergeByName(value) {
