@@ -34,7 +34,7 @@ var DataTabUI = (function () {
     // (there's nothing to sync to), and the full Automatic Sync panel below already covers
     // getting connected in the first place.
     var syncButtonHtml = status.connected
-      ? "<button type='button' id='btn-status-sync-now' class='btn btn-primary data-status-sync-btn'" + (status.syncing ? " disabled" : "") + ">" + (status.syncing ? "Syncing…" : "Sync Now") + "</button>"
+      ? "<button type='button' id='btn-status-sync-now' class='btn btn-primary data-status-sync-btn'" + (status.syncing ? " disabled" : "") + ">" + (status.syncing ? "Syncing…" : "Sync") + "</button>"
       : "";
 
     // Share used to be its own button repeated on four different tabs - now that this bar
@@ -51,7 +51,11 @@ var DataTabUI = (function () {
       "<div class='data-status-item'><span class='data-status-label'>Profile</span><span class='data-status-value'>" + CardView.escapeHtml(profile.name) + "</span></div>" +
       "<div class='data-status-item'><span class='data-status-label'>Collection</span><span class='data-status-value'>" + ownedCount + " cards, " + deckCount + " decks</span></div>" +
       "<div class='data-status-item'><span class='data-status-label'>Sync</span><span class='data-status-value" + (status.lastError ? " data-status-error" : "") + "'>" + CardView.escapeHtml(syncLabel) + "</span></div>" +
-      syncButtonHtml + shareHtml;
+      // One shared wrapper with the ONLY margin-left: auto, not one on each button -
+      // multiple auto-margins in the same flex row each independently claim a share of the
+      // free space (that's what was pushing "Sync" out to float in the middle with a gap on
+      // both sides instead of sitting flush against "Share" at the right edge).
+      "<div class='data-status-actions'>" + syncButtonHtml + shareHtml + "</div>";
 
     if (status.connected) {
       document.getElementById("btn-status-sync-now").addEventListener("click", DropboxSync.push);
@@ -318,7 +322,7 @@ var DataTabUI = (function () {
   }
 
   function init() {
-    els.statusBar = document.getElementById("data-status-bar");
+    els.statusBar = document.getElementById("data-status-dynamic");
     els.syncSection = document.getElementById("data-sync-section");
     els.refreshBtn = document.getElementById("btn-refresh-global");
     els.clearCacheBtn = document.getElementById("btn-clear-cache");

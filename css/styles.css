@@ -66,9 +66,9 @@ body {
   text-align: center;
 }
 
-/* Invisible to layout everywhere except phone portrait (see that media query) - lets
-   nav+header-actions become one combined horizontally-scrolling row there without
-   changing anything about how they behave at other sizes. */
+/* Invisible to layout everywhere except phone portrait (see that media query), where it
+   turns the header's nav into a horizontally-scrolling row without changing anything
+   about how it behaves at other sizes. */
 .header-controls-row { display: contents; }
 
 .tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
@@ -111,33 +111,6 @@ body {
   border-color: rgba(154, 156, 166, 0.5);
 }
 
-.header-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-
-/* Groups the header's non-nav buttons by what they actually do - "View" (display
-   preferences: merge/zoom) vs "Data" (Sync/Export/Import/Refresh) - each with its own
-   subtle tint, so they read as distinct from each other and from the Tabs row above
-   instead of one undifferentiated row of identical-looking buttons. */
-.header-action-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 10px 5px 4px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-}
-.header-group-label {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  padding: 0 2px;
-}
-.header-action-group-view {
-  background: rgba(76, 175, 110, 0.18);
-  border-color: rgba(76, 175, 110, 0.55);
-}
-.header-action-group-view .header-group-label { color: var(--green); }
-
 /* Buttons/tabs inside a tinted group pick up a touch of that group's color themselves,
    instead of staying the same neutral --bg-input as everything else - otherwise the
    group tint only shows in the thin strip of padding around them. */
@@ -153,11 +126,6 @@ body {
   background: rgba(154, 156, 166, 0.14);
   border-color: rgba(154, 156, 166, 0.4);
 }
-.header-action-group-view .btn {
-  background: rgba(76, 175, 110, 0.14);
-  border-color: rgba(76, 175, 110, 0.4);
-}
-
 .btn {
   border: 1px solid var(--border);
   background: var(--bg-input);
@@ -591,7 +559,13 @@ select, input[type="text"], .deck-name-input {
 .deckbuilder-list-panel h3 { margin: 0 0 10px; font-size: 14px; }
 
 @media (max-width: 900px) {
-  .deckbuilder-current { flex-direction: column; }
+  /* align-items: flex-start (set above for the desktop row layout, where it stops a
+     shorter panel from being stretched to match a taller neighbor) has a different effect
+     once this becomes a column: it's now the CROSS axis, so flex-start also stops each
+     panel from stretching to the container's full WIDTH - each one shrinks to its own
+     content width instead, leaving empty space beside it. stretch is what's actually
+     wanted here. */
+  .deckbuilder-current { flex-direction: column; align-items: stretch; }
   /* flex: 1 1 360px was written for the side-by-side desktop layout, where 360px is a
      sensible WIDTH floor for each panel. Stacked in a column here, that same basis
      becomes a HEIGHT floor instead - stretching a short "Current Deck" list (a couple of
@@ -991,31 +965,30 @@ select, input[type="text"], .deck-name-input {
 
 /* A prominent, always-visible summary above the section cards - which profile you're in,
    whether it's synced, and how big it is - answered in one glance instead of having to
-   read into each card below. */
+   read into each card below. Two rows stacked: the live status/actions on top, the View
+   display-preference controls (formerly their own row in the header) underneath. */
 .data-status-bar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  gap: 8px;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 14px;
   margin-bottom: 16px;
 }
+.data-status-dynamic { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .data-status-item { display: flex; flex-direction: column; gap: 0; }
 .data-status-label { font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim); }
 .data-status-value { font-size: 12px; font-weight: 600; }
 .data-status-value.data-status-error { color: var(--danger); }
-/* Sits at the end of the bar, not among the label/value pairs - margin-left: auto keeps it
-   pinned to the right regardless of how many status items are shown. */
-/* margin-left: auto on both (not just whichever renders first) so Share still pins to the
-   right edge on its own when Sync Now isn't shown (not connected to Dropbox) - flexbox only
-   lets the first auto-margin in a row actually consume space, so when both are present the
-   second one is a harmless no-op rather than doubling up. */
-.data-status-sync-btn { margin-left: auto; padding: 5px 12px; font-size: 12px; flex-shrink: 0; }
+/* The ONLY margin-left: auto in this row - both buttons sit inside it with a normal gap,
+   so they land flush together at the right edge instead of each claiming their own share
+   of the free space (which is what pushed "Sync" out to float in the middle with a gap on
+   both sides, when it had its own auto-margin alongside Share's). */
+.data-status-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.data-status-sync-btn { padding: 5px 12px; font-size: 12px; flex-shrink: 0; }
 .data-status-share-btn {
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -1024,6 +997,25 @@ select, input[type="text"], .deck-name-input {
   flex-shrink: 0;
 }
 .data-status-share-feedback { font-size: 11px; color: var(--gold); flex-shrink: 0; }
+
+/* View controls - moved here from their own row in the header, which (now that Sync/
+   Export/etc. have all relocated to this bar or the System tab) was left holding just
+   these two controls alone, an oddly sparse full-width row on wide screens. */
+.data-status-view {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.data-status-view-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
 
 /* The section cards (Sync/Manual Backup/Refresh/Switch Profiles) were each stretching to
    the full content width even though most only need a fraction of it - side by side
@@ -1206,9 +1198,9 @@ select, input[type="text"], .deck-name-input {
   }
 }
 
-/* Phone portrait: a slim title line, then nav+header-actions collapse into a single
-   compact, horizontally-scrollable bar below it - between the two, the nav/action
-   "dashboard" stays out of most of the viewport instead of eating it. */
+/* Phone portrait: a slim title line, then the nav collapses into a single compact,
+   horizontally-scrollable bar below it - between the two, the header "dashboard" stays
+   out of most of the viewport instead of eating it. */
 @media (max-width: 600px) and (orientation: portrait) {
   .app-header {
     padding: 8px 10px;
@@ -1232,10 +1224,6 @@ select, input[type="text"], .deck-name-input {
   .tabs { flex-wrap: nowrap; flex-shrink: 0; justify-content: flex-start; gap: 6px; }
   .tab-link { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
   .tab-group { flex-shrink: 0; align-items: center; min-height: 44px; padding: 4px; gap: 6px; }
-  .header-actions { flex-wrap: nowrap; flex-shrink: 0; justify-content: flex-start; gap: 6px; margin-left: auto; }
-  .header-actions .btn { padding: 6px 8px; font-size: 12px; white-space: nowrap; }
-  .header-action-group { flex-shrink: 0; align-items: center; min-height: 44px; padding: 4px 8px 4px 4px; }
-  .header-group-label { font-size: 9px; }
   .card-size-field { min-width: 90px; }
 
   /* Was pinned to 1 column (200px doesn't fit twice at phone width) - shrink the default
@@ -1276,10 +1264,6 @@ select, input[type="text"], .deck-name-input {
   .tabs { flex-direction: column; align-items: stretch; gap: 4px; }
   .tab-link { text-align: center; padding: 6px 8px; font-size: 12px; }
   .tab-group { flex-direction: column; align-items: stretch; width: 100%; padding: 4px; }
-  .header-actions { flex-direction: column; align-items: stretch; gap: 4px; }
-  .header-actions .btn { font-size: 11px; padding: 5px 6px; }
-  .header-action-group { flex-direction: column; align-items: stretch; width: 100%; padding: 6px 6px 4px; }
-  .header-group-label { text-align: center; }
   .card-size-field { min-width: 0; }
   .card-size-slider { width: 100%; }
 

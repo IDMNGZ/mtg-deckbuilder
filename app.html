@@ -41,16 +41,6 @@
       <a href="#about" class="tab-link" data-tab="about">About</a>
     </div>
   </nav>
-  <div class="header-actions">
-    <div class="header-action-group header-action-group-view">
-      <span class="header-group-label">View</span>
-      <button id="btn-merge-toggle-global" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge Dupes</button>
-      <label class="field card-size-field">
-        Card size
-        <input type="range" class="card-size-slider" min="100" max="260" step="10" title="Zoom the card grid in or out">
-      </label>
-    </div>
-  </div>
   </div>
 </header>
 
@@ -62,7 +52,17 @@
     <button type="button" id="btn-update-dismiss" class="update-banner-dismiss" title="Dismiss">&times;</button>
   </div>
 
-  <div id="data-status-bar" class="data-status-bar"></div>
+  <div id="data-status-bar" class="data-status-bar">
+    <div id="data-status-dynamic" class="data-status-dynamic"></div>
+    <div class="data-status-view">
+      <span class="data-status-view-label">View</span>
+      <button id="btn-merge-toggle-global" class="btn toggle-btn" title="Show one entry per card name instead of one per printing">Merge Dupes</button>
+      <label class="field card-size-field">
+        Card size
+        <input type="range" class="card-size-slider" min="150" max="260" step="10" title="Zoom the card grid in or out">
+      </label>
+    </div>
+  </div>
 
   <section id="tab-browse" class="tab-panel">
     <div class="sticky-controls">
