@@ -235,12 +235,23 @@ var DropboxSync = (function () {
   // gets replaced. Dropbox's conditional write (mode: update + the rev we last saw) turns
   // that into a 409 instead of data loss, so retryUpload can re-pull (picking up A's change
   // as well as B's own) and only then upload the fully-merged result.
+  // Temporary verbose logging (see console) - the conflict-retry fix isn't converging two
+  // real devices despite passing simulated tests, and profile ids were confirmed identical
+  // across them, so the remaining suspects are all inside this actual network round trip.
+  // Logging every step turns further debugging into reading output instead of guessing.
+  function summarizeProfiles(profiles) {
+    return (profiles || []).map(function (p) {
+      return p.name + " (" + p.id + "): " + Object.keys(p.ownedCards || {}).length + " owned, " + (p.decks || []).length + " decks";
+    });
+  }
+
   function uploadSnapshot(retriesLeft) {
     if (retriesLeft === undefined) retriesLeft = 2;
     if (!Storage.getDropboxAuth()) return Promise.resolve();
     updateState({ syncing: true });
     var payload = buildPayload();
     var mode = lastKnownRev ? { ".tag": "update", update: lastKnownRev } : "add";
+    console.log("[sync] uploadSnapshot: mode=", mode, "lastKnownRev=", lastKnownRev, "payload profiles:", summarizeProfiles(payload.profiles));
     return ensureFreshToken().then(function (token) {
       return fetch(CONTENT_ROOT + "/files/upload", {
         method: "POST",
@@ -252,18 +263,22 @@ var DropboxSync = (function () {
         body: JSON.stringify(payload),
       });
     }).then(function (res) {
+      console.log("[sync] upload response status:", res.status, res.ok);
       if (res.status === 409 && retriesLeft > 0) {
+        console.log("[sync] upload conflict (409) - re-pulling and retrying, retriesLeft after this =", retriesLeft - 1);
         // Someone else wrote to the file since our last pull - re-pull (merging their
         // change plus ours) and try again with the fresh rev that gives us.
         return pull().then(function () { return uploadSnapshot(retriesLeft - 1); });
       }
-      if (!res.ok) return res.text().then(function (t) { throw new Error(t); });
+      if (!res.ok) return res.text().then(function (t) { console.log("[sync] upload FAILED, body:", t); throw new Error(t); });
       return res.json().then(function (meta) {
+        console.log("[sync] upload SUCCEEDED, new rev:", meta.rev);
         lastKnownRev = meta.rev || lastKnownRev;
         Storage.setLastSyncedAt(payload.syncedAt);
         updateState({ syncing: false, lastSyncedAt: payload.syncedAt, lastError: null });
       });
     }).catch(function (err) {
+      console.log("[sync] uploadSnapshot threw:", err);
       updateState({ syncing: false, lastError: "Sync to Dropbox failed: " + err.message });
     });
   }
@@ -286,19 +301,24 @@ var DropboxSync = (function () {
   function pull() {
     if (!Storage.getDropboxAuth()) return Promise.resolve();
     updateState({ syncing: true });
+    console.log("[sync] pull: starting download");
     return ensureFreshToken().then(function (token) {
       return fetch(CONTENT_ROOT + "/files/download", {
         method: "POST",
         headers: { Authorization: "Bearer " + token, "Dropbox-API-Arg": JSON.stringify({ path: SAVE_PATH }) },
       });
     }).then(function (res) {
+      console.log("[sync] pull: download response status:", res.status, res.ok);
       if (res.status === 409) { lastKnownRev = null; return null; } // path/not_found - no remote save yet
-      if (!res.ok) return res.text().then(function (t) { throw new Error(t); });
+      if (!res.ok) return res.text().then(function (t) { console.log("[sync] pull: download FAILED, body:", t); throw new Error(t); });
       // Metadata (including the file's current rev, which uploadSnapshot needs for its
       // conditional write) rides along in this header on the download endpoint, not the body.
       var resultHeader = res.headers.get("Dropbox-API-Result");
+      console.log("[sync] pull: Dropbox-API-Result header =", resultHeader);
       if (resultHeader) {
         try { lastKnownRev = JSON.parse(resultHeader).rev || lastKnownRev; } catch (e) { /* leave rev as-is */ }
+      } else {
+        console.warn("[sync] pull: Dropbox-API-Result header missing/unreadable (CORS exposure?) - lastKnownRev stays", lastKnownRev);
       }
       return res.text();
     }).then(function (text) {
@@ -306,7 +326,10 @@ var DropboxSync = (function () {
         updateState({ syncing: false });
         return uploadSnapshot();
       }
+      console.log("[sync] pull: remote content:", text.length, "bytes, resolved lastKnownRev =", lastKnownRev);
       var remote = JSON.parse(text);
+      console.log("[sync] pull: remote profiles (before merge):", summarizeProfiles(remote.profiles));
+      console.log("[sync] pull: local profiles (before merge):", summarizeProfiles(Storage.getAllProfilesData()));
       if (remote.profiles) {
         // Current (v2) shape: every profile together.
         Storage.mergeAllProfilesData(remote.profiles);
@@ -315,6 +338,7 @@ var DropboxSync = (function () {
         // Merge it into whichever profile is active here rather than dropping it.
         Storage.importData(text, "merge");
       }
+      console.log("[sync] pull: local profiles (after merge):", summarizeProfiles(Storage.getAllProfilesData()));
       // Purely informational from here on (shown in the Data tab) - no longer used to
       // decide whether to merge, so this device's own clock is fine to stamp it with.
       Storage.setLastSyncedAt(new Date().toISOString());
@@ -333,7 +357,10 @@ var DropboxSync = (function () {
   // covers the local side, not the shared file. Pulling first means whatever gets
   // uploaded already reflects both devices' known changes.
   function push() {
-    return pull().then(uploadSnapshot);
+    console.log("[sync] push() called (Sync now / auto-push)");
+    return pull().then(uploadSnapshot).then(function () {
+      console.log("[sync] push() finished");
+    });
   }
 
   // ---- Wiring: auto-push on local changes, auto-pull when the tab regains focus ----
