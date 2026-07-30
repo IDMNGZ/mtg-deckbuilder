@@ -30,10 +30,22 @@ var DataTabUI = (function () {
     else if (status.lastError) syncLabel = "Sync error";
     else syncLabel = formatTime(status.lastSyncedAt);
 
+    // Only shown once actually connected - syncing isn't a meaningful action before then
+    // (there's nothing to sync to), and the full Automatic Sync panel below already covers
+    // getting connected in the first place.
+    var syncButtonHtml = status.connected
+      ? "<button type='button' id='btn-status-sync-now' class='btn btn-primary data-status-sync-btn'" + (status.syncing ? " disabled" : "") + ">" + (status.syncing ? "Syncing…" : "Sync Now") + "</button>"
+      : "";
+
     els.statusBar.innerHTML =
       "<div class='data-status-item'><span class='data-status-label'>Profile</span><span class='data-status-value'>" + CardView.escapeHtml(profile.name) + "</span></div>" +
       "<div class='data-status-item'><span class='data-status-label'>Collection</span><span class='data-status-value'>" + ownedCount + " cards, " + deckCount + " decks</span></div>" +
-      "<div class='data-status-item'><span class='data-status-label'>Sync</span><span class='data-status-value" + (status.lastError ? " data-status-error" : "") + "'>" + CardView.escapeHtml(syncLabel) + "</span></div>";
+      "<div class='data-status-item'><span class='data-status-label'>Sync</span><span class='data-status-value" + (status.lastError ? " data-status-error" : "") + "'>" + CardView.escapeHtml(syncLabel) + "</span></div>" +
+      syncButtonHtml;
+
+    if (status.connected) {
+      document.getElementById("btn-status-sync-now").addEventListener("click", DropboxSync.push);
+    }
   }
 
   // ---- Sync section ----
