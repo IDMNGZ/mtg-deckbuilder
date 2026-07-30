@@ -88,7 +88,13 @@ var Storage = (function () {
     var existing = readJSON(KEY_PROFILES, null);
     if (existing && existing.length > 0) return; // already migrated (or already multi-profile)
 
-    var profile = { id: "default", name: "Player 1", createdAt: new Date().toISOString() };
+    // A random id here (not a fixed "default") matters once Dropbox is in the picture: two
+    // separate devices each running their OWN local migration independently (e.g. a phone
+    // used for early testing, before sync existed, alongside a desktop with the real
+    // collection) would otherwise both mint a profile with the exact same id - and
+    // DropboxSync's profile merge matches by id, so it would treat those two unrelated
+    // profiles as "the same one" and blend their contents together.
+    var profile = { id: makeProfileId(), name: "Player 1", createdAt: new Date().toISOString() };
     var hadLegacyData = false;
     PROFILE_DATA_KEYS.forEach(function (base) {
       var legacyKey = NS + base;
@@ -146,7 +152,7 @@ var Storage = (function () {
     // Should be unreachable (migration above always leaves at least one profile behind,
     // even on partial failure) - self-heals instead of leaving every profile-scoped read/
     // write with nothing to resolve to.
-    var fallback = [{ id: "default", name: "Player 1", createdAt: new Date().toISOString() }];
+    var fallback = [{ id: makeProfileId(), name: "Player 1", createdAt: new Date().toISOString() }];
     writeJSON(KEY_PROFILES, fallback);
     if (!localStorage.getItem(KEY_ACTIVE_PROFILE)) localStorage.setItem(KEY_ACTIVE_PROFILE, fallback[0].id);
     return fallback;
@@ -273,9 +279,10 @@ var Storage = (function () {
   function readActiveJSON(base, fallback) {
     var key = activeKey(base);
     if (localStorage.getItem(key) !== null) return readJSON(key, fallback);
-    if (getActiveProfileId() === "default" && localStorage.getItem(NS + base) !== null) {
-      return readJSON(NS + base, fallback);
-    }
+    // No hardcoded id check here on purpose - only the one profile a device's own
+    // migration created could ever have data stuck at the old flat location, and checking
+    // unconditionally is harmless for any other profile (there'd just be nothing there).
+    if (localStorage.getItem(NS + base) !== null) return readJSON(NS + base, fallback);
     return fallback;
   }
 
