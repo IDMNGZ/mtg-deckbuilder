@@ -59,13 +59,24 @@ var Storage = (function () {
   // cached forever, and a large collection browsing many sets can eventually consume the
   // entire ~5-10MB per-origin localStorage quota, at which point EVERY subsequent write -
   // including sync merges - silently fails.
+  // Matches "cache:sets", "cache:cards" alone, or any versioned generation of it
+  // ("cache:cards2:", "cache:cards3:", ...) - NOT just the CURRENT KEY_CARDS_CACHE_PREFIX/
+  // KEY_PRINTS_CACHE_PREFIX constant. Found the hard way: this cache's format has been
+  // version-bumped before ("cards2" -> "cards3", "prints2" -> "prints3", see those
+  // constants' own comments) specifically to force a fresh fetch instead of serving data in
+  // the old shape - but bumping the prefix means the OLD prefix's entries become
+  // permanently invisible to every function that only ever looks for the current one.
+  // They're never read (nothing asks for "cards2" anymore), never overwritten (all new
+  // writes go to "cards3"), and - until this matched the general pattern instead of the
+  // exact current string - never cleaned up either: dead weight sitting in quota forever.
+  // That's exactly what happened here - hundreds of orphaned "cards2"/"prints2" entries
+  // were the actual majority of a user's quota exhaustion, completely invisible to a
+  // same-day fix that (correctly, as far as it went) only checked for "cards3"/"prints3".
   function clearAllCaches() {
     var toRemove = [];
     for (var i = 0; i < localStorage.length; i++) {
       var key = localStorage.key(i);
-      if (key === KEY_SETS_CACHE || key.indexOf(KEY_CARDS_CACHE_PREFIX) === 0 || key.indexOf(KEY_PRINTS_CACHE_PREFIX) === 0) {
-        toRemove.push(key);
-      }
+      if (key.indexOf(NS + "cache:") === 0) toRemove.push(key);
     }
     toRemove.forEach(function (key) { localStorage.removeItem(key); });
     return toRemove.length;
@@ -741,10 +752,26 @@ var Storage = (function () {
   migrateLegacyDataIfNeeded();
   consolidateDropboxAuthToGlobal();
   repairStuckLegacyDataIfNeeded();
-  // Prunes any cache that already grew past budget before this cap existed (setCardsCache/
-  // setPrintsCache only enforce it going forward, on their own next write) - runs once per
-  // load so a device that's already over quota gets relief immediately, not only the next
-  // time it happens to browse a new set/card.
+  // Old cache generations (anything under "cache:" that isn't this version's sets/cards3/
+  // prints3 keys - see clearAllCaches' comment) are pure dead weight with no code path that
+  // will ever read or overwrite them again - remove them outright, every load, regardless
+  // of current usage. Unlike the budget eviction below (which trims the CURRENT, still-
+  // useful generation only when it's actually over budget), there's no reason to ever keep
+  // a byte of a previous generation around.
+  (function pruneDeadCacheGenerations() {
+    var toRemove = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key.indexOf(NS + "cache:") !== 0) continue;
+      if (key === KEY_SETS_CACHE || key.indexOf(KEY_CARDS_CACHE_PREFIX) === 0 || key.indexOf(KEY_PRINTS_CACHE_PREFIX) === 0) continue;
+      toRemove.push(key);
+    }
+    toRemove.forEach(function (key) { localStorage.removeItem(key); });
+  })();
+  // Prunes the current generation's cache back under budget if it already grew past it
+  // before this cap existed (setCardsCache/setPrintsCache only enforce it going forward, on
+  // their own next write) - runs once per load so a device that's already over quota gets
+  // relief immediately, not only the next time it happens to browse a new set/card.
   evictCacheUnderBudget(KEY_CARDS_CACHE_PREFIX, CARDS_CACHE_BUDGET_BYTES);
   evictCacheUnderBudget(KEY_PRINTS_CACHE_PREFIX, PRINTS_CACHE_BUDGET_BYTES);
 
