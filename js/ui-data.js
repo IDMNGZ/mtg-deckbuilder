@@ -214,6 +214,18 @@ var DataTabUI = (function () {
     els.resetDeviceBtn.addEventListener("click", resetDevicePrompt);
   }
 
+  // ---- Clear card data cache (storage-quota relief, keeps owned cards/decks untouched) ----
+
+  function wireClearCache() {
+    var btn = els.clearCacheBtn;
+    var originalLabel = btn.textContent;
+    btn.addEventListener("click", function () {
+      var count = Storage.clearCardDataCache();
+      btn.textContent = count > 0 ? "Cleared " + count + " cached edition(s)" : "Nothing to clear";
+      setTimeout(function () { btn.textContent = originalLabel; }, 2500);
+    });
+  }
+
   // ---- Refresh ----
 
   // "Refresh" means something different depending on which tab you were last actually
@@ -286,6 +298,7 @@ var DataTabUI = (function () {
     els.statusBar = document.getElementById("data-status-bar");
     els.syncSection = document.getElementById("data-sync-section");
     els.refreshBtn = document.getElementById("btn-refresh-global");
+    els.clearCacheBtn = document.getElementById("btn-clear-cache");
     els.profileList = document.getElementById("data-profile-list");
     els.newProfileName = document.getElementById("data-new-profile-name");
     els.createProfileBtn = document.getElementById("btn-create-profile");
@@ -294,6 +307,7 @@ var DataTabUI = (function () {
     renderSync();
     renderProfiles();
     wireRefresh();
+    wireClearCache();
     wireBackup();
     wireProfiles();
     wireResetDevice();

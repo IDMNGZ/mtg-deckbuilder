@@ -52,11 +52,52 @@ var Storage = (function () {
     }
   }
 
+  // Removes every cached Scryfall response (sets list + per-set card lists + per-name
+  // prints lookups) - all disposable/regenerable from the API on demand, unlike owned
+  // cards/decks/profiles. Exists specifically as an escape hatch for quota exhaustion (see
+  // writeJSON below): with no eviction policy, every set a user has ever browsed stays
+  // cached forever, and a large collection browsing many sets can eventually consume the
+  // entire ~5-10MB per-origin localStorage quota, at which point EVERY subsequent write -
+  // including sync merges - silently fails.
+  function clearAllCaches() {
+    var toRemove = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (key === KEY_SETS_CACHE || key.indexOf(KEY_CARDS_CACHE_PREFIX) === 0 || key.indexOf(KEY_PRINTS_CACHE_PREFIX) === 0) {
+        toRemove.push(key);
+      }
+    }
+    toRemove.forEach(function (key) { localStorage.removeItem(key); });
+    return toRemove.length;
+  }
+
+  // A failed write here isn't safe to just log and move on from the way a failed read is -
+  // callers that persist sync-critical data (owned cards, decks, profiles) need to actually
+  // know it didn't happen, or they'll proceed as if a merge succeeded when the merged
+  // result was never saved (exactly what caused a stale local copy to silently overwrite a
+  // newer remote one during sync). QuotaExceededError specifically gets one automatic retry
+  // after clearing the disposable card-data cache, since that's very often the entire
+  // reason the quota filled up in the first place and clearing it can free megabytes
+  // instantly; any other failure (or a retry that still doesn't fit) is left for the caller
+  // to handle via the return value.
   function writeJSON(key, value) {
     try {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (err) {
+      if (err && err.name === "QuotaExceededError") {
+        var cleared = clearAllCaches();
+        if (cleared > 0) {
+          try {
+            localStorage.setItem(key, JSON.stringify(value));
+            console.warn("Storage: quota exceeded writing " + key + " - cleared " + cleared + " cached card-data entries and retried successfully.");
+            return true;
+          } catch (retryErr) {
+            console.error("Storage: still over quota writing", key, "even after clearing the card-data cache.", retryErr);
+            return false;
+          }
+        }
+      }
       console.error("Storage: failed to write", key, err);
       return false;
     }
@@ -241,7 +282,9 @@ var Storage = (function () {
     // write with nothing to resolve to.
     var fallback = [{ id: makeProfileId(), name: "Player 1", createdAt: new Date().toISOString() }];
     writeJSON(KEY_PROFILES, fallback);
-    if (!localStorage.getItem(KEY_ACTIVE_PROFILE)) localStorage.setItem(KEY_ACTIVE_PROFILE, fallback[0].id);
+    if (!localStorage.getItem(KEY_ACTIVE_PROFILE)) {
+      try { localStorage.setItem(KEY_ACTIVE_PROFILE, fallback[0].id); } catch (err) { console.error("Storage: failed to write", KEY_ACTIVE_PROFILE, err); }
+    }
     return fallback;
   }
 
@@ -324,6 +367,14 @@ var Storage = (function () {
     var profiles = getProfiles();
     var byId = {};
     profiles.forEach(function (p) { byId[p.id] = p; });
+    // A write failing here (even after writeJSON's own auto-clear-cache retry) is not safe
+    // to just log and continue past - DropboxSync.uploadSnapshot reads this same data right
+    // back out of storage immediately afterward to build what it uploads, so a silently
+    // dropped write here means the "merged" result never actually existed anywhere except
+    // briefly in memory, and the upload instead re-sends whatever was already here before -
+    // stale local data silently overwriting a newer remote file. Throwing surfaces this as
+    // a real sync error instead.
+    var failedKeys = [];
 
     remoteProfiles.forEach(function (remote) {
       if (!byId[remote.id]) {
@@ -334,7 +385,7 @@ var Storage = (function () {
 
       var localOwned = readJSON(profileKey(remote.id, "owned"), {});
       Object.keys(remote.ownedCards || {}).forEach(function (id) { localOwned[id] = remote.ownedCards[id]; });
-      writeJSON(profileKey(remote.id, "owned"), localOwned);
+      if (!writeJSON(profileKey(remote.id, "owned"), localOwned)) failedKeys.push(profileKey(remote.id, "owned"));
 
       var localDecksById = {};
       readJSON(profileKey(remote.id, "decks"), []).forEach(function (d) { localDecksById[d.id] = d; });
@@ -344,10 +395,16 @@ var Storage = (function () {
           localDecksById[incoming.id] = incoming;
         }
       });
-      writeJSON(profileKey(remote.id, "decks"), Object.keys(localDecksById).map(function (id) { return localDecksById[id]; }));
+      if (!writeJSON(profileKey(remote.id, "decks"), Object.keys(localDecksById).map(function (id) { return localDecksById[id]; }))) {
+        failedKeys.push(profileKey(remote.id, "decks"));
+      }
     });
 
-    writeJSON(KEY_PROFILES, profiles);
+    if (!writeJSON(KEY_PROFILES, profiles)) failedKeys.push(KEY_PROFILES);
+
+    if (failedKeys.length > 0) {
+      throw new Error("Couldn't save merged data (storage is full: " + failedKeys.join(", ") + "). Try \"Clear Card Data Cache\" in the Data tab to free up space, then sync again.");
+    }
   }
 
   // Every per-profile getter/setter below reads/writes under the CURRENTLY ACTIVE profile -
@@ -668,6 +725,7 @@ var Storage = (function () {
     setCardsCache: setCardsCache,
     getPrintsCache: getPrintsCache,
     setPrintsCache: setPrintsCache,
+    clearCardDataCache: clearAllCaches,
     getSelectedBrowseSets: getSelectedBrowseSets,
     setSelectedBrowseSets: setSelectedBrowseSets,
     getMergeByName: getMergeByName,
