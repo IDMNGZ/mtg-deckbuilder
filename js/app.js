@@ -171,10 +171,8 @@
     watchForNewVersion();
     applyMobileFilterDefaults();
     wireCardSizeSliders();
-    ShareApp.wire(document.getElementById("btn-share-howto"), document.getElementById("share-feedback-howto"));
-    ShareApp.wire(document.getElementById("btn-share-about"), document.getElementById("share-feedback-about"));
-    ShareApp.wire(document.getElementById("btn-share-links"), document.getElementById("share-feedback-links"));
-    ShareApp.wire(document.getElementById("btn-share-data"), document.getElementById("share-feedback-data"));
+    // Share moved to the global status bar (see DataTabUI.renderStatusBar) now that it's
+    // visible on every tab - one button instead of duplicating it per-tab.
     document.getElementById("about-version").textContent = APP_VERSION;
 
     // A pull replacing local data (from another device's changes) needs whatever tab is

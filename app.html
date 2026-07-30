@@ -25,10 +25,12 @@
       <a href="#deckbuilder" class="tab-link" data-tab="deckbuilder">Deck Builder</a>
       <a href="#decks" class="tab-link" data-tab="decks">My Decks</a>
     </div>
-    <div class="tab-group tab-group-info">
-      <a href="#rules" class="tab-link" data-tab="rules">Rules</a>
-      <a href="#howto" class="tab-link" data-tab="howto">How To Use</a>
+    <div class="tab-group tab-group-secondary">
+      <a href="#rules" class="tab-link" data-tab="rules">MTG Rules</a>
       <a href="#links" class="tab-link" data-tab="links">Links</a>
+    </div>
+    <div class="tab-group tab-group-info">
+      <a href="#howto" class="tab-link" data-tab="howto">How To Use</a>
       <a href="#data" class="tab-link tab-link-icon" data-tab="data">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="3"></circle>
@@ -217,19 +219,6 @@
   </section>
 
   <section id="tab-howto" class="tab-panel">
-    <div class="share-inline-row">
-      <button type="button" id="btn-share-howto" class="btn share-inline-btn" title="Share this app">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        Share this app
-      </button>
-      <span id="share-feedback-howto" class="share-inline-feedback" aria-live="polite"></span>
-    </div>
     <section class="rules-section">
       <div class="rules-section-header">
         <h2>Getting Started</h2>
@@ -248,9 +237,10 @@
         <div class="rule-entry">
           <div class="rule-term">The header controls</div>
           <ul class="rule-bullets">
-            <li>Tabs are grouped into your data (Browse, Collection, Deck Builder, My Decks) and reference pages (Rules, How To Use, Links, Data, About).</li>
-            <li>"View" applies everywhere at once: "Merge Dupes" collapses duplicate printings into one tile on Browse, Collection, and Deck Builder together, and "Card size" resizes the card grid on every tab, including deck cards on My Decks.</li>
-            <li>The Data tab holds everything about where your collection/decks live - Dropbox sync, manual Export/Import, Refresh, and switching profiles (covered in "Syncing Your Data" below).</li>
+            <li>Tabs are grouped into your data (Browse, Collection, Deck Builder, My Decks), MTG references (MTG Rules, Links), and app info (How To Use, System, About).</li>
+            <li>The status bar just below the header (visible on every tab) always shows your active profile, collection size, and sync status, with "Sync Now" and "Share" right there too.</li>
+            <li>"View" applies everywhere at once: "Merge Dupes" (on by default) collapses duplicate printings into one tile on Browse, Collection, and Deck Builder together, and "Card size" resizes the card grid on every tab, including deck cards on My Decks.</li>
+            <li>The System tab holds everything about where your collection/decks live - Dropbox sync, manual Export/Import, Refresh, and switching profiles (covered in "Syncing Your Data" below).</li>
           </ul>
         </div>
       </div>
@@ -295,7 +285,7 @@
           <div class="rule-term">Merging duplicate printings</div>
           <ul class="rule-bullets">
             <li>If you've selected several related editions, the same card can show up once per edition it was reprinted in.</li>
-            <li>Turn on "Merge Dupes" (in the header's View group) to collapse those into one tile - check ownership on the exact printing via the image/arrows instead.</li>
+            <li>"Merge Dupes" (in the header's View group, on by default) collapses those into one tile - check ownership on the exact printing via the image/arrows instead. Turn it off for a direct checkbox per printing.</li>
           </ul>
         </div>
       </div>
@@ -320,7 +310,7 @@
         <div class="rule-entry">
           <div class="rule-term">Format</div>
           <ul class="rule-bullets">
-            <li>The Format dropdown next to the deck name picks which format's rules apply: Free (no restrictions), Speed Magic (this app's own 10-card format - see the Rules tab), or an official format (Standard, Pioneer, Modern, Legacy, Vintage, Pauper, Commander, or Brawl).</li>
+            <li>The Format dropdown next to the deck name picks which format's rules apply: Free (no restrictions), Speed Magic (this app's own 10-card format - see the MTG Rules tab), or an official format (Standard, Pioneer, Modern, Legacy, Vintage, Pauper, Commander, or Brawl).</li>
             <li>Choosing a real format filters the pool to only cards legal in it, and enforces its copy limit (4 for constructed formats, singleton for Commander/Brawl - basic lands are always unlimited).</li>
             <li>Commander and Brawl also require picking a Commander first - the pool switches to showing only eligible legendary creatures until you choose one, then filters everything else to that Commander's color identity.</li>
             <li>A status line above the deck stats tracks progress toward the format's deck size (and flags anything that's since become illegal, e.g. after switching formats mid-build).</li>
@@ -376,7 +366,7 @@
 
       <section class="rules-section">
         <div class="rules-section-header">
-          <h2>Rules</h2>
+          <h2>MTG Rules</h2>
           <p>A quick-reference glossary, not part of your collection.</p>
         </div>
         <div class="rule-entries">
@@ -401,16 +391,16 @@
         <div class="rule-entry">
           <div class="rule-term">Automatic sync (Dropbox)</div>
           <ul class="rule-bullets">
-            <li>Open the Data tab and click "Connect Dropbox," then log into your own Dropbox account.</li>
+            <li>Open the System tab and click "Connect Dropbox," then log into your own Dropbox account.</li>
             <li>Your data is written to a private folder Dropbox creates just for this app - it's not visible to anyone else, including other people using this same site.</li>
             <li>Connect the same Dropbox account on another device (like your phone) and it'll pull your data down automatically.</li>
-            <li>Changes push a few seconds after you make them, and pull whenever you switch back to the tab - "Sync now" in the Data tab also does both immediately.</li>
+            <li>Changes push a few seconds after you make them, and pull whenever you switch back to the tab - "Sync Now" on the status bar (or in the System tab) does both immediately, without waiting.</li>
           </ul>
         </div>
         <div class="rule-entry">
           <div class="rule-term">Manual backup (no account needed)</div>
           <ul class="rule-bullets">
-            <li>"Export" in the Data tab downloads a JSON file of your owned cards and decks.</li>
+            <li>"Export" in the System tab downloads a JSON file of your owned cards and decks.</li>
             <li>"Import" on another device/browser loads that file back in, merging it with whatever's already there.</li>
             <li>Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</li>
           </ul>
@@ -418,7 +408,7 @@
         <div class="rule-entry">
           <div class="rule-term">Switch Profiles (shared devices)</div>
           <ul class="rule-bullets">
-            <li>If more than one person uses this app on the same device, "Switch Profiles" in the Data tab keeps everyone's owned cards and decks completely separate.</li>
+            <li>If more than one person uses this app on the same device, "Switch Profiles" in the System tab keeps everyone's owned cards and decks completely separate.</li>
             <li>Dropbox is one shared connection for the whole device, not per-profile - connect it once and every profile here backs up together under that one account.</li>
             <li>Switching profiles reloads the page into whichever one you picked; "Create" starts a new, empty one.</li>
           </ul>
@@ -435,19 +425,6 @@
   </section>
 
   <section id="tab-links" class="tab-panel">
-    <div class="share-inline-row">
-      <button type="button" id="btn-share-links" class="btn share-inline-btn" title="Share this app">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        Share this app
-      </button>
-      <span id="share-feedback-links" class="share-inline-feedback" aria-live="polite"></span>
-    </div>
     <p class="rules-disclaimer">External sites, not affiliated with or endorsed by this app - provided as a convenience for deckbuilding help, official rules, places to buy cards, and community discussion.</p>
 
     <section class="rules-section">
@@ -502,20 +479,6 @@
   </section>
 
   <section id="tab-data" class="tab-panel">
-    <div class="share-inline-row">
-      <button type="button" id="btn-share-data" class="btn share-inline-btn" title="Share this app">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        Share this app
-      </button>
-      <span id="share-feedback-data" class="share-inline-feedback" aria-live="polite"></span>
-    </div>
-
     <p class="rules-disclaimer">Manage where your collection and decks live - automatic sync, manual backup, refreshing card data, and switching profiles.</p>
 
     <section class="rules-section">
@@ -574,24 +537,53 @@
         </div>
       </section>
     </div>
+
+    <!-- Same content as How To Use's "Syncing Your Data" - duplicated here on purpose so
+         it's visible without having read that tab first. -->
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Syncing Your Data</h2>
+        <p>Keep your collection and decks available on more than one device.</p>
+      </div>
+      <div class="rule-entries">
+        <div class="rule-entry">
+          <div class="rule-term">Automatic sync (Dropbox)</div>
+          <ul class="rule-bullets">
+            <li>Click "Connect Dropbox" above, then log into your own Dropbox account.</li>
+            <li>Your data is written to a private folder Dropbox creates just for this app - it's not visible to anyone else, including other people using this same site.</li>
+            <li>Connect the same Dropbox account on another device (like your phone) and it'll pull your data down automatically.</li>
+            <li>Changes push a few seconds after you make them, and pull whenever you switch back to the tab - "Sync Now" on the status bar (or "Sync now" above) does both immediately, without waiting.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Manual backup (no account needed)</div>
+          <ul class="rule-bullets">
+            <li>"Export" above downloads a JSON file of your owned cards and decks.</li>
+            <li>"Import" on another device/browser loads that file back in, merging it with whatever's already there.</li>
+            <li>Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Switch Profiles (shared devices)</div>
+          <ul class="rule-bullets">
+            <li>If more than one person uses this app on the same device, "Switch Profiles" above keeps everyone's owned cards and decks completely separate.</li>
+            <li>Dropbox is one shared connection for the whole device, not per-profile - connect it once and every profile here backs up together under that one account.</li>
+            <li>Switching profiles reloads the page into whichever one you picked; "Create" starts a new, empty one.</li>
+          </ul>
+        </div>
+        <div class="rule-entry">
+          <div class="rule-term">Using it on your phone</div>
+          <ul class="rule-bullets">
+            <li>Open this site in Safari (iOS) and use Share &rarr; Add to Home Screen for a full-screen, app-like icon.</li>
+            <li>Connect Dropbox there too to keep your phone and computer in sync.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
   </section>
 
   <section id="tab-about" class="tab-panel">
     <div class="about-content">
-      <div class="share-inline-row">
-        <button type="button" id="btn-share-about" class="btn share-inline-btn" title="Share this app">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="18" cy="5" r="3"></circle>
-            <circle cx="6" cy="12" r="3"></circle>
-            <circle cx="18" cy="19" r="3"></circle>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-          </svg>
-          Share this app
-        </button>
-        <span id="share-feedback-about" class="share-inline-feedback" aria-live="polite"></span>
-      </div>
-
       <div class="about-header">
         <div class="about-eyebrow">About</div>
         <h1 class="about-name">Created by Ian Dominguez</h1>
@@ -612,26 +604,30 @@
         </div>
       </section>
 
-      <section class="rules-section">
-        <div class="rules-section-header"><h2>Links</h2></div>
-        <ul class="about-links">
-          <li><a href="https://iandominguez.com/" target="_blank" rel="noopener">iandominguez.com</a></li>
-          <li><a href="https://www.instagram.com/idmngz.me" target="_blank" rel="noopener">@idmngz.me</a></li>
-          <li><a href="https://www.instagram.com/roguetheorystudio" target="_blank" rel="noopener">@roguetheorystudio</a></li>
-        </ul>
-      </section>
+      <!-- Three short cards side by side instead of each stacked full-width - same
+           space-saving pattern as How To Use's compact row. -->
+      <div class="howto-compact-row">
+        <section class="rules-section">
+          <div class="rules-section-header"><h2>Links</h2></div>
+          <ul class="about-links">
+            <li><a href="https://iandominguez.com/" target="_blank" rel="noopener">iandominguez.com</a></li>
+            <li><a href="https://www.instagram.com/idmngz.me" target="_blank" rel="noopener">@idmngz.me</a></li>
+            <li><a href="https://www.instagram.com/roguetheorystudio" target="_blank" rel="noopener">@roguetheorystudio</a></li>
+          </ul>
+        </section>
 
-      <section class="rules-section">
-        <div class="rules-section-header"><h2>Support This App</h2></div>
-        <p class="about-cta-text">If you enjoy using this app, consider supporting future updates with a donation. Thank you!</p>
-        <a href="https://venmo.com/u/IDMNGZ" target="_blank" rel="noopener" class="about-cta about-cta-donate">Donate</a>
-      </section>
+        <section class="rules-section">
+          <div class="rules-section-header"><h2>Support This App</h2></div>
+          <p class="about-cta-text">If you enjoy using this app, consider supporting future updates with a donation. Thank you!</p>
+          <a href="https://venmo.com/u/IDMNGZ" target="_blank" rel="noopener" class="about-cta about-cta-donate">Donate</a>
+        </section>
 
-      <section class="rules-section">
-        <div class="rules-section-header"><h2>Found a Bug? Have a Suggestion?</h2></div>
-        <p class="about-cta-text">If something in the app is broken, inaccurate, or confusing - or you just have an idea - let me know.</p>
-        <a href="mailto:RogueTheoryStudio@pm.me" class="about-cta about-cta-contact">Contact</a>
-      </section>
+        <section class="rules-section">
+          <div class="rules-section-header"><h2>Found a Bug? Have a Suggestion?</h2></div>
+          <p class="about-cta-text">If something in the app is broken, inaccurate, or confusing - or you just have an idea - let me know.</p>
+          <a href="mailto:RogueTheoryStudio@pm.me" class="about-cta about-cta-contact">Contact</a>
+        </section>
+      </div>
 
       <section class="rules-section">
         <div class="rules-section-header">

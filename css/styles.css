@@ -102,6 +102,10 @@ body {
   background: rgba(124, 140, 255, 0.18);
   border-color: rgba(124, 140, 255, 0.55);
 }
+.tab-group-secondary {
+  background: rgba(201, 165, 54, 0.16);
+  border-color: rgba(201, 165, 54, 0.5);
+}
 .tab-group-info {
   background: rgba(154, 156, 166, 0.16);
   border-color: rgba(154, 156, 166, 0.5);
@@ -140,6 +144,10 @@ body {
 .tab-group-primary .tab-link:not(.active) {
   background: rgba(124, 140, 255, 0.14);
   border-color: rgba(124, 140, 255, 0.4);
+}
+.tab-group-secondary .tab-link:not(.active) {
+  background: rgba(201, 165, 54, 0.14);
+  border-color: rgba(201, 165, 54, 0.4);
 }
 .tab-group-info .tab-link:not(.active) {
   background: rgba(154, 156, 166, 0.14);
@@ -739,9 +747,6 @@ select, input[type="text"], .deck-name-input {
   margin-bottom: 16px;
 }
 
-.share-inline-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-.share-inline-btn { display: inline-flex; align-items: center; gap: 7px; }
-.share-inline-feedback { font-size: 13px; color: var(--gold); }
 
 .rules-section-header h2 { margin: 0 0 4px; font-size: 17px; }
 .rules-section-header p { margin: 0 0 14px; font-size: 13px; color: var(--text-dim); }
@@ -818,7 +823,9 @@ select, input[type="text"], .deck-name-input {
 
 /* About page */
 
-.about-content { max-width: 760px; margin: 0 auto; }
+/* No width cap of its own anymore - matches every other tab's full #app width instead of
+   sitting in its own narrower centered column. */
+.about-content { }
 
 .about-header { text-align: center; margin-bottom: 20px; }
 .about-eyebrow {
@@ -852,7 +859,10 @@ select, input[type="text"], .deck-name-input {
   font-weight: 700;
 }
 .about-photo { object-fit: cover; display: block; }
-.about-bio-text { flex: 1; min-width: 200px; font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+/* max-width caps line length for comfortable reading now that the card itself can stretch
+   much wider than before - the photo+text row still fills the section, just with room to
+   spare on very wide screens instead of every line running edge to edge. */
+.about-bio-text { flex: 1; min-width: 200px; max-width: 640px; font-size: 14px; line-height: 1.6; color: var(--text-dim); }
 .about-bio-text p { margin: 0 0 12px; }
 .about-bio-text p:last-child { margin-bottom: 0; }
 
@@ -999,7 +1009,21 @@ select, input[type="text"], .deck-name-input {
 .data-status-value.data-status-error { color: var(--danger); }
 /* Sits at the end of the bar, not among the label/value pairs - margin-left: auto keeps it
    pinned to the right regardless of how many status items are shown. */
+/* margin-left: auto on both (not just whichever renders first) so Share still pins to the
+   right edge on its own when Sync Now isn't shown (not connected to Dropbox) - flexbox only
+   lets the first auto-margin in a row actually consume space, so when both are present the
+   second one is a harmless no-op rather than doubling up. */
 .data-status-sync-btn { margin-left: auto; padding: 5px 12px; font-size: 12px; flex-shrink: 0; }
+.data-status-share-btn {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.data-status-share-feedback { font-size: 11px; color: var(--gold); flex-shrink: 0; }
 
 /* The section cards (Sync/Manual Backup/Refresh/Switch Profiles) were each stretching to
    the full content width even though most only need a fraction of it - side by side
