@@ -517,10 +517,13 @@
         <h2>Switch Profiles</h2>
         <p>Separate collections/decks for different people sharing this device - all backed up through the same Dropbox connection below.</p>
       </div>
-      <ul id="data-profile-list" class="data-profile-list"></ul>
-      <div class="data-profile-create">
-        <input type="text" id="data-new-profile-name" placeholder="New profile name…">
-        <button id="btn-create-profile" class="btn btn-ghost">Create</button>
+      <div class="data-profile-grid">
+        <ul id="data-profile-list" class="data-profile-list"></ul>
+        <div class="data-profile-create">
+          <div class="data-profile-create-icon">+</div>
+          <input type="text" id="data-new-profile-name" placeholder="New profile name…">
+          <button id="btn-create-profile" class="btn btn-accent">Create</button>
+        </div>
       </div>
     </section>
 
@@ -536,8 +539,8 @@
         </div>
         <p class="sync-note">Export downloads a JSON file of your owned cards and decks. Import loads that file back in (on this device or another), merging it with whatever's already here. Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</p>
         <div class="data-tab-actions">
-          <button id="btn-export" class="btn btn-ghost">Export</button>
-          <button id="btn-import" class="btn btn-ghost">Import</button>
+          <button id="btn-export" class="btn btn-accent">Export</button>
+          <button id="btn-import" class="btn btn-accent">Import</button>
           <input type="file" id="file-import" accept="application/json" hidden>
         </div>
       </section>
@@ -548,7 +551,7 @@
           <p>Re-fetch the latest Scryfall data for whatever you were last viewing.</p>
         </div>
         <div class="data-tab-actions">
-          <button id="btn-refresh-global" class="btn btn-ghost">Refresh</button>
+          <button id="btn-refresh-global" class="btn btn-accent">Refresh</button>
         </div>
       </section>
 

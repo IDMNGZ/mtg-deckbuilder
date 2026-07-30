@@ -162,6 +162,11 @@ body {
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-ghost { background: transparent; }
 .btn-danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+/* A tinted middle ground between btn-ghost (near-invisible) and btn-primary (reserved for
+   the one standout action per panel, e.g. "Sync now") - for secondary actions that still
+   need to read as clickable buttons rather than blend into the card background. */
+.btn-accent { background: rgba(124, 140, 255, 0.16); border-color: var(--accent); color: var(--text); }
+.btn-accent:hover { background: rgba(124, 140, 255, 0.28); }
 
 #app { padding: 16px 20px 40px; max-width: 1400px; margin: 0 auto; }
 
@@ -997,7 +1002,12 @@ select, input[type="text"], .deck-name-input {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
-  align-items: start;
+  /* Unlike .rule-entries/.howto-compact-row (where a short entry stretched to match a much
+     longer neighbor left an awkward wall of empty space under a couple lines of text),
+     these four panels are close enough in nature (each a card of controls) that matching
+     row height reads as a tidy grid instead - the empty space at the bottom of a shorter
+     panel is what was asked for here, not something to design around. */
+  align-items: stretch;
 }
 .data-tab-grid .rules-section { margin-bottom: 0; }
 
@@ -1006,13 +1016,20 @@ select, input[type="text"], .deck-name-input {
    (margin-top: auto) so a row of mixed-height cards (e.g. "Active" badge on one, not the
    other) still lines its buttons up evenly instead of each button row floating right
    under whatever text happens to be above it. */
-.data-profile-list {
-  list-style: none;
-  margin: 0 0 14px;
-  padding: 0;
+.data-profile-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
+  margin-bottom: 14px;
+}
+/* The <ul> itself contributes nothing to the box model here - its <li> profile cards flow
+   directly into .data-profile-grid as siblings of .data-profile-create, so a new/blank
+   profile "card" can sit in that same grid instead of trailing below it as a plain form row. */
+.data-profile-list {
+  display: contents;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .data-profile-item {
   display: flex;
@@ -1041,8 +1058,28 @@ select, input[type="text"], .deck-name-input {
 .data-profile-meta { font-size: 13px; color: var(--text-dim); }
 .data-profile-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 .data-profile-actions .btn { flex: 1; }
-.data-profile-create { display: flex; gap: 8px; }
-.data-profile-create input { flex: 1; }
+
+/* Styled to read as a blank "add a profile" card matching the real profile cards' size,
+   not a form row trailing after the list - the dashed border and centered "+" are the
+   established pattern for an empty/add slot. */
+.data-profile-create {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+  min-height: 120px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.data-profile-create-icon {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.data-profile-create input { text-align: center; }
 
 .sync-actions-primary { margin-top: 12px; }
 .sync-actions-primary .btn { width: 100%; padding: 11px; font-size: 14px; }

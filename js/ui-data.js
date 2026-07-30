@@ -153,14 +153,14 @@ var DataTabUI = (function () {
 
       if (!isActive) {
         var switchBtn = document.createElement("button");
-        switchBtn.className = "btn btn-ghost";
+        switchBtn.className = "btn btn-accent";
         switchBtn.textContent = "Switch";
         switchBtn.addEventListener("click", function () { switchProfile(profile.id); });
         actions.appendChild(switchBtn);
       }
 
       var renameBtn = document.createElement("button");
-      renameBtn.className = "btn btn-ghost";
+      renameBtn.className = "btn btn-accent";
       renameBtn.textContent = "Rename";
       renameBtn.addEventListener("click", function () { renameProfilePrompt(profile); });
       actions.appendChild(renameBtn);

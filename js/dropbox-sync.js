@@ -21,6 +21,11 @@ var DropboxSync = (function () {
 
   var state = { connected: false, accountEmail: null, lastSyncedAt: null, syncing: false, lastError: null };
   var autoPushTimer = null;
+  // The Dropbox file's revision as of our last successful download/upload - lets uploads
+  // be conditional (see uploadSnapshot) instead of blindly overwriting. Not persisted:
+  // a fresh pull always re-establishes it, and holding a stale rev across page loads
+  // would only cause spurious conflicts.
+  var lastKnownRev = null;
 
   function isConfigured() {
     return !!(typeof SYNC_CONFIG !== "undefined" && SYNC_CONFIG.DROPBOX_APP_KEY);
@@ -216,28 +221,48 @@ var DropboxSync = (function () {
     };
   }
 
-  // Uploads whatever's local right now, unconditionally - the raw building block. Callers
-  // almost always want push() below instead, which merges in the remote first; this is only
-  // safe to call directly once that merge has already happened (or there's nothing to
-  // merge, e.g. no remote file exists yet).
-  function uploadSnapshot() {
+  // Uploads whatever's local right now - the raw building block. Callers almost always want
+  // push() below instead, which merges in the remote first; this is only safe to call
+  // directly once that merge has already happened (or there's nothing to merge, e.g. no
+  // remote file exists yet).
+  //
+  // Conditional on lastKnownRev instead of a blind mode:"overwrite" - two devices each
+  // running pull-then-upload is still two separate network round trips with a window
+  // between them, so it's possible for device A's upload to land on Dropbox *between*
+  // device B's download and its own upload. A blind overwrite there would silently blow
+  // away A's just-written change with B's now-stale view, even though B's own merge logic
+  // was correct - the file on Dropbox has no idea a merge happened locally on B, it just
+  // gets replaced. Dropbox's conditional write (mode: update + the rev we last saw) turns
+  // that into a 409 instead of data loss, so retryUpload can re-pull (picking up A's change
+  // as well as B's own) and only then upload the fully-merged result.
+  function uploadSnapshot(retriesLeft) {
+    if (retriesLeft === undefined) retriesLeft = 2;
     if (!Storage.getDropboxAuth()) return Promise.resolve();
     updateState({ syncing: true });
     var payload = buildPayload();
+    var mode = lastKnownRev ? { ".tag": "update", update: lastKnownRev } : "add";
     return ensureFreshToken().then(function (token) {
       return fetch(CONTENT_ROOT + "/files/upload", {
         method: "POST",
         headers: {
           Authorization: "Bearer " + token,
           "Content-Type": "application/octet-stream",
-          "Dropbox-API-Arg": JSON.stringify({ path: SAVE_PATH, mode: "overwrite", mute: true }),
+          "Dropbox-API-Arg": JSON.stringify({ path: SAVE_PATH, mode: mode, mute: true }),
         },
         body: JSON.stringify(payload),
       });
     }).then(function (res) {
+      if (res.status === 409 && retriesLeft > 0) {
+        // Someone else wrote to the file since our last pull - re-pull (merging their
+        // change plus ours) and try again with the fresh rev that gives us.
+        return pull().then(function () { return uploadSnapshot(retriesLeft - 1); });
+      }
       if (!res.ok) return res.text().then(function (t) { throw new Error(t); });
-      Storage.setLastSyncedAt(payload.syncedAt);
-      updateState({ syncing: false, lastSyncedAt: payload.syncedAt, lastError: null });
+      return res.json().then(function (meta) {
+        lastKnownRev = meta.rev || lastKnownRev;
+        Storage.setLastSyncedAt(payload.syncedAt);
+        updateState({ syncing: false, lastSyncedAt: payload.syncedAt, lastError: null });
+      });
     }).catch(function (err) {
       updateState({ syncing: false, lastError: "Sync to Dropbox failed: " + err.message });
     });
@@ -267,8 +292,14 @@ var DropboxSync = (function () {
         headers: { Authorization: "Bearer " + token, "Dropbox-API-Arg": JSON.stringify({ path: SAVE_PATH }) },
       });
     }).then(function (res) {
-      if (res.status === 409) return null; // path/not_found - no remote save yet
+      if (res.status === 409) { lastKnownRev = null; return null; } // path/not_found - no remote save yet
       if (!res.ok) return res.text().then(function (t) { throw new Error(t); });
+      // Metadata (including the file's current rev, which uploadSnapshot needs for its
+      // conditional write) rides along in this header on the download endpoint, not the body.
+      var resultHeader = res.headers.get("Dropbox-API-Result");
+      if (resultHeader) {
+        try { lastKnownRev = JSON.parse(resultHeader).rev || lastKnownRev; } catch (e) { /* leave rev as-is */ }
+      }
       return res.text();
     }).then(function (text) {
       if (text === null) {
