@@ -61,7 +61,7 @@ var DecksUI = (function () {
 
     var editBtn = document.createElement("button");
     editBtn.className = "btn btn-ghost";
-    editBtn.textContent = "Open";
+    editBtn.textContent = "Load";
     editBtn.addEventListener("click", function () { DeckBuilderUI.loadDeck(deck.id); });
 
     var deleteBtn = document.createElement("button");
