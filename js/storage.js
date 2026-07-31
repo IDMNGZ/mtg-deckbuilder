@@ -126,8 +126,12 @@ var Storage = (function () {
   // in this list - they're shared across every profile on this device (see the module
   // comment above), not per-profile.
   var PROFILE_DATA_KEYS = [
-    "owned", "decks", "lastBrowseSet", "mergeByName", "cardGridSize",
+    "owned", "decks", "lastBrowseSet", "mergeByName", "cardGridSize", "ownedRemoved", "decksRemoved",
   ];
+  // Tombstones only need to outlive the slowest device that hasn't synced in a while - kept
+  // well past that (6 months) rather than tuned tight, since the failure mode of pruning too
+  // early (a removal silently un-does itself again) is exactly the bug this exists to fix.
+  var TOMBSTONE_MAX_AGE_MS = 180 * 24 * 60 * 60 * 1000;
 
   // Runs once: if this browser has real data sitting under the old flat (pre-profile) keys,
   // move it into a new default profile instead of leaving it orphaned/inaccessible. A
@@ -364,8 +368,21 @@ var Storage = (function () {
         createdAt: p.createdAt,
         ownedCards: readJSON(profileKey(p.id, "owned"), {}),
         decks: readJSON(profileKey(p.id, "decks"), []),
+        // Tombstones ride along in the same payload so a removal made on THIS device also
+        // sticks on every other device sharing the account, not just locally.
+        ownedRemoved: readJSON(profileKey(p.id, "ownedRemoved"), {}),
+        decksRemoved: readJSON(profileKey(p.id, "decksRemoved"), {}),
       };
     });
+  }
+
+  function pruneOldTombstones(map) {
+    var cutoff = Date.now() - TOMBSTONE_MAX_AGE_MS;
+    var pruned = {};
+    Object.keys(map).forEach(function (id) {
+      if (new Date(map[id]).getTime() >= cutoff) pruned[id] = map[id];
+    });
+    return pruned;
   }
 
   // Merges a remote snapshot of every profile back in: a profile that doesn't exist locally
@@ -373,6 +390,19 @@ var Storage = (function () {
   // profile that already exists here, owned cards union (remote wins on a shared id) and
   // decks match by id with the more-recently-updated copy winning - same semantics as
   // importData's merge mode, just applied per-profile instead of to whichever one is active.
+  //
+  // Tombstones (see getOwnedRemovedMap/getDecksRemovedMap) are checked before letting a
+  // remote id back in: without them, "never delete" union logic can't tell "hasn't synced
+  // yet" apart from "deliberately removed," so a card unchecked in Browse (or a deck
+  // deleted in My Decks) would reappear the instant the next pull ran, since the remote
+  // snapshot still has it - exactly the "uncheck it and it immediately comes back" bug this
+  // closes. Owned cards don't carry their own per-card timestamp, so that comparison uses
+  // the whole payload's syncedAt as an approximation; decks already have their own
+  // updatedAt, which is used directly for a more precise comparison. Either comparison is
+  // still vulnerable to clock skew between devices in principle (same class of issue fixed
+  // elsewhere in pull() by not gating on cross-device timestamps at all) - but unlike that
+  // gate, this only affects the one id actually in conflict, and doing an imperfect
+  // comparison here is still a large improvement over never respecting removals at all.
   function mergeAllProfilesData(remoteProfiles) {
     if (!Array.isArray(remoteProfiles)) return;
     var profiles = getProfiles();
@@ -394,21 +424,50 @@ var Storage = (function () {
         byId[remote.id] = newProfile;
       }
 
+      // Tombstones themselves merge first (union, newer removedAt wins if both sides have
+      // one for the same id) so a removal recorded on either device is what decides whether
+      // the corresponding owned/deck entry below gets let back in.
+      var localOwnedRemoved = readJSON(profileKey(remote.id, "ownedRemoved"), {});
+      Object.keys(remote.ownedRemoved || {}).forEach(function (id) {
+        if (!localOwnedRemoved[id] || remote.ownedRemoved[id] > localOwnedRemoved[id]) {
+          localOwnedRemoved[id] = remote.ownedRemoved[id];
+        }
+      });
+
       var localOwned = readJSON(profileKey(remote.id, "owned"), {});
-      Object.keys(remote.ownedCards || {}).forEach(function (id) { localOwned[id] = remote.ownedCards[id]; });
+      Object.keys(remote.ownedCards || {}).forEach(function (id) {
+        var tombstonedAt = localOwnedRemoved[id];
+        if (tombstonedAt && tombstonedAt >= (remote.syncedAt || "")) return; // removal is newer than (or as new as) this remote snapshot - don't resurrect it
+        localOwned[id] = remote.ownedCards[id];
+        delete localOwnedRemoved[id]; // remote is newer than our tombstone - it wins (re-added elsewhere after we removed it here)
+      });
+      localOwnedRemoved = pruneOldTombstones(localOwnedRemoved);
       if (!writeJSON(profileKey(remote.id, "owned"), localOwned)) failedKeys.push(profileKey(remote.id, "owned"));
+      if (!writeJSON(profileKey(remote.id, "ownedRemoved"), localOwnedRemoved)) failedKeys.push(profileKey(remote.id, "ownedRemoved"));
+
+      var localDecksRemoved = readJSON(profileKey(remote.id, "decksRemoved"), {});
+      Object.keys(remote.decksRemoved || {}).forEach(function (id) {
+        if (!localDecksRemoved[id] || remote.decksRemoved[id] > localDecksRemoved[id]) {
+          localDecksRemoved[id] = remote.decksRemoved[id];
+        }
+      });
 
       var localDecksById = {};
       readJSON(profileKey(remote.id, "decks"), []).forEach(function (d) { localDecksById[d.id] = d; });
       (remote.decks || []).forEach(function (incoming) {
+        var tombstonedAt = localDecksRemoved[incoming.id];
+        if (tombstonedAt && tombstonedAt >= (incoming.updatedAt || "")) return; // deleted after this copy was last saved - don't resurrect it
         var existing = localDecksById[incoming.id];
         if (!existing || (incoming.updatedAt || "") > (existing.updatedAt || "")) {
           localDecksById[incoming.id] = incoming;
+          delete localDecksRemoved[incoming.id];
         }
       });
+      localDecksRemoved = pruneOldTombstones(localDecksRemoved);
       if (!writeJSON(profileKey(remote.id, "decks"), Object.keys(localDecksById).map(function (id) { return localDecksById[id]; }))) {
         failedKeys.push(profileKey(remote.id, "decks"));
       }
+      if (!writeJSON(profileKey(remote.id, "decksRemoved"), localDecksRemoved)) failedKeys.push(profileKey(remote.id, "decksRemoved"));
     });
 
     if (!writeJSON(KEY_PROFILES, profiles)) failedKeys.push(KEY_PROFILES);
@@ -450,6 +509,17 @@ var Storage = (function () {
     return readActiveJSON("owned", {});
   }
 
+  // Tombstones (id -> when it was removed) exist so an intentional removal survives the
+  // next sync merge instead of being silently undone by it. mergeAllProfilesData's "never
+  // delete" union (deliberately additive, so a stale/racing sync can't destroy real data -
+  // see its own comment) has no way to tell "never synced yet" apart from "deliberately
+  // removed" without one: every id present on the remote just gets re-added on the next
+  // pull, including ones removed moments ago locally - a card unchecked in Browse would
+  // reappear the instant the debounced auto-push's own pull-before-upload ran.
+  function getOwnedRemovedMap() {
+    return readActiveJSON("ownedRemoved", {});
+  }
+
   function isOwned(scryfallId) {
     var owned = getOwnedMap();
     return !!owned[scryfallId];
@@ -457,12 +527,16 @@ var Storage = (function () {
 
   function setOwned(card, owned) {
     var map = getOwnedMap();
+    var removed = getOwnedRemovedMap();
     if (owned) {
       map[card.id] = card;
+      delete removed[card.id]; // re-adding supersedes any earlier removal
     } else {
       delete map[card.id];
+      removed[card.id] = new Date().toISOString();
     }
     writeJSON(activeKey("owned"), map);
+    writeJSON(activeKey("ownedRemoved"), removed);
     dispatchDataChanged();
   }
 
@@ -505,6 +579,13 @@ var Storage = (function () {
     return readActiveJSON("decks", []);
   }
 
+  // Same tombstone reasoning as getOwnedRemovedMap above, applied to decks - keyed by deck
+  // id, compared against a deleted deck's own last updatedAt (decks already carry one)
+  // rather than the whole sync payload's timestamp, since that's the more precise signal.
+  function getDecksRemovedMap() {
+    return readActiveJSON("decksRemoved", {});
+  }
+
   function getDeck(deckId) {
     var decks = getDecks();
     for (var i = 0; i < decks.length; i++) {
@@ -527,6 +608,13 @@ var Storage = (function () {
       decks.push(deck);
     }
     writeJSON(activeKey("decks"), decks);
+    // Clears any tombstone for this id (mirrors setOwned re-adding) - covers the edge case
+    // of a deck being recreated/restored under an id that was previously deleted here.
+    var removedOnSave = getDecksRemovedMap();
+    if (removedOnSave[deck.id]) {
+      delete removedOnSave[deck.id];
+      writeJSON(activeKey("decksRemoved"), removedOnSave);
+    }
     dispatchDataChanged();
     return deck;
   }
@@ -534,6 +622,9 @@ var Storage = (function () {
   function deleteDeck(deckId) {
     var decks = getDecks().filter(function (d) { return d.id !== deckId; });
     writeJSON(activeKey("decks"), decks);
+    var removed = getDecksRemovedMap();
+    removed[deckId] = new Date().toISOString();
+    writeJSON(activeKey("decksRemoved"), removed);
     dispatchDataChanged();
   }
 
