@@ -7,3 +7,7 @@ Thumbs.db
 # what actually ships. These originals average ~1.9MB each and aren't worth the repo
 # weight once a JPEG copy exists.
 landing-bg/*.png
+
+# Same reasoning as above, for the app-wide (not landing-page) background pool - see
+# js/app-backgrounds.js and app-bg/README.txt.
+app-bg/*.png
