@@ -44,13 +44,19 @@ var DecksUI = (function () {
       li.appendChild(img);
     }
 
+    // Format badge leads the info area (its own line, above the card count/date) -
+    // "what kind of deck is this" reads before "how big is it" - but still below the
+    // image, not competing with the deck name at the very top of the panel.
+    var formatName = Formats.get(deck.format || "free").name;
+    var badgeRow = document.createElement("div");
+    badgeRow.className = "deck-card-format-row";
+    badgeRow.innerHTML = '<span class="deck-card-format-badge">' + CardView.escapeHtml(formatName) + '</span>';
+    li.appendChild(badgeRow);
+
     var meta = document.createElement("div");
     meta.className = "deck-card-meta";
     var cardCount = countCards(deck);
-    var formatName = Formats.get(deck.format || "free").name;
-    meta.innerHTML =
-      '<span>' + cardCount + ' card' + (cardCount === 1 ? '' : 's') + ' · updated ' + CardView.escapeHtml(new Date(deck.updatedAt).toLocaleString()) + '</span>' +
-      '<span class="deck-card-format-badge">' + CardView.escapeHtml(formatName) + '</span>';
+    meta.textContent = cardCount + ' card' + (cardCount === 1 ? '' : 's') + ' · updated ' + new Date(deck.updatedAt).toLocaleString();
     li.appendChild(meta);
 
     var editBtn = document.createElement("button");

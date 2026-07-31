@@ -377,7 +377,7 @@ var DeckBuilderUI = (function () {
           '<span class="color-bar-count">' + count + '</span></div>';
       }).join("") + '</div></div>';
 
-    var typeHtml = '<div class="stat-row"><div class="stat-label"><span>Types</span><span>' + totalCards + ' cards total</span></div><div class="type-breakdown">' +
+    var typeHtml = '<div class="stat-row"><div class="stat-label"><span>Types</span><span class="deck-total-cards">' + totalCards + ' cards total</span></div><div class="type-breakdown">' +
       Object.keys(typeCounts).sort(function (a, b) { return typeCounts[b] - typeCounts[a]; }).map(function (t) {
         return '<span class="type-chip">' + CardView.escapeHtml(t) + ' ×' + typeCounts[t] + '</span>';
       }).join("") + '</div></div>';
