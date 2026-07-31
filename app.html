@@ -12,8 +12,23 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="favicon.svg">
 <link rel="stylesheet" href="css/styles.css">
+<script src="js/app-backgrounds.js"></script>
+<script>
+  // Runs before the body paints, so there's no flash of the plain dark background before
+  // swapping to the randomly chosen one - same pattern as the landing page's own background
+  // picker (js/landing-backgrounds.js), just a separate pool since this one needs to stay
+  // subtle behind actual app content instead of being the whole point of the page.
+  (function () {
+    if (typeof APP_BACKGROUNDS === "undefined" || APP_BACKGROUNDS.length === 0) return;
+    var choice = APP_BACKGROUNDS[Math.floor(Math.random() * APP_BACKGROUNDS.length)];
+    var absoluteUrl = new URL(choice, location.href).href;
+    document.documentElement.style.setProperty("--app-bg", "url('" + absoluteUrl + "')");
+  })();
+</script>
 </head>
 <body>
+
+<div id="app-bg-layer"></div>
 
 <header class="app-header">
   <h1>MTG Deck Builder</h1>

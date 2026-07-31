@@ -44,6 +44,26 @@ body {
   color: var(--text);
 }
 
+/* A fixed, full-viewport layer behind everything rather than background-attachment: fixed
+   directly on body - iOS Safari has a long-standing bug where "fixed" backgrounds actually
+   scroll with the page instead of staying put, but a genuinely position: fixed element
+   doesn't have that problem on any browser. Falls back to fully transparent (nothing set)
+   when --app-bg hasn't been set (no images added to js/app-backgrounds.js yet, or that
+   script hasn't loaded), so body's own solid --bg color shows through unchanged until
+   there's actually artwork to show. The dark gradient tinting it is there for the text
+   that sits directly on the page background in a few places (status bar, filter rows) -
+   every actual content panel (card tiles, section boxes) already has its own solid
+   background regardless of what's behind it, so this only has to protect the un-boxed bits. */
+#app-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: linear-gradient(rgba(20, 21, 26, 0.8), rgba(20, 21, 26, 0.8)), var(--app-bg, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .app-header {
   display: flex;
   flex-direction: column;
