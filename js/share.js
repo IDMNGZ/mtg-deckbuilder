@@ -10,7 +10,14 @@ var ShareApp = (function () {
   // from (a specific tab, or a local test server).
   var SHARE_URL = "https://idmngz.github.io/mtg-deckbuilder/";
   var SHARE_TITLE = "MTG Deck Builder";
+  // The link is embedded directly in the text (not left to the separate `url` field
+  // alone) because not every navigator.share() destination combines text+url the same
+  // way - iMessage does, but iOS's own "Copy" share-sheet action only grabs `text` and
+  // silently drops `url` entirely, so copying and pasting elsewhere (Signal, etc.)
+  // dropped the link. Keeping `url` too doesn't hurt destinations that use it for a
+  // richer preview, but the text alone is now self-sufficient for anything that isn't.
   var SHARE_TEXT = "Track your Magic: The Gathering collection and build decks from what you own.";
+  var SHARE_TEXT_WITH_URL = SHARE_TEXT + " " + SHARE_URL;
 
   function showFeedback(feedbackEl, text) {
     if (!feedbackEl) return;
@@ -54,7 +61,7 @@ var ShareApp = (function () {
   function wire(buttonEl, feedbackEl) {
     if (!buttonEl) return;
     buttonEl.addEventListener("click", function () {
-      var shareData = { title: SHARE_TITLE, text: SHARE_TEXT, url: SHARE_URL };
+      var shareData = { title: SHARE_TITLE, text: SHARE_TEXT_WITH_URL, url: SHARE_URL };
       // navigator.share opens the OS's native share sheet (supported on most mobile
       // browsers, and some desktop ones) - falls back to copying the link otherwise.
       if (navigator.share) {
