@@ -73,6 +73,19 @@ header) holds always-visible controls: Sync, Share, Merge Dupes toggle, card-siz
   page appears to load fine (already-cached scripts still serve from the browser's own
   HTTP cache). Fix: stop the stale server (`preview_stop`) and start a fresh one - don't
   assume "the page loaded" means the server's path resolution is actually still correct.
+- **Renaming a shared lookup function (e.g. `findEntry` → `findEntryByName`) needs a
+  grep for every call site, not just the ones touched by whatever feature prompted the
+  rename.** `removeOne()` kept calling the old `findEntry` name after it was renamed
+  during the Commander singleton-rule fix, silently breaking the deck list's remove
+  button for a full session before it was caught by user report. Always `grep` the old
+  name across the whole file (not just the function you're editing) after any rename.
+- **Nested `flex: 1` chains only distribute space evenly if every level's automatic
+  min-height cooperates.** Two flex-grow siblings with different natural content sizes
+  (e.g. one with a caption+legend, one with just a short list) will NOT split extra
+  space 50/50 - the one with more inherent content claims more of it first, which is
+  correct/expected, not a bug. Adding `min-height: 0` to "fix" that unevenness removes
+  the safety net entirely and can make a section's content overflow past its own border
+  instead. Don't reach for `min-height: 0` unless you've confirmed nothing overflows.
 
 ## Feature ideas discussed but not built
 
