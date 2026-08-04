@@ -176,6 +176,113 @@ grid gap tightens too (`gap: 10px` vs. 14px on desktop) since there's less room 
 Only four breakpoints total, each tied to a real behavioral change (not one per pixel
 tweak) — keeps the responsive CSS from sprawling into dozens of near-duplicate rules.
 
+## 7. Background images (landing page vs. in-app background)
+
+These are two separate systems in this app — a full-page background behind the app's own
+tabs, and a different one for the marketing/landing page — because they have different
+jobs and different source art.
+
+**App-wide background (behind every tab, `app.html`):**
+```html
+<!-- first child of <body> -->
+<div id="app-bg-layer"></div>
+```
+```css
+#app-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: linear-gradient(rgba(20, 21, 26, 0.8), rgba(20, 21, 26, 0.8)), var(--app-bg, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+```
+- **`position: fixed` on a real element**, not `background-attachment: fixed` on `body`
+  directly — iOS Safari has a long-standing bug where a "fixed" background actually
+  scrolls with the page; a genuinely `position: fixed` element doesn't have that problem
+  anywhere.
+- **`var(--app-bg, none)`** — JS picks a random image from a pool and sets `--app-bg` on
+  `:root` before paint; falls back to fully transparent (the page's own solid background
+  color shows through) if nothing's been set yet.
+- **The dark gradient is layered on top of the image** in the same `background-image`
+  stack (first-listed = frontmost), tinting the art so text sitting directly on the page
+  background (not inside a bordered panel) stays legible against any image in the pool.
+
+**Landing/marketing page background (`index.html`, separate `css/landing.css`):**
+```css
+body.landing-page {
+  min-height: 100vh;
+  background-color: #0a0c14; /* fallback solid color */
+  background-image: var(--landing-bg, url('fallback.svg'));
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+@media (min-width: 900px) {
+  body.landing-page { background-size: contain; }
+}
+```
+```js
+// inline <script> in <head>, runs before body paints - no flash of the fallback image
+var choice = LANDING_BACKGROUNDS[Math.floor(Math.random() * LANDING_BACKGROUNDS.length)];
+document.documentElement.style.setProperty("--landing-bg", "url('" + new URL(choice, location.href).href + "')");
+```
+- **Picked and set before first paint** (inline script in `<head>`, not `DOMContentLoaded`)
+  specifically to avoid a visible swap from fallback to real image.
+- **`cover` vs. `contain` switches at a breakpoint tied to the source art's own aspect
+  ratio, not an arbitrary number.** This app's source images are portrait (896×1344); on a
+  wide desktop viewport, `cover` would need to scale past native resolution and crop most
+  of the image (blurry, over-cropped). `contain` above 900px shows the whole image,
+  letterboxed with the solid `background-color`. Below 900px, phone aspect ratios are close
+  enough to the art's own ratio that `cover` still looks right without heavy cropping. **Pick
+  your own breakpoint/ratio based on Music Theory App's actual source art's aspect ratio** —
+  the reusable idea is "switch to `contain` once `cover` would over-crop," not the literal
+  900px value.
+
+## 8. Locking the app to the visible viewport on mobile
+
+"The app isn't locked to the screen" on mobile is almost always **horizontal overflow** —
+some element is wider than the viewport, so the browser allows panning/zooming past the
+edge even with a viewport meta tag in place. Four layers, each catching a different cause
+(all four together are what keep this app locked):
+
+1. **Viewport meta tag** — necessary but not sufficient alone:
+   ```html
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+   ```
+2. **`box-sizing: border-box` globally** — without this, an element's declared width
+   doesn't include its own padding/border, so a `width: 100%` element with padding quietly
+   ends up wider than its container:
+   ```css
+   * { box-sizing: border-box; }
+   ```
+3. **`overflow-x: hidden` as a backstop, not the actual fix** — hides the symptom (no
+   horizontal scrollbar/pan) but something underneath is still technically too wide:
+   ```css
+   html, body { overflow-x: hidden; }
+   ```
+4. **The real fix: `min-width: 0` on whichever flex/grid child is actually overflowing.**
+   Flex and grid items default to an *implicit* minimum width based on their content's
+   natural (min-content) size — a nested `auto-fill` grid, a long unbroken string, or a wide
+   inline element inside a flex/grid child can silently force that child (and its whole
+   row/column) wider than the viewport, even when every explicit `width` in the CSS looks
+   correct. Fix is one line on the specific overflowing container:
+   ```css
+   .some-flex-or-grid-child { min-width: 0; }
+   ```
+   For a *column* layout that overflows vertically instead, the same idea applies as
+   `min-height: 0` — see `PROJECT-NOTES.md` in this repo for a worked example of that
+   failure mode (and a caution about when adding `min-height: 0` causes a different problem,
+   content overflowing past its own border, so verify nothing clips after adding it).
+
+**How to actually find the culprit:** open the page at a mobile width, then check
+`document.documentElement.scrollWidth` vs. `window.innerWidth` in devtools/console — if
+`scrollWidth` is bigger, something's overflowing. Add `outline: 1px solid red` to top-level
+containers one at a time until the wide one is visually obvious, then add `min-width: 0` to
+*that specific element* — not as a blanket rule on everything, since it can change how
+other layouts that rely on default min-content sizing behave.
+
 ## How to use this in a differently-styled app
 
 Copy the **numbers and mechanisms** (the `#app` max-width, the header-height-via-JS
