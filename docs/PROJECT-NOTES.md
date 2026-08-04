@@ -26,6 +26,7 @@ header) holds always-visible controls: Sync, Share, Merge Dupes toggle, card-siz
 - `sync-config.js` — Dropbox app key (host-specific, gitignored value pattern — see README)
 - `scryfall.js` — API wrapper + card normalization (handles single-faced vs. `card_faces` cards)
 - `card-view.js` / `card-filters.js` — shared card rendering + filter UI
+- `deck-view.js` — modal showing a whole deck as a grouped visual card grid (used by both My Decks and Deck Builder's "View" buttons)
 - `ui-browse.js`, `ui-collection.js`, `ui-deckbuilder.js`, `ui-decks.js`, `ui-rules.js`, `ui-data.js` — per-tab UI logic
 - `formats.js` — deck format definitions (Commander, Standard, etc.)
 - `app.js` — bootstrap, tab routing, card-size slider wiring
@@ -57,6 +58,21 @@ header) holds always-visible controls: Sync, Share, Merge Dupes toggle, card-siz
   view-controls live in the always-visible status bar; account-setup/export-import-type
   actions live in the System tab. Keep new frequent-use controls in the status bar
   rather than burying them in a tab.
+- **New situational features expand in place, not a new tab or a merged tab.** The
+  visual deck view (`deck-view.js`) was deliberately built as a "View" button that opens
+  a modal from within My Decks/Deck Builder, not a 10th nav tab or a merge of the two
+  existing ones — nav real estate is scarce and a merge risks two working modules for a
+  purely additive feature. Default to this shape for anything similar.
+
+## Known gotchas specific to this local setup
+
+- **The `mtg-deckbuilder-static` preview server caches its resolved project path at
+  startup**, not per-request. If the project folder is ever moved/renamed again while a
+  server from a previous session is still running, new requests for files that were
+  never fetched before (browser has no cached copy) will silently 404 even though the
+  page appears to load fine (already-cached scripts still serve from the browser's own
+  HTTP cache). Fix: stop the stale server (`preview_stop`) and start a fresh one - don't
+  assume "the page loaded" means the server's path resolution is actually still correct.
 
 ## Feature ideas discussed but not built
 
@@ -75,5 +91,6 @@ Parked, not rejected — revisit if priorities change:
 
 ## Open items from the last session
 
-- None blocking — last shipped change was the Web Share API text/url fix (`v0.1.94`),
-  verified clean across a full tab sweep.
+- None blocking — last shipped change was the visual deck view feature (`v0.1.96`),
+  verified clean across a full tab sweep plus targeted tests of both entry points
+  (My Decks row, Deck Builder's in-progress deck).
