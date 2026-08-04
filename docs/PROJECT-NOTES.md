@@ -18,6 +18,11 @@ For UI/UX design patterns worth reusing and notes on how this user likes to coll
 see [`UI-DESIGN-AND-COLLABORATION-HANDOFF.md`](UI-DESIGN-AND-COLLABORATION-HANDOFF.md) —
 also written to travel to other projects, not specific to this app.
 
+For exact copy-pasteable CSS numbers (container width, header/status-bar sizing, button
+dimensions, responsive image-grid formula, breakpoint list), see
+[`LAYOUT-SIZING-REFERENCE.md`](LAYOUT-SIZING-REFERENCE.md) — sizing/layout only, no colors
+or fonts, so it drops into a differently-themed app cleanly.
+
 ## Current shape of the app
 
 Static HTML/CSS/JS, no build step, no backend. Tabs: Browse, Collection, Deck Builder,
