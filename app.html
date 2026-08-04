@@ -160,8 +160,8 @@
       <div class="deckbuilder-pool">
         <div class="sticky-controls">
           <div class="browse-controls">
-            <label class="field field-grow">
-              Add from your collection
+            <label class="field field-grow pool-add-label">
+              Add From My Collection
               <div class="input-clear-wrap">
                 <input type="text" id="deck-pool-filter" placeholder="Search owned cards…">
                 <button type="button" id="deck-pool-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
@@ -198,7 +198,10 @@
         </div>
         <div class="deckbuilder-list-panel">
           <div class="deckbuilder-list-header">
-            <h3>Current Deck</h3>
+            <div class="deckbuilder-list-heading">
+              <h3>Current Deck</h3>
+              <span id="deck-list-summary" class="deckbuilder-list-summary"></span>
+            </div>
             <button id="btn-view-deck" class="btn btn-accent">View</button>
           </div>
           <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>

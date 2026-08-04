@@ -294,7 +294,16 @@ var DeckBuilderUI = (function () {
 
   // ---- Deck list + stats ----
 
+  // Reads the name straight from the input rather than deck.name, which only gets synced
+  // on Save - this needs to reflect what's actually typed, including before a first save.
+  function renderListSummary() {
+    var name = els.nameInput.value.trim() || "Untitled deck";
+    var qty = deckTotalQty();
+    els.listSummary.textContent = name + " · " + currentFormat().name + " · " + qty + (qty === 1 ? " card" : " cards");
+  }
+
   function renderDeck() {
+    renderListSummary();
     els.list.innerHTML = "";
     if (deck.cards.length === 0) {
       els.list.innerHTML = '<li class="empty-hint">No cards in this deck yet.</li>';
@@ -361,11 +370,17 @@ var DeckBuilderUI = (function () {
       C: { label: "Colorless", swatch: "var(--text-dim)" },
     };
 
-    var curveHtml = '<div class="stat-row"><div class="stat-label"><span>Mana Curve</span><span>avg CMC ' + avgCmc + '</span></div><div class="curve-bars">' +
+    // "Not obvious what this is indicating" (user feedback) - the bare chart didn't say
+    // what the bar height or the axis numbers meant. A one-line caption plus an explicit
+    // axis title turns "a row of blue bars" into something legible without hovering or
+    // asking - the numbers atop each bar are card counts, the numbers below are mana cost.
+    var curveHtml = '<div class="stat-row"><div class="stat-label"><span>Mana Curve</span><span>avg CMC ' + avgCmc + '</span></div>' +
+      '<p class="stat-caption">Non-land cards by mana cost - a curve that leans left plays more consistently early; one stacked toward the right needs more lands drawn before it does much.</p>' +
+      '<div class="curve-bars">' +
       curve.map(function (count, i) {
         var pct = Math.round((count / maxCurve) * 100);
         return '<div class="curve-bar-wrap"><span class="curve-bar-count">' + (count || "") + '</span><div class="curve-bar" style="height:' + pct + '%"></div><span class="curve-bar-label">' + (i === 6 ? "7+" : i) + '</span></div>';
-      }).join("") + '</div></div>';
+      }).join("") + '</div><div class="curve-axis-title">Mana Value</div></div>';
 
     var colorHtml = '<div class="stat-row"><div class="stat-label"><span>Color Balance</span></div><div class="color-bars">' +
       Object.keys(colorMeta).map(function (key) {
@@ -458,6 +473,7 @@ var DeckBuilderUI = (function () {
     els.statusBanner = document.getElementById("deck-format-status");
     els.stats = document.getElementById("deck-stats");
     els.list = document.getElementById("deck-list");
+    els.listSummary = document.getElementById("deck-list-summary");
     els.newBtn = document.getElementById("btn-new-deck");
     els.viewBtn = document.getElementById("btn-view-deck");
     els.saveBtn = document.getElementById("btn-save-deck");
@@ -472,6 +488,7 @@ var DeckBuilderUI = (function () {
     }).join("");
     els.formatSelect.value = deck.format;
     els.formatSelect.addEventListener("change", onFormatChange);
+    els.nameInput.addEventListener("input", renderListSummary);
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, renderPool);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, renderPool);

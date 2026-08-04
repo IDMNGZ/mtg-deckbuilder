@@ -585,21 +585,36 @@ select, input[type="text"], .deck-name-input {
   order: -1;
   display: flex;
   gap: 20px;
-  align-items: flex-start;
+  /* Was flex-start: the list panel's height is set by .deck-list's own max-height
+     (50vh), while the summary panel's height is just whatever its content needs - almost
+     always shorter, which left flex-start showing a slab of bare background below the
+     summary card instead of it matching its neighbor's height. stretch makes both panels
+     equal height; .deck-stats's flex: 1 then lets the summary card's own content claim
+     that extra room instead of just leaving empty padding at the bottom. */
+  align-items: stretch;
 }
 
 .deckbuilder-summary,
 .deckbuilder-list-panel {
   flex: 1 1 360px;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;
 }
 
-.deckbuilder-list-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-.deckbuilder-list-panel h3 { margin: 0; font-size: 14px; }
+.deckbuilder-list-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.deckbuilder-list-heading { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.deckbuilder-list-panel h3 { margin: 0; font-size: 14px; flex-shrink: 0; }
+/* The deck's own name/format/count next to the "Current Deck" label - so what you're
+   looking at is identified right where you're looking at it, not only up in the name
+   field on the other side of the row (or off-screen entirely once panels stack on mobile). */
+.deckbuilder-list-summary { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+.pool-add-label { font-size: 15px; font-weight: 700; color: var(--text); }
 
 @media (max-width: 900px) {
   /* align-items: flex-start (set above for the desktop row layout, where it stops a
@@ -658,7 +673,7 @@ select, input[type="text"], .deck-name-input {
 }
 .deck-format-status.hidden { display: none; }
 
-.deck-stats { margin-bottom: 14px; }
+.deck-stats { margin-bottom: 14px; flex: 1; }
 
 .stat-row { margin-bottom: 10px; }
 .stat-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; }
@@ -666,11 +681,14 @@ select, input[type="text"], .deck-name-input {
    deserves to stand out from the rest of this row's small dim labels, not blend in. */
 .deck-total-cards { font-size: 15px; font-weight: 700; color: var(--text); }
 
-.curve-bars { display: flex; align-items: flex-end; gap: 4px; height: 70px; }
+.stat-caption { font-size: 11px; line-height: 1.4; color: var(--text-dim); margin: 0 0 8px; }
+
+.curve-bars { display: flex; align-items: flex-end; gap: 4px; height: 110px; }
 .curve-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
 .curve-bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
 .curve-bar-count { font-size: 10px; color: var(--text-dim); }
 .curve-bar-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.curve-axis-title { text-align: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-top: 6px; }
 
 .color-bars { display: flex; flex-direction: column; gap: 4px; }
 .color-bar-row { display: flex; align-items: center; gap: 6px; font-size: 11px; }
