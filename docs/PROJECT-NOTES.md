@@ -14,6 +14,10 @@ fixes, testing methodology) see [`SYNC-ARCHITECTURE-HANDOFF.md`](SYNC-ARCHITECTU
 in this same folder — that doc was written to be portable to *other* apps too, so it
 covers the "why" behind the sync design in more depth than repeated here.
 
+For UI/UX design patterns worth reusing and notes on how this user likes to collaborate,
+see [`UI-DESIGN-AND-COLLABORATION-HANDOFF.md`](UI-DESIGN-AND-COLLABORATION-HANDOFF.md) —
+also written to travel to other projects, not specific to this app.
+
 ## Current shape of the app
 
 Static HTML/CSS/JS, no build step, no backend. Tabs: Browse, Collection, Deck Builder,
