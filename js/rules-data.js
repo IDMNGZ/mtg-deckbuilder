@@ -99,6 +99,25 @@ var RULES_EXAMPLE_CARDS = {
 
 var RULES_DATA = [
   {
+    id: "formats",
+    label: "Game Types / Formats",
+    blurb: "Different ways to play Magic - each defines its own deckbuilding rules and legal card pool. The Deck Builder tab's Format menu enforces the deckbuilding rules for Commander, Standard, Pioneer, Modern, Legacy, Vintage, Pauper, Brawl, and Speed Magic (plus a Free option with no restrictions) - the rest (Draft, Sealed, Two-Headed Giant) are gameplay/event structures rather than fixed deckbuilding rules, so they're reference-only here.",
+    entries: [
+      { term: "Commander (EDH)", bullets: ["100-card singleton deck - no duplicate cards except basic lands.", "Built around one legendary creature (or eligible planeswalker) as your Commander.", "Every other card's color must fit within the Commander's color identity.", "Players start at 40 life instead of 20.", "21+ combat damage from a single Commander over the course of the game eliminates that player.", "Usually played multiplayer (3-4 players), with politics and table dynamics a big part of the format." ], source: "Grew from a casual format ('Elder Dragon Highlander'); later adopted and officially supported by Wizards of the Coast." },
+      { term: "Standard", bullets: ["60-card minimum deck.", "Only cards from the most recently released sets are legal - a rotating pool, roughly the last ~2 years."] },
+      { term: "Pioneer", bullets: ["60-card minimum deck.", "Legal card pool spans from Return to Ravnica (2012) forward.", "Non-rotating."] },
+      { term: "Modern", bullets: ["60-card minimum deck.", "Legal card pool spans from the Modern-era border change (around 2003) forward.", "Non-rotating."] },
+      { term: "Legacy", bullets: ["60-card minimum deck.", "Nearly the entire card pool is legal (Alpha onward), governed by a banned list.", "High power level; fast, consistent decks."] },
+      { term: "Vintage", bullets: ["60-card minimum deck.", "The full card pool is legal.", "Extremely powerful cards are 'restricted' to a single copy instead of outright banned."] },
+      { term: "Pauper", bullets: ["60-card minimum deck.", "Only cards that have been printed at common rarity (at any point) are legal."] },
+      { term: "Draft / Limited", bullets: ["Players open booster packs and pick cards one at a time, passing the rest around the table.", "You build a deck (commonly a 40-card minimum) from only what you picked.", "Emphasizes evaluating and adapting to whatever you open, rather than a preconstructed deck."] },
+      { term: "Sealed Deck", bullets: ["Each player opens a fixed number of booster packs (commonly six) and builds a deck using only those cards.", "40-card minimum, no picking/passing between players."] },
+      { term: "Two-Headed Giant", bullets: ["Team format: two players share one 30-life pool and take turns together against another two-player team.", "Either teammate may cast spells/take actions during the team's shared turn.", "Either player on a team can be attacked or targeted."] },
+      { term: "Brawl", bullets: ["Commander-style singleton format, but with a 60-card deck instead of 100.", "One legendary Commander restricts the deck's colors to its color identity, same as Commander.", "Players typically start at 25 life instead of Commander's 40."] },
+      { term: "Speed Magic", bullets: ["Not an official Wizards of the Coast format.", "10-card deck: exactly 5 lands (any land) and 5 non-land cards (any card).", "Each player starts at 10 life instead of 20.", "Both players draw 3 cards to start (no separate draw step needed to get going).", "On turn one, you may play every land in your opening hand, not just one - e.g. drawing 1 creature and 2 lands lets you play both lands turn one.", "Designed as a fast, low-commitment way to test whether a small handful of cards actually work well together." ], source: "Invented by Ian Dominguez." },
+    ],
+  },
+  {
     id: "basics",
     label: "Basic Rules",
     blurb: "The foundational structure every game of Magic runs on.",
@@ -140,25 +159,6 @@ var RULES_DATA = [
       { term: "Indestructible", bullets: ["Isn't destroyed by lethal damage or 'destroy' effects.", "Can still be sacrificed, exiled, or have its toughness reduced to 0."], example: { id: "e82e61d1-488d-4627-a54c-d8496a967814", name: "Toski, Bearer of Secrets" } },
       { term: "Flash", bullets: ["Can be cast any time you could cast an instant, not just during your main phase with an empty stack."], example: { id: "881b6202-6d02-489b-b79c-62142c42ed1f", name: "Orcish Bowmasters" } },
       { term: "Ward", bullets: ["Whenever this becomes the target of a spell or ability an opponent controls, counter it unless they pay the ward cost."], example: { id: "32fd8b7c-baf3-4d3d-be6f-044a917b11a0", name: "Roaming Throne" } },
-    ],
-  },
-  {
-    id: "formats",
-    label: "Game Types / Formats",
-    blurb: "Different ways to play Magic - each defines its own deckbuilding rules and legal card pool. The Deck Builder tab's Format menu enforces the deckbuilding rules for Commander, Standard, Pioneer, Modern, Legacy, Vintage, Pauper, Brawl, and Speed Magic (plus a Free option with no restrictions) - the rest (Draft, Sealed, Two-Headed Giant) are gameplay/event structures rather than fixed deckbuilding rules, so they're reference-only here.",
-    entries: [
-      { term: "Commander (EDH)", bullets: ["100-card singleton deck - no duplicate cards except basic lands.", "Built around one legendary creature (or eligible planeswalker) as your Commander.", "Every other card's color must fit within the Commander's color identity.", "Players start at 40 life instead of 20.", "21+ combat damage from a single Commander over the course of the game eliminates that player.", "Usually played multiplayer (3-4 players), with politics and table dynamics a big part of the format." ], source: "Grew from a casual format ('Elder Dragon Highlander'); later adopted and officially supported by Wizards of the Coast." },
-      { term: "Standard", bullets: ["60-card minimum deck.", "Only cards from the most recently released sets are legal - a rotating pool, roughly the last ~2 years."] },
-      { term: "Pioneer", bullets: ["60-card minimum deck.", "Legal card pool spans from Return to Ravnica (2012) forward.", "Non-rotating."] },
-      { term: "Modern", bullets: ["60-card minimum deck.", "Legal card pool spans from the Modern-era border change (around 2003) forward.", "Non-rotating."] },
-      { term: "Legacy", bullets: ["60-card minimum deck.", "Nearly the entire card pool is legal (Alpha onward), governed by a banned list.", "High power level; fast, consistent decks."] },
-      { term: "Vintage", bullets: ["60-card minimum deck.", "The full card pool is legal.", "Extremely powerful cards are 'restricted' to a single copy instead of outright banned."] },
-      { term: "Pauper", bullets: ["60-card minimum deck.", "Only cards that have been printed at common rarity (at any point) are legal."] },
-      { term: "Draft / Limited", bullets: ["Players open booster packs and pick cards one at a time, passing the rest around the table.", "You build a deck (commonly a 40-card minimum) from only what you picked.", "Emphasizes evaluating and adapting to whatever you open, rather than a preconstructed deck."] },
-      { term: "Sealed Deck", bullets: ["Each player opens a fixed number of booster packs (commonly six) and builds a deck using only those cards.", "40-card minimum, no picking/passing between players."] },
-      { term: "Two-Headed Giant", bullets: ["Team format: two players share one 30-life pool and take turns together against another two-player team.", "Either teammate may cast spells/take actions during the team's shared turn.", "Either player on a team can be attacked or targeted."] },
-      { term: "Brawl", bullets: ["Commander-style singleton format, but with a 60-card deck instead of 100.", "One legendary Commander restricts the deck's colors to its color identity, same as Commander.", "Players typically start at 25 life instead of Commander's 40."] },
-      { term: "Speed Magic", bullets: ["Not an official Wizards of the Coast format.", "10-card deck: exactly 5 lands (any land) and 5 non-land cards (any card).", "Each player starts at 10 life instead of 20.", "Both players draw 3 cards to start (no separate draw step needed to get going).", "On turn one, you may play every land in your opening hand, not just one - e.g. drawing 1 creature and 2 lands lets you play both lands turn one.", "Designed as a fast, low-commitment way to test whether a small handful of cards actually work well together." ], source: "Invented by Ian Dominguez." },
     ],
   },
   {

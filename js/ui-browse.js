@@ -124,6 +124,13 @@ var BrowseUI = (function () {
       var year = s.releasedAt ? s.releasedAt.slice(0, 4) : "?";
       var tag = s.digital ? " [digital]" : "";
       row.appendChild(cb);
+      if (s.iconSvgUri) {
+        var icon = document.createElement("img");
+        icon.className = "edition-icon";
+        icon.src = s.iconSvgUri;
+        icon.alt = "";
+        row.appendChild(icon);
+      }
       row.appendChild(document.createTextNode(s.name + " (" + year + ")" + tag));
       frag.appendChild(row);
     });
@@ -149,6 +156,13 @@ var BrowseUI = (function () {
       removeBtn.title = "Remove this edition";
       removeBtn.textContent = "×";
       removeBtn.addEventListener("click", function () { toggleEdition(code); });
+      if (s && s.iconSvgUri) {
+        var chipIcon = document.createElement("img");
+        chipIcon.className = "edition-icon";
+        chipIcon.src = s.iconSvgUri;
+        chipIcon.alt = "";
+        chip.appendChild(chipIcon);
+      }
       chip.appendChild(label);
       chip.appendChild(removeBtn);
       frag.appendChild(chip);

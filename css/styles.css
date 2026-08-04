@@ -178,13 +178,18 @@ body {
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
+/* Bordered/elevated on every tab that uses it (Search, My Collection, Rules, Deck
+   Builder's pool) - was plain background: var(--bg) blending into the page, which read as
+   a missing border rather than a deliberate choice once other panels nearby (Deck
+   Builder's summary/list panels) had one. Consistent everywhere now. */
 .sticky-controls {
   position: sticky;
   top: var(--header-h);
   z-index: 9;
-  background: var(--bg);
-  padding-top: 12px;
-  padding-bottom: 4px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
 }
 
 .controls-divider {
@@ -325,6 +330,12 @@ select, input[type="text"], .deck-name-input {
 }
 .edition-row:hover { background: var(--bg-input); }
 .edition-row input { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* Scryfall serves set symbols as plain black line art meant to be recolored by whoever
+   embeds them (that's why they publish raw SVG instead of a pre-colored image) - loaded
+   as a plain <img>, though, there's no CSS hook into the SVG's own fill, so a flat invert
+   is the simplest way to turn "black on dark background" into something visible. */
+.edition-icon { width: 16px; height: 16px; flex-shrink: 0; filter: invert(1); }
 
 .filter-details, .filter-panel { margin-bottom: 4px; }
 
@@ -577,17 +588,6 @@ select, input[type="text"], .deck-name-input {
    actually shrink to the column they were given instead. */
 .deckbuilder-pool, .deckbuilder-current { min-width: 0; }
 
-/* .sticky-controls is shared with Browse/Collection/Rules, where it deliberately blends
-   into the page background (background: var(--bg)) so it doesn't compete with the
-   sticky header above it. Here specifically it sits directly beside the bordered
-   summary/list panels, where the lack of a border read as broken rather than deliberate -
-   scoped to just this tab so Browse/Collection/Rules are unaffected. */
-.deckbuilder-pool .sticky-controls {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px;
-}
 
 /* Was a single ~760px-capped box - on anything wider than that, the rest of the row sat
    empty. Splitting it into two side-by-side panels (meta/stats, and the actual card list)
