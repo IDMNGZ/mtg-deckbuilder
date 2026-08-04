@@ -182,6 +182,17 @@
         <div id="deck-pool-grid" class="card-grid"></div>
       </div>
       <div class="deckbuilder-current">
+        <div class="deckbuilder-list-panel">
+          <div class="deckbuilder-list-header">
+            <div class="deckbuilder-list-heading">
+              <h3>Current Deck</h3>
+              <span id="deck-list-summary" class="deckbuilder-list-summary"></span>
+            </div>
+            <button id="btn-view-deck" class="btn btn-accent">View</button>
+          </div>
+          <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>
+          <ul id="deck-list" class="deck-list"></ul>
+        </div>
         <div class="deckbuilder-summary">
           <div class="deck-meta">
             <input type="text" id="deck-name" placeholder="Deck name…" class="deck-name-input">
@@ -195,17 +206,6 @@
           <span id="deck-add-feedback" class="deck-add-feedback" aria-live="polite"></span>
           <div id="deck-format-status" class="deck-format-status hidden"></div>
           <div id="deck-stats" class="deck-stats"></div>
-        </div>
-        <div class="deckbuilder-list-panel">
-          <div class="deckbuilder-list-header">
-            <div class="deckbuilder-list-heading">
-              <h3>Current Deck</h3>
-              <span id="deck-list-summary" class="deckbuilder-list-summary"></span>
-            </div>
-            <button id="btn-view-deck" class="btn btn-accent">View</button>
-          </div>
-          <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>
-          <ul id="deck-list" class="deck-list"></ul>
         </div>
       </div>
     </div>

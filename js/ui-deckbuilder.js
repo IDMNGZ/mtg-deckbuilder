@@ -22,9 +22,12 @@ var DeckBuilderUI = (function () {
     return Formats.get(deck.format);
   }
 
-  function findEntry(cardId) {
+  // Matches by name, not exact printing id - copy limits (max 4, singleton's max 1) are
+  // rules about a card NAME in real Magic, not a specific printing. Owning two different
+  // printings of the same card doesn't grant two separate slots for it.
+  function findEntryByName(name) {
     for (var i = 0; i < deck.cards.length; i++) {
-      if (deck.cards[i].card.id === cardId) return deck.cards[i];
+      if (deck.cards[i].card.name === name) return deck.cards[i];
     }
     return null;
   }
@@ -58,7 +61,9 @@ var DeckBuilderUI = (function () {
       return;
     }
     if (format.needsCommander && deck.commander) {
-      if (card.id === deck.commander.id) {
+      // By name, not id - a different printing of the same card is still the same card
+      // for deck-building purposes; singleton rules don't grant a second slot for it.
+      if (card.name === deck.commander.name) {
         showAddFeedback(card.name + " is already your Commander.");
         return;
       }
@@ -84,13 +89,13 @@ var DeckBuilderUI = (function () {
     if (format.deckSize && format.deckSize.exact) {
       var reserved = format.needsCommander ? 1 : 0;
       var cap = format.deckSize.exact - reserved;
-      if (!findEntry(card.id) && deckTotalQty() >= cap) {
+      if (!findEntryByName(card.name) && deckTotalQty() >= cap) {
         showAddFeedback(format.name + " decks hold " + cap + " cards" + (reserved ? " plus your Commander" : "") + ".");
         return;
       }
     }
 
-    var entry = findEntry(card.id);
+    var entry = findEntryByName(card.name);
     var cap = Formats.maxCopies(card, format);
     if (entry) {
       if (entry.qty >= cap) {
@@ -124,6 +129,14 @@ var DeckBuilderUI = (function () {
     }
     if (format.legalityKey && !Formats.isLegal(card, format)) {
       showAddFeedback(card.name + " isn't legal in " + format.name + ".");
+      return;
+    }
+    // Reachable if a card was added to the 99 under a different format (or a different
+    // owned printing) before being chosen as Commander here - singleton rules only allow
+    // one copy of this name total, so it can't be both.
+    var existing = findEntryByName(card.name);
+    if (existing) {
+      showAddFeedback(card.name + " is already in your deck list - remove it before setting it as Commander.");
       return;
     }
     deck.commander = card;
@@ -189,6 +202,14 @@ var DeckBuilderUI = (function () {
         }
         if (format.legalityKey && !Formats.isLegal(deck.commander, format)) {
           messages.push(deck.commander.name + " isn't legal in " + format.name + ".");
+        }
+        // Catches decks saved before the Commander/pool-exclusion checks above matched by
+        // name instead of exact printing id - a deck built under the old logic could have
+        // ended up with the Commander also present as a "99th" card via a different owned
+        // printing of the same name, which singleton rules don't actually allow.
+        var commanderDupe = deck.cards.filter(function (e) { return e.card.name === deck.commander.name; });
+        if (commanderDupe.length) {
+          messages.push(deck.commander.name + " is both your Commander and in the deck list - singleton decks only allow one copy total, remove the extra with the list's − button.");
         }
       }
     } else if (format.speedMagic) {
@@ -260,9 +281,11 @@ var DeckBuilderUI = (function () {
     } else {
       if (format.legalityKey) visible = visible.filter(function (c) { return Formats.isLegal(c, format); });
       if (format.needsCommander && deck.commander) {
-        // The Commander itself lives in deck.commander, not deck.cards - keep it out of
-        // the "Add to deck" pool so it can't also be added as one of the 99/59.
-        visible = visible.filter(function (c) { return c.id !== deck.commander.id && Formats.colorIdentityOk(c, deck.commander); });
+        // The Commander itself lives in deck.commander, not deck.cards - keep it (by
+        // name, not just this exact printing - a different owned printing of the same
+        // card is still the same card) out of the "Add to deck" pool so it can't also be
+        // added as one of the 99/59.
+        visible = visible.filter(function (c) { return c.name !== deck.commander.name && Formats.colorIdentityOk(c, deck.commander); });
       }
       els.poolNote.textContent = format.id === "free" ? "" : "Showing only cards legal in " + format.name + (format.needsCommander && deck.commander ? " and within " + deck.commander.name + "'s color identity." : ".");
     }
@@ -332,6 +355,7 @@ var DeckBuilderUI = (function () {
   function renderStats() {
     var totalCards = 0;
     var curve = [0, 0, 0, 0, 0, 0, 0]; // index 6 = "7+"
+    var curveNames = [[], [], [], [], [], [], []]; // parallel to curve, for the hover tooltip
     var colorCounts = { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 };
     var typeCounts = {};
     var cmcSum = 0, cmcCards = 0;
@@ -345,7 +369,9 @@ var DeckBuilderUI = (function () {
 
       if (!isLand(card)) {
         var bucket = Math.min(card.cmc, 7);
-        curve[bucket === 7 ? 6 : bucket] += qty;
+        var idx = bucket === 7 ? 6 : bucket;
+        curve[idx] += qty;
+        curveNames[idx].push(qty > 1 ? card.name + " ×" + qty : card.name);
         cmcSum += card.cmc * qty;
         cmcCards += qty;
       }
@@ -374,15 +400,20 @@ var DeckBuilderUI = (function () {
     // what the bar height or the axis numbers meant. A one-line caption plus an explicit
     // axis title turns "a row of blue bars" into something legible without hovering or
     // asking - the numbers atop each bar are card counts, the numbers below are mana cost.
-    var curveHtml = '<div class="stat-row"><div class="stat-label"><span>Mana Curve</span><span>avg CMC ' + avgCmc + '</span></div>' +
+    // Each bar's title attribute lists the actual cards in that bucket (native tooltip,
+    // no extra UI needed) and the count is followed by a % of non-land cards, so "8" also
+    // reads as "8, a bit over a tenth of the deck" instead of just a bare number.
+    var curveHtml = '<div class="stat-section"><div class="stat-label"><span>Mana Curve</span><span>avg CMC ' + avgCmc + '</span></div>' +
       '<p class="stat-caption">Non-land cards by mana cost - a curve that leans left plays more consistently early; one stacked toward the right needs more lands drawn before it does much.</p>' +
       '<div class="curve-bars">' +
       curve.map(function (count, i) {
         var pct = Math.round((count / maxCurve) * 100);
-        return '<div class="curve-bar-wrap"><span class="curve-bar-count">' + (count || "") + '</span><div class="curve-bar" style="height:' + pct + '%"></div><span class="curve-bar-label">' + (i === 6 ? "7+" : i) + '</span></div>';
+        var share = cmcCards ? Math.round((count / cmcCards) * 100) : 0;
+        var names = curveNames[i].length ? curveNames[i].join(", ") : "No cards at this cost";
+        return '<div class="curve-bar-wrap" title="' + CardView.escapeHtml(names) + '"><span class="curve-bar-count">' + (count ? count + (cmcCards ? ' · ' + share + '%' : '') : "") + '</span><div class="curve-bar" style="height:' + pct + '%"></div><span class="curve-bar-label">' + (i === 6 ? "7+" : i) + '</span></div>';
       }).join("") + '</div><div class="curve-axis-title">Mana Value</div></div>';
 
-    var colorHtml = '<div class="stat-row"><div class="stat-label"><span>Color Balance</span></div><div class="color-bars">' +
+    var colorHtml = '<div class="stat-section"><div class="stat-label"><span>Color Balance</span></div><div class="color-bars">' +
       Object.keys(colorMeta).map(function (key) {
         var count = colorCounts[key] || 0;
         var pct = Math.round((count / maxColor) * 100);
@@ -392,12 +423,15 @@ var DeckBuilderUI = (function () {
           '<span class="color-bar-count">' + count + '</span></div>';
       }).join("") + '</div></div>';
 
-    var typeHtml = '<div class="stat-row"><div class="stat-label"><span>Types</span><span class="deck-total-cards">' + totalCards + ' cards total</span></div><div class="type-breakdown">' +
+    var typeHtml = '<div class="stat-section"><div class="stat-label"><span>Types</span><span class="deck-total-cards">' + totalCards + ' cards total</span></div><div class="type-breakdown">' +
       Object.keys(typeCounts).sort(function (a, b) { return typeCounts[b] - typeCounts[a]; }).map(function (t) {
         return '<span class="type-chip">' + CardView.escapeHtml(t) + ' ×' + typeCounts[t] + '</span>';
       }).join("") + '</div></div>';
 
-    els.stats.innerHTML = curveHtml + colorHtml + typeHtml;
+    // Color Balance leads (what colors am I playing), Mana Curve second (how do those
+    // cards cost out), Types last - reordered from the original curve/color/types order
+    // per user feedback, each now its own bordered section instead of one flowing block.
+    els.stats.innerHTML = colorHtml + curveHtml + typeHtml;
   }
 
   // ---- Deck lifecycle ----

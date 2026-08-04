@@ -577,6 +577,18 @@ select, input[type="text"], .deck-name-input {
    actually shrink to the column they were given instead. */
 .deckbuilder-pool, .deckbuilder-current { min-width: 0; }
 
+/* .sticky-controls is shared with Browse/Collection/Rules, where it deliberately blends
+   into the page background (background: var(--bg)) so it doesn't compete with the
+   sticky header above it. Here specifically it sits directly beside the bordered
+   summary/list panels, where the lack of a border read as broken rather than deliberate -
+   scoped to just this tab so Browse/Collection/Rules are unaffected. */
+.deckbuilder-pool .sticky-controls {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
 /* Was a single ~760px-capped box - on anything wider than that, the rest of the row sat
    empty. Splitting it into two side-by-side panels (meta/stats, and the actual card list)
    uses that width instead of wasting it, and surfaces the in-progress deck list somewhere
@@ -673,9 +685,17 @@ select, input[type="text"], .deck-name-input {
 }
 .deck-format-status.hidden { display: none; }
 
-.deck-stats { margin-bottom: 14px; flex: 1; }
+.deck-stats { margin-bottom: 14px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
 
-.stat-row { margin-bottom: 10px; }
+/* Each stat used to just be a row flowing into the next with no visual break - now its
+   own bordered block, same treatment as the summary/list panels themselves, so "where does
+   Color Balance end and Mana Curve begin" is obvious at a glance. */
+.stat-section {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
 .stat-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; }
 /* The one number that actually matters most while building a deck (how close to done am I)
    deserves to stand out from the rest of this row's small dim labels, not blend in. */
@@ -686,7 +706,7 @@ select, input[type="text"], .deck-name-input {
 .curve-bars { display: flex; align-items: flex-end; gap: 4px; height: 110px; }
 .curve-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
 .curve-bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
-.curve-bar-count { font-size: 10px; color: var(--text-dim); }
+.curve-bar-count { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
 .curve-bar-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
 .curve-axis-title { text-align: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-top: 6px; }
 
