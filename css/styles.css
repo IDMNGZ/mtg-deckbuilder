@@ -598,7 +598,8 @@ select, input[type="text"], .deck-name-input {
   padding: 14px;
 }
 
-.deckbuilder-list-panel h3 { margin: 0 0 10px; font-size: 14px; }
+.deckbuilder-list-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.deckbuilder-list-panel h3 { margin: 0; font-size: 14px; }
 
 @media (max-width: 900px) {
   /* align-items: flex-start (set above for the desktop row layout, where it stops a
@@ -981,18 +982,41 @@ select, input[type="text"], .deck-name-input {
 .modal-body-text h2 { margin-top: 0; font-size: 18px; }
 
 /* Wider than the single-card modal above - this one holds a full card grid, not one
-   enlarged image, and needs the room. */
-.deck-view-content { max-width: 1100px; flex-direction: column; align-items: stretch; }
+   enlarged image, and needs the room. justify-content: flex-start overrides the base
+   .modal-content's "center" - centering a flex column whose content overflows its
+   scrollable box clips the START of the content from ever being scrolled into view in
+   most browsers (a well-known flexbox+overflow quirk), which was making the top of a
+   long deck - including the Commander, always rendered first - unreachable by scrolling. */
+.deck-view-content { max-width: 1100px; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+/* Sticky, not just top-of-content, so the close button stays reachable no matter how far
+   down the card grid you've scrolled - the whole reason this exists is the mobile case
+   where there's barely any backdrop left to tap around a nearly full-screen modal. */
 .deck-view-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-elevated);
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 10px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--border);
   padding-bottom: 10px;
   margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
 }
+.deck-view-title-area { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .deck-view-header h2 { margin: 0; font-size: 18px; }
+.deck-view-close-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.deck-view-close-btn:hover { color: var(--text); }
 .deck-view-format {
   display: inline-block;
   font-size: 10px;

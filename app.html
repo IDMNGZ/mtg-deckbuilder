@@ -190,16 +190,18 @@
               <select id="deck-format-select"></select>
             </label>
             <button id="btn-new-deck" class="btn btn-ghost">New</button>
-            <button id="btn-view-deck" class="btn btn-ghost">View</button>
             <button id="btn-save-deck" class="btn btn-primary">Save Deck</button>
           </div>
           <span id="deck-add-feedback" class="deck-add-feedback" aria-live="polite"></span>
-          <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>
           <div id="deck-format-status" class="deck-format-status hidden"></div>
           <div id="deck-stats" class="deck-stats"></div>
         </div>
         <div class="deckbuilder-list-panel">
-          <h3>Current Deck</h3>
+          <div class="deckbuilder-list-header">
+            <h3>Current Deck</h3>
+            <button id="btn-view-deck" class="btn btn-accent">View</button>
+          </div>
+          <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>
           <ul id="deck-list" class="deck-list"></ul>
         </div>
       </div>
@@ -686,8 +688,10 @@
 <div id="deck-view-modal" class="modal hidden">
   <div class="modal-backdrop"></div>
   <div class="modal-content deck-view-content">
-    <button id="deck-view-close" class="modal-close">&times;</button>
-    <div id="deck-view-header" class="deck-view-header"></div>
+    <div id="deck-view-header" class="deck-view-header">
+      <div id="deck-view-title-area" class="deck-view-title-area"></div>
+      <button id="deck-view-close" class="deck-view-close-btn" title="Close">&times;</button>
+    </div>
     <div id="deck-view-body" class="deck-view-body"></div>
   </div>
 </div>

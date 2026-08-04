@@ -51,7 +51,10 @@ var DeckView = (function () {
 
   function show(deckLike, opts) {
     opts = opts || {};
-    els.header.innerHTML =
+    // Only the title area's innerHTML gets replaced - the close button lives outside it,
+    // as a permanent sibling in the sticky header, so re-showing the modal for a different
+    // deck can't ever wipe it out.
+    els.titleArea.innerHTML =
       '<h2>' + CardView.escapeHtml(opts.title || deckLike.name || "Deck") + '</h2>' +
       (opts.formatName ? '<span class="deck-view-format">' + CardView.escapeHtml(opts.formatName) + '</span>' : '');
 
@@ -77,7 +80,7 @@ var DeckView = (function () {
 
   function init() {
     els.modal = document.getElementById("deck-view-modal");
-    els.header = document.getElementById("deck-view-header");
+    els.titleArea = document.getElementById("deck-view-title-area");
     els.body = document.getElementById("deck-view-body");
     document.getElementById("deck-view-close").addEventListener("click", close);
     els.modal.querySelector(".modal-backdrop").addEventListener("click", close);
