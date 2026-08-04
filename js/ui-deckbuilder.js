@@ -109,8 +109,19 @@ var DeckBuilderUI = (function () {
     renderDeck();
   }
 
+  // The rendered list's remove button hands back the specific printing shown in that row,
+  // not a name - each entry still has exactly one underlying card.id (there's only ever
+  // one entry per name now), so an id lookup is still a valid, simpler way to find it
+  // than re-deriving the name and calling findEntryByName.
+  function findEntryById(cardId) {
+    for (var i = 0; i < deck.cards.length; i++) {
+      if (deck.cards[i].card.id === cardId) return deck.cards[i];
+    }
+    return null;
+  }
+
   function removeOne(cardId) {
-    var entry = findEntry(cardId);
+    var entry = findEntryById(cardId);
     if (!entry) return;
     entry.qty--;
     if (entry.qty <= 0) {
@@ -416,7 +427,7 @@ var DeckBuilderUI = (function () {
     // now split into colored segments so you can see which colors show up at which cost,
     // not just totals for each in isolation. A bucket's title attribute still lists the
     // actual cards in it; the legend below turns segment color back into a name/count.
-    var curveHtml = '<div class="stat-section"><div class="stat-label"><span>Mana Curve by Color</span><span>avg CMC ' + avgCmc + '</span></div>' +
+    var curveHtml = '<div class="stat-section stat-section-grow"><div class="stat-label"><span>Mana Curve by Color</span><span>avg CMC ' + avgCmc + '</span></div>' +
       '<p class="stat-caption">Non-land cards by mana cost, split by color - a curve that leans left plays more consistently early; segment colors show which colors show up at which cost.</p>' +
       '<div class="curve-bars">' +
       curve.map(function (count, i) {
@@ -467,7 +478,7 @@ var DeckBuilderUI = (function () {
         insightLines.push("Mono-" + colorMeta[activeColors[0]].label.toLowerCase() + " - no color-fixing to worry about.");
       }
     }
-    var insightsHtml = '<div class="stat-section"><div class="stat-label"><span>Deck Insights</span></div>' +
+    var insightsHtml = '<div class="stat-section stat-section-grow stat-section-center"><div class="stat-label"><span>Deck Insights</span></div>' +
       (insightLines.length
         ? '<ul class="deck-insights-list">' + insightLines.map(function (l) { return "<li>" + CardView.escapeHtml(l) + "</li>"; }).join("") + "</ul>"
         : '<p class="empty-hint">Add cards to see insights about this deck.</p>') +

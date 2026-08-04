@@ -701,7 +701,17 @@ select, input[type="text"], .deck-name-input {
   border-radius: 8px;
   padding: 10px 12px;
 }
-.stat-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; }
+/* Mana Curve and Deck Insights claim any extra vertical room #deck-stats has (Types stays
+   its own natural, compact size - a chip list has no meaningful way to "grow") instead of
+   leaving a slab of empty background below the last section on decks with room to spare. */
+.stat-section-grow { flex: 1; display: flex; flex-direction: column; }
+.stat-section-grow .curve-bars { flex: 1; height: auto; min-height: 110px; }
+.stat-section-center .deck-insights-list { flex: 1; justify-content: center; }
+.stat-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: baseline; }
+/* The section name itself (first span) - "Mana Curve", "Types", "Deck Insights" - reads as
+   a heading now instead of blending into the same small dim text as the secondary value
+   next to it (avg CMC, cards total, etc.), which keeps its own smaller/dimmer styling. */
+.stat-label > span:first-child { font-size: 14px; font-weight: 700; color: var(--text); }
 /* The one number that actually matters most while building a deck (how close to done am I)
    deserves to stand out from the rest of this row's small dim labels, not blend in. */
 .deck-total-cards { font-size: 15px; font-weight: 700; color: var(--text); }
@@ -755,7 +765,26 @@ select, input[type="text"], .deck-name-input {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.deck-list-item .remove-btn { color: var(--danger); background: none; border: none; cursor: pointer; font-size: 16px; }
+/* Was bare text with no border/background - easy to mistake for a decorative label
+   instead of a clickable control. Real button chrome (border, fill, hover state) makes
+   it read as tappable at a glance. */
+.deck-list-item .remove-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.deck-list-item .remove-btn:hover { background: rgba(224, 91, 91, 0.15); border-color: var(--danger); }
 .empty-hint { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
 
 /* My Decks */
