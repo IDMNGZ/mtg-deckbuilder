@@ -56,7 +56,7 @@ var CollectionUI = (function () {
     els.grid.appendChild(frag);
 
     if (owned.length === 0) {
-      els.grid.innerHTML = '<p class="empty-hint">No cards yet — check some off in the Browse tab.</p>';
+      els.grid.innerHTML = '<p class="empty-hint">No cards yet — check some off in the Search tab.</p>';
     }
   }
 

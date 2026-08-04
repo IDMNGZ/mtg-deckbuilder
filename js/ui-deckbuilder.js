@@ -275,7 +275,7 @@ var DeckBuilderUI = (function () {
     var needle = els.poolFilter.value.trim();
     els.poolGrid.innerHTML = "";
     if (owned.length === 0) {
-      els.poolGrid.innerHTML = '<p class="empty-hint">No owned cards yet — check some off in the Browse tab first.</p>';
+      els.poolGrid.innerHTML = '<p class="empty-hint">No owned cards yet — check some off in the Search tab first.</p>';
       els.poolNote.textContent = "";
       return;
     }

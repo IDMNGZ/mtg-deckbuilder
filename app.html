@@ -35,10 +35,10 @@
   <div class="header-controls-row">
   <nav class="tabs">
     <div class="tab-group tab-group-primary">
-      <a href="#browse" class="tab-link" data-tab="browse">Browse</a>
+      <a href="#browse" class="tab-link" data-tab="browse">Search</a>
       <a href="#collection" class="tab-link" data-tab="collection">My Collection</a>
-      <a href="#deckbuilder" class="tab-link" data-tab="deckbuilder">Deck Builder</a>
       <a href="#decks" class="tab-link" data-tab="decks">My Decks</a>
+      <a href="#deckbuilder" class="tab-link" data-tab="deckbuilder">Deck Builder</a>
     </div>
     <div class="tab-group tab-group-secondary">
       <a href="#rules" class="tab-link" data-tab="rules">MTG Rules</a>
@@ -183,17 +183,6 @@
       </div>
       <div class="deckbuilder-current">
         <div class="deckbuilder-list-panel">
-          <div class="deckbuilder-list-header">
-            <div class="deckbuilder-list-heading">
-              <h3>Current Deck</h3>
-              <span id="deck-list-summary" class="deckbuilder-list-summary"></span>
-            </div>
-            <button id="btn-view-deck" class="btn btn-accent">View</button>
-          </div>
-          <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>
-          <ul id="deck-list" class="deck-list"></ul>
-        </div>
-        <div class="deckbuilder-summary">
           <div class="deck-meta">
             <label class="field deck-name-field">
               Name
@@ -208,6 +197,17 @@
           </div>
           <span id="deck-add-feedback" class="deck-add-feedback" aria-live="polite"></span>
           <div id="deck-format-status" class="deck-format-status hidden"></div>
+          <div class="deckbuilder-list-header">
+            <div class="deckbuilder-list-heading">
+              <h3>Current Deck</h3>
+              <span id="deck-list-summary" class="deckbuilder-list-summary"></span>
+            </div>
+            <button id="btn-view-deck" class="btn btn-accent">View</button>
+          </div>
+          <div id="deck-commander-panel" class="deck-commander-panel hidden"></div>
+          <ul id="deck-list" class="deck-list"></ul>
+        </div>
+        <div class="deckbuilder-summary">
           <div id="deck-stats" class="deck-stats"></div>
         </div>
       </div>
@@ -252,7 +252,7 @@
         <div class="rule-entry">
           <div class="rule-term">The basic idea</div>
           <ul class="rule-bullets">
-            <li>Browse cards and check off the ones you physically own.</li>
+            <li>Search for cards and check off the ones you physically own.</li>
             <li>Your checked-off cards make up My Collection.</li>
             <li>Deck Builder only lets you use cards you've checked off - it's a deck built from what you actually have.</li>
             <li>Everything saves automatically to this browser, and optionally syncs to your own Dropbox account across devices.</li>
@@ -261,9 +261,9 @@
         <div class="rule-entry">
           <div class="rule-term">The header controls</div>
           <ul class="rule-bullets">
-            <li>Tabs are grouped into your data (Browse, My Collection, Deck Builder, My Decks), MTG references (MTG Rules, Links), and app info (How To Use, System, About).</li>
+            <li>Tabs are grouped into your data (Search, My Collection, My Decks, Deck Builder), MTG references (MTG Rules, Links), and app info (How To Use, System, About).</li>
             <li>The status bar just below the header (visible on every tab) always shows your active profile, collection size, and sync status, with "Sync" and "Share" right there too.</li>
-            <li>"View" applies everywhere at once: "Merge Dupes" (on by default) collapses duplicate printings into one tile on Browse, My Collection, and Deck Builder together, and "Card size" resizes the card grid on every tab, including deck cards on My Decks.</li>
+            <li>"View" applies everywhere at once: "Merge Dupes" (on by default) collapses duplicate printings into one tile on Search, My Collection, and Deck Builder together, and "Card size" resizes the card grid on every tab, including deck cards on My Decks.</li>
             <li>The System tab holds everything about where your collection/decks live - Dropbox sync, manual Export/Import, Refresh, and switching profiles (covered in "Syncing Your Data" below).</li>
           </ul>
         </div>
@@ -272,7 +272,7 @@
 
     <section class="rules-section">
       <div class="rules-section-header">
-        <h2>Browse</h2>
+        <h2>Search</h2>
         <p>Find cards across any edition (or all of them) and mark ownership.</p>
       </div>
       <div class="rule-entries">
@@ -362,9 +362,9 @@
           <div class="rule-entry">
             <div class="rule-term">Reviewing what you own</div>
             <ul class="rule-bullets">
-              <li>Shows every card you've checked off, across every edition, with the same search/color/type/rarity/sort filters as Browse.</li>
+              <li>Shows every card you've checked off, across every edition, with the same search/color/type/rarity/sort filters as Search.</li>
               <li>Unchecking "I own this" here removes it from your collection immediately.</li>
-              <li>"Merge Dupes" works the same way as in Browse - merged tiles show a "Remove all" button (with a confirmation) to drop every printing of that card at once.</li>
+              <li>"Merge Dupes" works the same way as in Search - merged tiles show a "Remove all" button (with a confirmation) to drop every printing of that card at once.</li>
             </ul>
           </div>
         </div>
