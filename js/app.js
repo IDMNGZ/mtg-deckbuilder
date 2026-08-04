@@ -194,6 +194,7 @@
 
   function init() {
     CardView.initModal();
+    DeckView.init();
     BrowseUI.init();
     CollectionUI.init();
     DeckBuilderUI.init();

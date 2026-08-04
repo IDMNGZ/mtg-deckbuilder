@@ -190,6 +190,7 @@
               <select id="deck-format-select"></select>
             </label>
             <button id="btn-new-deck" class="btn btn-ghost">New</button>
+            <button id="btn-view-deck" class="btn btn-ghost">View</button>
             <button id="btn-save-deck" class="btn btn-primary">Save Deck</button>
           </div>
           <span id="deck-add-feedback" class="deck-add-feedback" aria-live="polite"></span>
@@ -682,11 +683,21 @@
   </div>
 </div>
 
+<div id="deck-view-modal" class="modal hidden">
+  <div class="modal-backdrop"></div>
+  <div class="modal-content deck-view-content">
+    <button id="deck-view-close" class="modal-close">&times;</button>
+    <div id="deck-view-header" class="deck-view-header"></div>
+    <div id="deck-view-body" class="deck-view-body"></div>
+  </div>
+</div>
+
 <script src="js/version.js"></script>
 <script src="js/share.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/scryfall.js"></script>
 <script src="js/card-view.js"></script>
+<script src="js/deck-view.js"></script>
 <script src="js/card-filters.js"></script>
 <script src="js/formats.js"></script>
 <script src="js/data-sync.js"></script>

@@ -62,6 +62,13 @@ var DecksUI = (function () {
     meta.textContent = cardCount + ' card' + (cardCount === 1 ? '' : 's') + ' · updated ' + new Date(deck.updatedAt).toLocaleString();
     li.appendChild(meta);
 
+    var viewBtn = document.createElement("button");
+    viewBtn.className = "btn btn-ghost";
+    viewBtn.textContent = "View";
+    viewBtn.addEventListener("click", function () {
+      DeckView.show(deck, { title: deck.name, formatName: formatName });
+    });
+
     var editBtn = document.createElement("button");
     editBtn.className = "btn btn-ghost";
     editBtn.textContent = "Load";
@@ -79,6 +86,7 @@ var DecksUI = (function () {
 
     var actions = document.createElement("div");
     actions.className = "deck-card-actions";
+    actions.appendChild(viewBtn);
     actions.appendChild(editBtn);
     actions.appendChild(deleteBtn);
     li.appendChild(actions);

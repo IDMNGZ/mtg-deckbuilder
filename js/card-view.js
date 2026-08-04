@@ -74,6 +74,13 @@ var CardView = (function () {
     img.addEventListener("click", function () { openModal(card); });
     tile.appendChild(img);
 
+    if (opts.qty) {
+      var qtyBadge = document.createElement("span");
+      qtyBadge.className = "card-qty-badge";
+      qtyBadge.textContent = "×" + opts.qty;
+      tile.appendChild(qtyBadge);
+    }
+
     var titleRow = document.createElement("div");
     titleRow.className = "card-title-row";
     titleRow.innerHTML =

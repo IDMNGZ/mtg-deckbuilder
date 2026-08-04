@@ -395,6 +395,10 @@ var DeckBuilderUI = (function () {
     renderAll();
   }
 
+  function viewDeck() {
+    DeckView.show(deck, { title: deck.name || "Untitled deck", formatName: currentFormat().name });
+  }
+
   function saveDeck() {
     var name = els.nameInput.value.trim();
     if (!name) {
@@ -455,6 +459,7 @@ var DeckBuilderUI = (function () {
     els.stats = document.getElementById("deck-stats");
     els.list = document.getElementById("deck-list");
     els.newBtn = document.getElementById("btn-new-deck");
+    els.viewBtn = document.getElementById("btn-view-deck");
     els.saveBtn = document.getElementById("btn-save-deck");
     els.addFeedback = document.getElementById("deck-add-feedback");
     els.typeFilters = document.getElementById("deckbuilder-type-filters");
@@ -476,6 +481,7 @@ var DeckBuilderUI = (function () {
     els.poolFilter.addEventListener("input", renderPool);
     CardView.attachClearButton(els.poolFilter, document.getElementById("deck-pool-filter-clear"));
     els.newBtn.addEventListener("click", newDeck);
+    els.viewBtn.addEventListener("click", viewDeck);
     els.saveBtn.addEventListener("click", saveDeck);
     // Keep the pool in sync when ownership is toggled from the card modal's version cycler,
     // or when the shared Merge Dupes toggle in the header changes.
