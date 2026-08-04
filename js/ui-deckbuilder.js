@@ -357,6 +357,14 @@ var DeckBuilderUI = (function () {
     var totalCards = 0;
     var curve = [0, 0, 0, 0, 0, 0, 0]; // index 6 = "7+"
     var curveNames = [[], [], [], [], [], [], []]; // parallel to curve, for the hover tooltip
+    // Per-bucket color breakdown for the stacked chart. Each card contributes to exactly
+    // one category (mono color, "M" for multicolor, or "C" for colorless) so a bucket's
+    // segments always sum to that bucket's own total - unlike colorCounts below, which
+    // deliberately double-counts a multicolor card toward each of its colors (the right
+    // math for "which colors does this deck lean on," a different question than "what's
+    // this bucket made of").
+    var curveColorCounts = [{}, {}, {}, {}, {}, {}, {}];
+    var colorTotals = {};
     var colorCounts = { W: 0, U: 0, B: 0, R: 0, G: 0, C: 0 };
     var typeCounts = {};
     var cmcSum = 0, cmcCards = 0;
@@ -375,6 +383,11 @@ var DeckBuilderUI = (function () {
         curveNames[idx].push(qty > 1 ? card.name + " ×" + qty : card.name);
         cmcSum += card.cmc * qty;
         cmcCards += qty;
+
+        var cardColors = card.colors && card.colors.length ? card.colors : null;
+        var cat = !cardColors ? "C" : (cardColors.length === 1 ? cardColors[0] : "M");
+        curveColorCounts[idx][cat] = (curveColorCounts[idx][cat] || 0) + qty;
+        colorTotals[cat] = (colorTotals[cat] || 0) + qty;
       }
 
       if (card.colors && card.colors.length) {
@@ -386,7 +399,6 @@ var DeckBuilderUI = (function () {
 
     var avgCmc = cmcCards ? (cmcSum / cmcCards).toFixed(2) : "0.00";
     var maxCurve = Math.max.apply(null, curve.concat([1]));
-    var maxColor = Math.max.apply(null, Object.keys(colorCounts).map(function (k) { return colorCounts[k]; }).concat([1]));
 
     var colorMeta = {
       W: { label: "White", swatch: "var(--white)" },
@@ -394,38 +406,34 @@ var DeckBuilderUI = (function () {
       B: { label: "Black", swatch: "var(--black)" },
       R: { label: "Red", swatch: "var(--red)" },
       G: { label: "Green", swatch: "var(--green)" },
+      M: { label: "Multicolor", swatch: "var(--gold)" },
       C: { label: "Colorless", swatch: "var(--text-dim)" },
     };
+    var curveColorOrder = ["W", "U", "B", "R", "G", "M", "C"];
 
-    // "Not obvious what this is indicating" (user feedback) - the bare chart didn't say
-    // what the bar height or the axis numbers meant. A one-line caption plus an explicit
-    // axis title turns "a row of blue bars" into something legible without hovering or
-    // asking - the numbers atop each bar are card counts, the numbers below are mana cost.
-    // Each bar's title attribute lists the actual cards in that bucket (native tooltip,
-    // no extra UI needed) and the count is followed by a % of non-land cards, so "8" also
-    // reads as "8, a bit over a tenth of the deck" instead of just a bare number.
-    var curveHtml = '<div class="stat-section"><div class="stat-label"><span>Mana Curve</span><span>avg CMC ' + avgCmc + '</span></div>' +
-      '<p class="stat-caption">Non-land cards by mana cost - a curve that leans left plays more consistently early; one stacked toward the right needs more lands drawn before it does much.</p>' +
+    // Combines what used to be two separate charts (Mana Curve, Color Balance) into one:
+    // each bar's height is still the card count at that mana value (same as before), but
+    // now split into colored segments so you can see which colors show up at which cost,
+    // not just totals for each in isolation. A bucket's title attribute still lists the
+    // actual cards in it; the legend below turns segment color back into a name/count.
+    var curveHtml = '<div class="stat-section"><div class="stat-label"><span>Mana Curve by Color</span><span>avg CMC ' + avgCmc + '</span></div>' +
+      '<p class="stat-caption">Non-land cards by mana cost, split by color - a curve that leans left plays more consistently early; segment colors show which colors show up at which cost.</p>' +
       '<div class="curve-bars">' +
       curve.map(function (count, i) {
         var pct = Math.round((count / maxCurve) * 100);
         var share = cmcCards ? Math.round((count / cmcCards) * 100) : 0;
         var names = curveNames[i].length ? curveNames[i].join(", ") : "No cards at this cost";
-        return '<div class="curve-bar-wrap" title="' + CardView.escapeHtml(names) + '"><span class="curve-bar-count">' + (count ? count + (cmcCards ? ' · ' + share + '%' : '') : "") + '</span><div class="curve-bar" style="height:' + pct + '%"></div><span class="curve-bar-label">' + (i === 6 ? "7+" : i) + '</span></div>';
-      }).join("") + '</div><div class="curve-axis-title">Mana Value</div></div>';
-
-    // Mana icons (Scryfall's public symbol CDN, same source already relied on for every
-    // card image in this app) instead of text labels - "W U B R G" reads as fast as a
-    // color name does to anyone who's looked at a Magic card, and matches the mana costs
-    // shown everywhere else in the app more directly than spelled-out color names did.
-    var colorHtml = '<div class="stat-section"><div class="stat-label"><span>Color Balance</span></div><div class="color-bars">' +
-      Object.keys(colorMeta).map(function (key) {
-        var count = colorCounts[key] || 0;
-        var pct = Math.round((count / maxColor) * 100);
-        return '<div class="color-bar-row">' +
-          '<img class="mana-pip-icon" src="https://svgs.scryfall.io/card-symbols/' + key + '.svg" alt="' + colorMeta[key].label + '" title="' + colorMeta[key].label + '">' +
-          '<div class="color-bar-track"><div class="color-bar-fill" style="width:' + pct + '%;background:' + colorMeta[key].swatch + '"></div></div>' +
-          '<span class="color-bar-count">' + count + '</span></div>';
+        var bucketColors = curveColorCounts[i];
+        var segments = curveColorOrder.filter(function (k) { return bucketColors[k]; }).map(function (k) {
+          return '<div class="curve-bar-segment" style="flex:' + bucketColors[k] + ' 0 0;background:' + colorMeta[k].swatch + '" title="' + colorMeta[k].label + ': ' + bucketColors[k] + '"></div>';
+        }).join("");
+        return '<div class="curve-bar-wrap" title="' + CardView.escapeHtml(names) + '"><span class="curve-bar-count">' + (count ? count + (cmcCards ? ' · ' + share + '%' : '') : "") + '</span><div class="curve-bar-stack" style="height:' + pct + '%">' + segments + '</div><span class="curve-bar-label">' + (i === 6 ? "7+" : i) + '</span></div>';
+      }).join("") + '</div><div class="curve-axis-title">Mana Value</div>' +
+      '<div class="curve-color-legend">' + curveColorOrder.map(function (k) {
+        var icon = k === "M"
+          ? '<span class="legend-multi-dot" style="background:' + colorMeta[k].swatch + '"></span>'
+          : '<img class="mana-pip-icon" src="https://svgs.scryfall.io/card-symbols/' + k + '.svg" alt="' + colorMeta[k].label + '">';
+        return '<div class="curve-legend-item" title="' + colorMeta[k].label + '">' + icon + '<span class="curve-legend-count">' + (colorTotals[k] || 0) + '</span></div>';
       }).join("") + '</div></div>';
 
     var typeHtml = '<div class="stat-section"><div class="stat-label"><span>Types</span><span class="deck-total-cards">' + totalCards + ' cards total</span></div><div class="type-breakdown">' +
@@ -465,11 +473,9 @@ var DeckBuilderUI = (function () {
         : '<p class="empty-hint">Add cards to see insights about this deck.</p>') +
       "</div>";
 
-    // Color Balance leads (what colors am I playing), Mana Curve second (how do those
-    // cards cost out), Types third, Insights last - reordered from the original
-    // curve/color/types order per user feedback, each now its own bordered section
-    // instead of one flowing block.
-    els.stats.innerHTML = colorHtml + curveHtml + typeHtml + insightsHtml;
+    // Mana Curve by Color leads (it now carries what the standalone Color Balance section
+    // used to show too), then Types, then Insights.
+    els.stats.innerHTML = curveHtml + typeHtml + insightsHtml;
   }
 
   // ---- Deck lifecycle ----

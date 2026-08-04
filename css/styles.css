@@ -709,23 +709,27 @@ select, input[type="text"], .deck-name-input {
 .stat-caption { font-size: 11px; line-height: 1.4; color: var(--text-dim); margin: 0 0 8px; }
 
 /* Narrowed to a fixed width and centered (was flex: 1, stretching each of the 7 columns
-   to fill the row) so their thickness roughly matches the color bars' now-thicker
-   horizontal tracks instead of reading as a much chunkier, unrelated chart. */
+   to fill the row) - reads as a chart instead of a set of full-width blocks. */
 .curve-bars { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 110px; }
 .curve-bar-wrap { flex: 0 0 30px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
-.curve-bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
+/* Was a single solid-color .curve-bar - now a flex column of .curve-bar-segment children,
+   each sized by flex-grow proportional to its color's count within this bucket, so the
+   stack's total height still matches the bucket's overall count (min-height covers the
+   empty-bucket case, where there are no segments to give the wrapper any height at all). */
+.curve-bar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; min-height: 2px; }
+.curve-bar-segment { width: 100%; }
 .curve-bar-count { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
 .curve-bar-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
 .curve-axis-title { text-align: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-top: 6px; }
 
-.color-bars { display: flex; flex-direction: column; gap: 6px; }
-.color-bar-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+/* Legend for the stacked segments above - was its own full "Color Balance" section with a
+   proportional bar per color; folded in here now that the stacked curve itself shows
+   color proportions, so this just needs to map segment color back to a name and a total. */
+.curve-color-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.curve-legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-dim); }
 .mana-pip-icon { width: 20px; height: 20px; flex-shrink: 0; }
-/* Thickened from 10px to visually match the mana curve bars' new narrower width, so
-   neither chart reads as the "thin" one next to a chunkier neighbor. */
-.color-bar-track { flex: 1; background: var(--bg-input); border-radius: 4px; height: 22px; overflow: hidden; }
-.color-bar-fill { height: 100%; }
-.color-bar-count { width: 24px; text-align: right; color: var(--text-dim); }
+.legend-multi-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
+.curve-legend-count { min-width: 14px; }
 
 .type-breakdown { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; }
 .type-chip { background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; }
