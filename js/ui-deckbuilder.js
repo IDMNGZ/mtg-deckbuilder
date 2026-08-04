@@ -465,9 +465,23 @@ var DeckBuilderUI = (function () {
       insightLines.push(landCount + " lands - " + landPct + "% of the deck" + (landTarget ? " (most " + format.name + " decks run around " + landTarget + ")" : "") + ".");
 
       if (cmcCards > 0) {
+        var cmcNum = parseFloat(avgCmc);
+        var curveShape = cmcNum < 2.5 ? "low - a fast, aggressive curve"
+          : cmcNum <= 4 ? "a fairly average curve"
+          : "on the higher side - expect to lean on ramp or extra mana to hit it on time";
+        insightLines.push("Average mana value " + avgCmc + " - " + curveShape + ".");
+
         var earlyPlays = curve[0] + curve[1] + curve[2];
         var earlyPct = Math.round((earlyPlays / cmcCards) * 100);
         insightLines.push(earlyPlays + " of " + cmcCards + " non-land cards (" + earlyPct + "%) cost 2 or less mana.");
+      }
+
+      var creatureCount = typeCounts["Creature"] || 0;
+      var otherSpellCount = totalCards - landCount - creatureCount;
+      if (creatureCount + otherSpellCount > 0) {
+        var creatureShare = creatureCount / (creatureCount + otherSpellCount);
+        var creatureNote = creatureShare >= 0.6 ? " - creature-heavy" : creatureShare <= 0.3 ? " - spell-heavy" : "";
+        insightLines.push(creatureCount + " creatures, " + otherSpellCount + " other non-land cards" + creatureNote + ".");
       }
 
       var activeColors = Object.keys(colorMeta).filter(function (k) { return k !== "C" && colorCounts[k] > 0; })
@@ -477,6 +491,15 @@ var DeckBuilderUI = (function () {
       } else if (activeColors.length === 1) {
         insightLines.push("Mono-" + colorMeta[activeColors[0]].label.toLowerCase() + " - no color-fixing to worry about.");
       }
+    }
+    // Short, factual rule reminder tied to this format's actual copy limit - the same
+    // Formats.maxCopies() ceiling addCard() already enforces, not a separate hardcoded
+    // claim. Skipped for formats with no meaningful universal limit (Free, Speed Magic -
+    // the latter already has its own 5-land/5-other line in the status banner above).
+    if (format.maxCopies === 1) {
+      insightLines.push("Singleton format - max 1 copy of any card except basic lands.");
+    } else if (format.maxCopies === 4) {
+      insightLines.push("Max 4 copies of any card except basic lands.");
     }
     var insightsHtml = '<div class="stat-section stat-section-grow stat-section-center"><div class="stat-label"><span>Deck Insights</span></div>' +
       (insightLines.length
