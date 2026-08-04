@@ -442,7 +442,7 @@ var DeckBuilderUI = (function () {
       }).join("") + '</div><div class="curve-axis-title">Mana Value</div>' +
       '<div class="curve-color-legend">' + curveColorOrder.map(function (k) {
         var icon = k === "M"
-          ? '<span class="legend-multi-dot" style="background:' + colorMeta[k].swatch + '"></span>'
+          ? '<span class="legend-multi-dot"></span>'
           : '<img class="mana-pip-icon" src="https://svgs.scryfall.io/card-symbols/' + k + '.svg" alt="' + colorMeta[k].label + '">';
         return '<div class="curve-legend-item" title="' + colorMeta[k].label + '">' + icon + '<span class="curve-legend-count">' + (colorTotals[k] || 0) + '</span></div>';
       }).join("") + '</div></div>';

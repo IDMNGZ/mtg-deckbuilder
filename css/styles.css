@@ -650,7 +650,7 @@ select, input[type="text"], .deck-name-input {
 }
 
 .deck-meta { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 12px; }
-.deck-name-input { flex: 1; }
+.deck-name-field { flex: 1; }
 .deck-format-field { flex: 0 0 auto; min-width: 140px; }
 
 .deck-pool-note { font-size: 12px; color: var(--text-dim); margin: 0 0 8px; }
@@ -735,10 +735,21 @@ select, input[type="text"], .deck-name-input {
 /* Legend for the stacked segments above - was its own full "Color Balance" section with a
    proportional bar per color; folded in here now that the stacked curve itself shows
    color proportions, so this just needs to map segment color back to a name and a total. */
-.curve-color-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.curve-color-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
 .curve-legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-dim); }
 .mana-pip-icon { width: 20px; height: 20px; flex-shrink: 0; }
-.legend-multi-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
+/* A flat gold dot didn't read as "multicolor" so much as "a 6th color." A five-color pie
+   (Magic's own well-known color-wheel iconography) reads as "touches multiple colors"
+   without implying any specific two, since a multicolor card here could be any
+   combination - not always the same pair. Sized to match the real mana symbol icons. */
+.legend-multi-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: conic-gradient(var(--white) 0% 20%, var(--blue) 20% 40%, var(--black) 40% 60%, var(--red) 60% 80%, var(--green) 80% 100%);
+  border: 1px solid var(--border);
+}
 .curve-legend-count { min-width: 14px; }
 
 .type-breakdown { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; }
@@ -748,7 +759,10 @@ select, input[type="text"], .deck-name-input {
 .deck-insights-list li { position: relative; padding-left: 14px; }
 .deck-insights-list li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
 
-.deck-list { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow-y: auto; }
+/* Right padding keeps the remove button clear of the scrollbar - without it, the button
+   sat flush against (and got partly covered by) the scrollbar track on both web and
+   mobile whenever the list was tall enough to scroll. */
+.deck-list { list-style: none; margin: 0; padding: 0 10px 0 0; max-height: 50vh; overflow-y: auto; }
 .deck-list-item {
   display: flex;
   align-items: center;
