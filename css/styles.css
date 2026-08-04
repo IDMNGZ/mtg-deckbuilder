@@ -691,7 +691,12 @@ select, input[type="text"], .deck-name-input {
    own bordered block, same treatment as the summary/list panels themselves, so "where does
    Color Balance end and Mana Curve begin" is obvious at a glance. */
 .stat-section {
-  background: var(--bg-input);
+  /* Same background tier as its own parent (.deckbuilder-summary) - separated from it by
+     the border alone, same technique that panel itself uses against the page background.
+     Using --bg-input here instead would match the color-bar-track/type-chip elements
+     nested inside it one level down, which rely on --bg-input contrasting against an
+     --bg-elevated parent to be visible at all. */
+  background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px 12px;
@@ -703,22 +708,31 @@ select, input[type="text"], .deck-name-input {
 
 .stat-caption { font-size: 11px; line-height: 1.4; color: var(--text-dim); margin: 0 0 8px; }
 
-.curve-bars { display: flex; align-items: flex-end; gap: 4px; height: 110px; }
-.curve-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+/* Narrowed to a fixed width and centered (was flex: 1, stretching each of the 7 columns
+   to fill the row) so their thickness roughly matches the color bars' now-thicker
+   horizontal tracks instead of reading as a much chunkier, unrelated chart. */
+.curve-bars { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 110px; }
+.curve-bar-wrap { flex: 0 0 30px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
 .curve-bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
 .curve-bar-count { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
 .curve-bar-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
 .curve-axis-title { text-align: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-top: 6px; }
 
-.color-bars { display: flex; flex-direction: column; gap: 4px; }
-.color-bar-row { display: flex; align-items: center; gap: 6px; font-size: 11px; }
-.color-bar-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
-.color-bar-track { flex: 1; background: var(--bg-input); border-radius: 3px; height: 10px; overflow: hidden; }
+.color-bars { display: flex; flex-direction: column; gap: 6px; }
+.color-bar-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+.mana-pip-icon { width: 20px; height: 20px; flex-shrink: 0; }
+/* Thickened from 10px to visually match the mana curve bars' new narrower width, so
+   neither chart reads as the "thin" one next to a chunkier neighbor. */
+.color-bar-track { flex: 1; background: var(--bg-input); border-radius: 4px; height: 22px; overflow: hidden; }
 .color-bar-fill { height: 100%; }
 .color-bar-count { width: 24px; text-align: right; color: var(--text-dim); }
 
 .type-breakdown { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; }
 .type-chip { background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; }
+
+.deck-insights-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+.deck-insights-list li { position: relative; padding-left: 14px; }
+.deck-insights-list li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
 
 .deck-list { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow-y: auto; }
 .deck-list-item {

@@ -353,6 +353,7 @@ var DeckBuilderUI = (function () {
   }
 
   function renderStats() {
+    var format = currentFormat();
     var totalCards = 0;
     var curve = [0, 0, 0, 0, 0, 0, 0]; // index 6 = "7+"
     var curveNames = [[], [], [], [], [], [], []]; // parallel to curve, for the hover tooltip
@@ -413,12 +414,16 @@ var DeckBuilderUI = (function () {
         return '<div class="curve-bar-wrap" title="' + CardView.escapeHtml(names) + '"><span class="curve-bar-count">' + (count ? count + (cmcCards ? ' · ' + share + '%' : '') : "") + '</span><div class="curve-bar" style="height:' + pct + '%"></div><span class="curve-bar-label">' + (i === 6 ? "7+" : i) + '</span></div>';
       }).join("") + '</div><div class="curve-axis-title">Mana Value</div></div>';
 
+    // Mana icons (Scryfall's public symbol CDN, same source already relied on for every
+    // card image in this app) instead of text labels - "W U B R G" reads as fast as a
+    // color name does to anyone who's looked at a Magic card, and matches the mana costs
+    // shown everywhere else in the app more directly than spelled-out color names did.
     var colorHtml = '<div class="stat-section"><div class="stat-label"><span>Color Balance</span></div><div class="color-bars">' +
       Object.keys(colorMeta).map(function (key) {
         var count = colorCounts[key] || 0;
         var pct = Math.round((count / maxColor) * 100);
-        return '<div class="color-bar-row"><span class="color-bar-swatch" style="background:' + colorMeta[key].swatch + '"></span>' +
-          '<span style="width:60px">' + colorMeta[key].label + '</span>' +
+        return '<div class="color-bar-row">' +
+          '<img class="mana-pip-icon" src="https://svgs.scryfall.io/card-symbols/' + key + '.svg" alt="' + colorMeta[key].label + '" title="' + colorMeta[key].label + '">' +
           '<div class="color-bar-track"><div class="color-bar-fill" style="width:' + pct + '%;background:' + colorMeta[key].swatch + '"></div></div>' +
           '<span class="color-bar-count">' + count + '</span></div>';
       }).join("") + '</div></div>';
@@ -428,10 +433,43 @@ var DeckBuilderUI = (function () {
         return '<span class="type-chip">' + CardView.escapeHtml(t) + ' ×' + typeCounts[t] + '</span>';
       }).join("") + '</div></div>';
 
+    // Plain-language readout of the numbers already computed above, rather than another
+    // chart - land ratio against a format-appropriate target, how much of the deck acts
+    // early, and which colors it actually leans on. Deliberately factual/descriptive, not
+    // prescriptive - "here's what your numbers are" rather than a pass/fail verdict on a
+    // strategy this app has no way to actually judge.
+    var insightLines = [];
+    if (totalCards > 0) {
+      var landCount = typeCounts["Land"] || 0;
+      var landPct = Math.round((landCount / totalCards) * 100);
+      var landTarget = format.needsCommander ? "38-40%" : (format.deckSize && format.deckSize.min ? "25-30%" : null);
+      insightLines.push(landCount + " lands - " + landPct + "% of the deck" + (landTarget ? " (most " + format.name + " decks run around " + landTarget + ")" : "") + ".");
+
+      if (cmcCards > 0) {
+        var earlyPlays = curve[0] + curve[1] + curve[2];
+        var earlyPct = Math.round((earlyPlays / cmcCards) * 100);
+        insightLines.push(earlyPlays + " of " + cmcCards + " non-land cards (" + earlyPct + "%) cost 2 or less mana.");
+      }
+
+      var activeColors = Object.keys(colorMeta).filter(function (k) { return k !== "C" && colorCounts[k] > 0; })
+        .sort(function (a, b) { return colorCounts[b] - colorCounts[a]; });
+      if (activeColors.length >= 2) {
+        insightLines.push("Leans on " + activeColors.slice(0, 2).map(function (k) { return colorMeta[k].label; }).join(" and ") + " - make sure the manabase supports both well.");
+      } else if (activeColors.length === 1) {
+        insightLines.push("Mono-" + colorMeta[activeColors[0]].label.toLowerCase() + " - no color-fixing to worry about.");
+      }
+    }
+    var insightsHtml = '<div class="stat-section"><div class="stat-label"><span>Deck Insights</span></div>' +
+      (insightLines.length
+        ? '<ul class="deck-insights-list">' + insightLines.map(function (l) { return "<li>" + CardView.escapeHtml(l) + "</li>"; }).join("") + "</ul>"
+        : '<p class="empty-hint">Add cards to see insights about this deck.</p>') +
+      "</div>";
+
     // Color Balance leads (what colors am I playing), Mana Curve second (how do those
-    // cards cost out), Types last - reordered from the original curve/color/types order
-    // per user feedback, each now its own bordered section instead of one flowing block.
-    els.stats.innerHTML = colorHtml + curveHtml + typeHtml;
+    // cards cost out), Types third, Insights last - reordered from the original
+    // curve/color/types order per user feedback, each now its own bordered section
+    // instead of one flowing block.
+    els.stats.innerHTML = colorHtml + curveHtml + typeHtml + insightsHtml;
   }
 
   // ---- Deck lifecycle ----
