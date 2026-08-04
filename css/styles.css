@@ -190,6 +190,10 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;
+  /* The box's own bottom padding covers spacing to its own last line (the match-count
+     status text), but nothing separated the box itself from whatever follows it - the
+     card grid sat flush against the border with no breathing room. */
+  margin-bottom: 16px;
 }
 
 .controls-divider {
