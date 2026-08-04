@@ -34,13 +34,16 @@ var DecksUI = (function () {
     header.innerHTML = '<div class="deck-card-name">' + CardView.escapeHtml(deck.name) + '</div>';
     li.appendChild(header);
 
-    var cover = highestCmcCard(deck);
+    // The Commander is the deck's defining card in Commander/Brawl - use it as the cover
+    // instead of whichever of the other 99 cards happens to have the highest mana cost.
+    var cover = deck.commander || highestCmcCard(deck);
+    var coverIsCommander = !!deck.commander;
     if (cover && cover.image) {
       var img = document.createElement("img");
       img.className = "deck-card-image";
       img.src = cover.image.normal || cover.image.small;
       img.alt = cover.name;
-      img.title = cover.name + " (highest mana cost in this deck)";
+      img.title = cover.name + (coverIsCommander ? " (Commander)" : " (highest mana cost in this deck)");
       li.appendChild(img);
     }
 
