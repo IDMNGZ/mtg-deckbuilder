@@ -15,9 +15,9 @@ html, body {
 body.landing-page {
   min-height: 100vh;
   background-color: #0a0c14;
-  /* Set by js/landing-backgrounds.js before paint; falls back to the original
-     artwork if that script hasn't run yet (or has nothing in its list). */
-  background-image: var(--landing-bg, url('../card-back-bg.svg'));
+  /* Set by js/landing-backgrounds.js before paint; falls back to the plain solid
+     background-color above if that script hasn't run yet (or has nothing in its list). */
+  background-image: var(--landing-bg, none);
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;

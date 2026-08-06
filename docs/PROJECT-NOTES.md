@@ -40,8 +40,8 @@ header) holds always-visible controls: Sync, Share, Merge Dupes toggle, card-siz
 - `sync-config.js` — Dropbox app key (host-specific, gitignored value pattern — see README)
 - `scryfall.js` — API wrapper + card normalization (handles single-faced vs. `card_faces` cards)
 - `card-view.js` / `card-filters.js` — shared card rendering + filter UI
-- `qr-code.js` — thin wrapper around `vendor/qrcode-generator.js` (vendored locally, MIT, kazuhikoarase), renders an SVG QR code into a container
-- `other-apps.js` / `ui-other-apps.js` — hand-edited "My Other Apps" list + its About-tab renderer (QR code, Visit link, Share button per entry, via `ShareApp.wire()`'s per-call override)
+- `qr-code.js` — thin wrapper around `vendor/qrcode-generator.js` (vendored locally, MIT, kazuhikoarase); used to generate the static `images/QR/mtg-deckbuilder-qr.png` asset, not called live in the running app
+- `other-apps.js` / `ui-other-apps.js` — hand-edited "My Other Apps" list + its About-tab renderer (optional thumbnail, Visit link, plain-link Share button per entry via `ShareApp.wire()`'s per-call `{url, title, text}` override)
 - `deck-view.js` — modal showing a whole deck as a grouped visual card grid (used by both My Decks and Deck Builder's "View" buttons)
 - `ui-browse.js`, `ui-collection.js`, `ui-deckbuilder.js`, `ui-decks.js`, `ui-rules.js`, `ui-data.js` — per-tab UI logic
 - `formats.js` — deck format definitions (Commander, Standard, etc.)
@@ -120,6 +120,16 @@ Parked, not rejected — revisit if priorities change:
 
 ## Open items from the last session
 
-- None blocking — last shipped change was the visual deck view feature (`v0.1.96`),
-  verified clean across a full tab sweep plus targeted tests of both entry points
-  (My Decks row, Deck Builder's in-progress deck).
+- None blocking — last shipped change (`v0.1.110`) consolidated all app images under
+  one `images/` folder (`images/about/`, `images/app-bg/`, `images/landing-bg/`,
+  `images/other/`, `images/QR/` — see `images/README.txt`), pointed every JS/HTML
+  reference at the new paths, and updated `.gitignore`'s raw-PNG-exclusion patterns to
+  match the new nesting (a pattern with a mid-string slash is anchored to the
+  `.gitignore` file's own directory, so `landing-bg/*.png` does NOT match the new
+  `images/landing-bg/*.png` — the prefix has to be spelled out). Also reverted the Other
+  Apps cards' Share button back to plain link sharing (dropped the file-attachment
+  `getFiles` option and the per-card live QR render) and deleted the unused
+  `card-back-bg.svg` / `favicon.svg`. `.claude/launch.json`'s `mtg-deckbuilder-static`
+  entry was also fixed — it still pointed at the project's old `X:\Projects\...` path
+  from before an earlier move to `X:\APP_projects\...`, which was silently 404-ing any
+  file that wasn't already browser-cached (see the stale-path gotcha above).
