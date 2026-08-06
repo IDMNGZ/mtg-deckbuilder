@@ -1024,14 +1024,22 @@ select, input[type="text"], .deck-name-input {
 
 .other-apps-list { display: flex; flex-direction: column; gap: 14px; }
 .other-app-card {
-  display: flex;
-  gap: 16px;
-  align-items: center;
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;
 }
+/* Optional landing-screen preview, full width above the QR/info row - omitted entirely
+   (no empty gap left behind) when an entry has no thumbnail set. */
+.other-app-thumb {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.other-app-row { display: flex; gap: 16px; align-items: center; }
 /* White regardless of theme - the QR itself is already black-on-white (the library bakes
    that in), but a little white padding around it gives it the same "quiet zone" border a
    printed QR code needs to scan reliably, instead of the code's corner modules sitting
@@ -1055,7 +1063,7 @@ select, input[type="text"], .deck-name-input {
 .other-app-share-feedback { font-size: 12px; color: var(--text-dim); }
 
 @media (max-width: 500px) {
-  .other-app-card { flex-direction: column; align-items: center; text-align: center; }
+  .other-app-row { flex-direction: column; align-items: center; text-align: center; }
   .other-app-actions { justify-content: center; width: 100%; }
 }
 

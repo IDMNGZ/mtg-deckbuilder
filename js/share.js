@@ -58,9 +58,13 @@ var ShareApp = (function () {
 
   // buttonEl: required. feedbackEl: optional element to show a "Link copied!"-style
   // message in (skipped silently if omitted, e.g. for a button with no room nearby).
-  // opts: optional { url, title, text } override - lets this same wiring share a
-  // *different* app (e.g. an entry in the "My Other Apps" list) instead of this one,
+  // opts: optional { url, title, text, getFiles } override - lets this same wiring share
+  // a *different* app (e.g. an entry in the "My Other Apps" list) instead of this one,
   // without duplicating the share/copy-fallback logic for each app it needs to cover.
+  // getFiles (optional): () => File[] | Promise<File[]> - e.g. a rasterized QR code image.
+  // Only actually attached if the browser's Web Share API supports file sharing at all
+  // (navigator.canShare); otherwise silently falls back to the plain link/text share, so
+  // callers don't need their own feature-detection.
   function wire(buttonEl, feedbackEl, opts) {
     if (!buttonEl) return;
     opts = opts || {};
@@ -68,8 +72,12 @@ var ShareApp = (function () {
     var title = opts.title || SHARE_TITLE;
     var text = opts.text || SHARE_TEXT;
     var textWithUrl = text + " " + url;
-    buttonEl.addEventListener("click", function () {
+
+    function doShare(files) {
       var shareData = { title: title, text: textWithUrl, url: url };
+      if (files && files.length && navigator.canShare && navigator.canShare({ files: files })) {
+        shareData.files = files;
+      }
       // navigator.share opens the OS's native share sheet (supported on most mobile
       // browsers, and some desktop ones) - falls back to copying the link otherwise.
       if (navigator.share) {
@@ -77,6 +85,14 @@ var ShareApp = (function () {
         return;
       }
       copyToClipboard(url, feedbackEl);
+    }
+
+    buttonEl.addEventListener("click", function () {
+      if (opts.getFiles) {
+        Promise.resolve(opts.getFiles()).then(doShare).catch(function () { doShare(null); });
+      } else {
+        doShare(null);
+      }
     });
   }
 

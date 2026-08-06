@@ -1,6 +1,8 @@
-// Renders the "My Other Apps" list on the About tab (data: js/other-apps.js) - a QR code,
-// Visit link, and Share button per app, reusing ShareApp's share/copy-fallback logic with
-// a per-entry URL/title override instead of duplicating it.
+// Renders the "My Other Apps" list on the About tab (data: js/other-apps.js) - an optional
+// landing-screen thumbnail, a QR code, a Visit link, and a Share button per app. Share
+// reuses ShareApp's share/copy-fallback logic with a per-entry URL/title override (and, on
+// browsers that support attaching files to a share, the QR code itself as an image)
+// instead of duplicating that logic per app.
 var OtherAppsUI = (function () {
   "use strict";
 
@@ -13,14 +15,25 @@ var OtherAppsUI = (function () {
     }
 
     container.innerHTML = "";
-    OTHER_APPS.forEach(function (app, i) {
+    OTHER_APPS.forEach(function (app) {
       var card = document.createElement("div");
       card.className = "other-app-card";
+
+      if (app.thumbnail) {
+        var thumb = document.createElement("img");
+        thumb.className = "other-app-thumb";
+        thumb.src = app.thumbnail;
+        thumb.alt = app.name + " landing screen";
+        card.appendChild(thumb);
+      }
+
+      var row = document.createElement("div");
+      row.className = "other-app-row";
 
       var qr = document.createElement("div");
       qr.className = "other-app-qr";
       qr.title = app.name + " QR code";
-      card.appendChild(qr);
+      row.appendChild(qr);
 
       var info = document.createElement("div");
       info.className = "other-app-info";
@@ -51,11 +64,24 @@ var OtherAppsUI = (function () {
       actions.appendChild(feedback);
 
       info.appendChild(actions);
-      card.appendChild(info);
+      row.appendChild(info);
+      card.appendChild(row);
       container.appendChild(card);
 
       QRCodeUtil.renderInto(qr, app.url, 4);
-      ShareApp.wire(shareBtn, feedback, { url: app.url, title: app.name, text: app.description || app.name });
+
+      var fileSafeName = app.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      ShareApp.wire(shareBtn, feedback, {
+        url: app.url,
+        title: app.name,
+        text: app.description || app.name,
+        getFiles: function () {
+          var svg = qr.querySelector("svg");
+          return QRCodeUtil.svgToPngBlob(svg, 512).then(function (blob) {
+            return [new File([blob], fileSafeName + "-qr.png", { type: "image/png" })];
+          });
+        },
+      });
     });
   }
 
