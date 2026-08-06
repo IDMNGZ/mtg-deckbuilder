@@ -209,6 +209,7 @@
     // Share moved to the global status bar (see DataTabUI.renderStatusBar) now that it's
     // visible on every tab - one button instead of duplicating it per-tab.
     document.getElementById("about-version").textContent = APP_VERSION;
+    OtherAppsUI.render();
 
     // A pull replacing local data (from another device's changes) needs whatever tab is
     // currently visible to re-render from the fresh data.

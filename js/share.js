@@ -58,17 +58,25 @@ var ShareApp = (function () {
 
   // buttonEl: required. feedbackEl: optional element to show a "Link copied!"-style
   // message in (skipped silently if omitted, e.g. for a button with no room nearby).
-  function wire(buttonEl, feedbackEl) {
+  // opts: optional { url, title, text } override - lets this same wiring share a
+  // *different* app (e.g. an entry in the "My Other Apps" list) instead of this one,
+  // without duplicating the share/copy-fallback logic for each app it needs to cover.
+  function wire(buttonEl, feedbackEl, opts) {
     if (!buttonEl) return;
+    opts = opts || {};
+    var url = opts.url || SHARE_URL;
+    var title = opts.title || SHARE_TITLE;
+    var text = opts.text || SHARE_TEXT;
+    var textWithUrl = text + " " + url;
     buttonEl.addEventListener("click", function () {
-      var shareData = { title: SHARE_TITLE, text: SHARE_TEXT_WITH_URL, url: SHARE_URL };
+      var shareData = { title: title, text: textWithUrl, url: url };
       // navigator.share opens the OS's native share sheet (supported on most mobile
       // browsers, and some desktop ones) - falls back to copying the link otherwise.
       if (navigator.share) {
         navigator.share(shareData).catch(function () {}); // ignore cancel/unsupported-mid-call
         return;
       }
-      copyToClipboard(SHARE_URL, feedbackEl);
+      copyToClipboard(url, feedbackEl);
     });
   }
 

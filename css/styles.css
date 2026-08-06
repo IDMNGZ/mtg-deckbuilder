@@ -1022,6 +1022,43 @@ select, input[type="text"], .deck-name-input {
 }
 .about-footer a { color: var(--text-dim); }
 
+.other-apps-list { display: flex; flex-direction: column; gap: 14px; }
+.other-app-card {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+/* White regardless of theme - the QR itself is already black-on-white (the library bakes
+   that in), but a little white padding around it gives it the same "quiet zone" border a
+   printed QR code needs to scan reliably, instead of the code's corner modules sitting
+   flush against this dark card's own background. */
+.other-app-qr {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.other-app-qr svg { width: 100%; height: 100%; display: block; }
+.other-app-info { flex: 1; min-width: 0; }
+.other-app-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.other-app-desc { font-size: 13px; color: var(--text-dim); margin: 0 0 10px; line-height: 1.4; }
+.other-app-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.other-app-share-feedback { font-size: 12px; color: var(--text-dim); }
+
+@media (max-width: 500px) {
+  .other-app-card { flex-direction: column; align-items: center; text-align: center; }
+  .other-app-actions { justify-content: center; width: 100%; }
+}
+
 /* Modal */
 
 .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
