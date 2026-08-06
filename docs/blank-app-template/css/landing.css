@@ -1,0 +1,162 @@
+* { box-sizing: border-box; }
+
+/* Same MTGTitle font this app's own branded title used is dropped here on purpose - add
+   your own the same way (see css/styles.css's matching note) if you want a custom display
+   font for .landing-title below. Plain Georgia/serif in the meantime. */
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body.landing-page {
+  min-height: 100vh;
+  background-color: #0a0c14;
+  /* Set by js/landing-backgrounds.js before paint; falls back to the plain solid
+     background-color above until you add real images to LANDING_BACKGROUNDS. */
+  background-image: var(--landing-bg, none);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #f2efe6;
+  text-align: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.landing-title {
+  font-family: Georgia, serif; /* swap in your own @font-face title font here if desired */
+  font-size: 64px;
+  font-weight: 400;
+  line-height: 1.15;
+  margin: 0 0 28px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  /* Layered: a tight, dark offset shadow for a crisp carved/engraved look, plus the
+     original soft glow behind it so the title still lifts off busy background art.
+     Actual font-size is set/kept in sync per-line by js/landing-fit.js, since no fixed
+     CSS breakpoint can guarantee "Magic The Gathering" stays on one line across every
+     phone width and orientation - this is just the (large) starting point it shrinks
+     down from. */
+  text-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.55),
+    0 6px 10px rgba(0, 0, 0, 0.75),
+    0 2px 24px rgba(0, 0, 0, 0.65);
+}
+
+.landing-subtitle {
+  font-size: 19px;
+  font-weight: 700;
+  color: #c7c9d6;
+  margin: 0;
+  white-space: nowrap;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.65);
+}
+
+/* Enter + Share sit side by side and wrap onto their own lines (never overlapping,
+   flexbox items can't overlap) if there isn't room - the safety net for short/narrow
+   viewports instead of a fixed breakpoint tuned to one device size. */
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.landing-enter-btn {
+  display: inline-block;
+  padding: 16px 44px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #14151a;
+  background: #c9a536;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(201, 165, 54, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-enter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(201, 165, 54, 0.55);
+}
+
+/* A solid-ish tinted backdrop (not just a faint white tint) so Share reads clearly as a
+   button against any of the random background images, not just the darker ones. */
+.landing-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 16px 30px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #f2efe6;
+  background: rgba(36, 20, 66, 0.72);
+  border: 2px solid #c9a536;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.landing-share-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(50, 28, 92, 0.82);
+  border-color: #e0bd4c;
+}
+
+.landing-share-feedback {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #c9a536;
+  min-height: 16px;
+}
+
+/* Pinned near the bottom of the viewport, independent of the title/actions block above
+   (which is vertically centered as its own group) - "Created by..." and the app-info
+   text (mirroring the About tab's .about-footer) sit together as one bottom-anchored
+   group instead of trailing directly under the Enter/Share buttons. */
+.landing-bottom {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.landing-appinfo {
+  font-size: 12px;
+  line-height: 1.8;
+  color: rgba(242, 239, 230, 0.55);
+  white-space: nowrap;
+}
+
+.landing-appinfo a {
+  color: rgba(242, 239, 230, 0.55);
+}
+
+/* The source art is portrait (896x1344) - on a wide desktop viewport, "cover" has to
+   scale up well past native resolution to fill the width, cropping most of the image and
+   leaving what's left looking soft/blurry. "contain" shows the whole image at up to its
+   native size instead, letterboxed with the page's own dark background - narrower/taller
+   mobile viewports don't hit this problem since the aspect ratios are already close, so
+   they stay on "cover" to fill edge-to-edge. */
+@media (min-width: 900px) {
+  body.landing-page {
+    background-size: contain;
+  }
+}

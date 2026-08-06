@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Your App Name</title>
+<meta name="theme-color" content="#0a0c14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Your App">
+<!-- <link rel="icon" href="favicon.svg" type="image/svg+xml"> -->
+<!-- <link rel="apple-touch-icon" href="favicon.svg"> -->
+<link rel="stylesheet" href="css/landing.css">
+<script src="js/landing-backgrounds.js"></script>
+<script src="js/version.js"></script>
+<script>
+  // Runs before the body paints, so there's no flash of the fallback background before
+  // swapping to the randomly chosen one. No-ops harmlessly until LANDING_BACKGROUNDS
+  // actually has filenames in it.
+  (function () {
+    if (typeof LANDING_BACKGROUNDS === "undefined" || LANDING_BACKGROUNDS.length === 0) return;
+    var choice = LANDING_BACKGROUNDS[Math.floor(Math.random() * LANDING_BACKGROUNDS.length)];
+    var absoluteUrl = new URL(choice, location.href).href;
+    document.documentElement.style.setProperty("--landing-bg", "url('" + absoluteUrl + "')");
+  })();
+</script>
+</head>
+<body class="landing-page">
+  <main>
+    <h1 class="landing-title">Your App<br>Name Here</h1>
+    <div class="landing-actions">
+      <a href="app.html" class="landing-enter-btn">Enter</a>
+      <button type="button" id="btn-share" class="landing-share-btn" title="Share this app">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        Share
+      </button>
+    </div>
+    <span id="share-feedback" class="landing-share-feedback" aria-live="polite"></span>
+  </main>
+  <div class="landing-bottom">
+    <p class="landing-subtitle">Created by Your Name</p>
+    <div class="landing-appinfo">
+      <div>Your App Name <span id="landing-version"></span></div>
+      <div>&copy; 2026 Your Name. All rights reserved.</div>
+    </div>
+  </div>
+  <script src="js/share.js"></script>
+  <script src="js/landing-fit.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      ShareApp.wire(document.getElementById("btn-share"), document.getElementById("share-feedback"));
+      document.getElementById("landing-version").textContent = APP_VERSION;
+      LandingFit.init();
+    });
+  </script>
+</body>
+</html>

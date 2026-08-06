@@ -23,6 +23,11 @@ dimensions, responsive image-grid formula, breakpoint list), see
 [`LAYOUT-SIZING-REFERENCE.md`](LAYOUT-SIZING-REFERENCE.md) — sizing/layout only, no colors
 or fonts, so it drops into a differently-themed app cleanly.
 
+For a literal starting point (not just documentation) — a blank, placeholder-filled copy
+of this app's page shell and About tab, CSS included verbatim — see
+[`blank-app-template/`](blank-app-template/README.md). Unlike the sizing reference above,
+this one carries full visual continuity (fonts, exact CSS), not just the numbers.
+
 ## Current shape of the app
 
 Static HTML/CSS/JS, no build step, no backend. Tabs: Browse, Collection, Deck Builder,

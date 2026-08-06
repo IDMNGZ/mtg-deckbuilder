@@ -1,0 +1,1542 @@
+:root {
+  --bg: #14151a;
+  --bg-elevated: #1d1f26;
+  --bg-input: #24262f;
+  --border: #33353f;
+  --text: #e9e9ee;
+  --text-dim: #9a9ca6;
+  --accent: #7c8cff;
+  --accent-hover: #97a4ff;
+  --danger: #e0616b;
+  --white: #f7f4e9;
+  --blue: #3b8fe0;
+  --black: #8a7ba0;
+  --red: #d8555f;
+  --green: #4caf6e;
+  --gold: #c9a536;
+  --header-h: 60px; /* fallback; js/app.js measures the real header height on load/resize */
+  /* Card grid tile-size floor. Redeclared per breakpoint below as sensible defaults;
+     js/app.js overrides both with an inline style once the user drags the zoom slider,
+     which (being inline) wins over any of these media-query values automatically. */
+  --card-min-w: 200px;
+  --card-min-w-compact: 160px;
+}
+
+/* MTG Deck Builder's own @font-face (a Magic: The Gathering branded display font) was
+   deliberately dropped here - the ONE piece of this file that's actually specific to that
+   app rather than reusable shell. Add your own display font the same way if you want one:
+   @font-face { font-family: "YourTitleFont"; src: url("../fonts/your-font.ttf") ... }
+   then reference it in the h1 rule below, same as ".app-header h1" and ".landing-title"
+   both did. Left as plain Georgia/serif here in the meantime. */
+
+* { box-sizing: border-box; }
+
+/* Hard guarantee against the page becoming horizontally pannable - grid/flex children
+   can still misbehave and force their container wider than the viewport (see the
+   min-width: 0 fixes below for the actual case that was happening), so this is a
+   backstop rather than the fix itself. */
+html, body { overflow-x: hidden; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* A fixed, full-viewport layer behind everything rather than background-attachment: fixed
+   directly on body - iOS Safari has a long-standing bug where "fixed" backgrounds actually
+   scroll with the page instead of staying put, but a genuinely position: fixed element
+   doesn't have that problem on any browser. Falls back to fully transparent (nothing set)
+   when --app-bg hasn't been set (no images added to js/app-backgrounds.js yet, or that
+   script hasn't loaded), so body's own solid --bg color shows through unchanged until
+   there's actually artwork to show. The dark gradient tinting it is there for the text
+   that sits directly on the page background in a few places (status bar, filter rows) -
+   every actual content panel (card tiles, section boxes) already has its own solid
+   background regardless of what's behind it, so this only has to protect the un-boxed bits. */
+#app-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: linear-gradient(rgba(20, 21, 26, 0.8), rgba(20, 21, 26, 0.8)), var(--app-bg, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-header h1 {
+  font-family: Georgia, serif; /* swap in your own @font-face title font here if desired */
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  margin: 0;
+  text-align: center;
+}
+
+/* Invisible to layout everywhere except phone portrait (see that media query), where it
+   turns the header's nav into a horizontally-scrolling row without changing anything
+   about how it behaves at other sizes. */
+.header-controls-row { display: contents; }
+
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+.tab-link {
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  font-size: 14px;
+}
+
+.tab-link:hover { border-color: var(--accent); color: var(--text); }
+.tab-link.active { background: var(--accent); color: #101116; border-color: var(--accent); font-weight: 600; }
+.tab-link-icon { display: inline-flex; align-items: center; gap: 5px; }
+.tab-link-icon svg { flex-shrink: 0; }
+
+/* Splits the nav into the app's core workflow (Browse/Collection/Deck Builder/My Decks)
+   vs. reference/info pages (Rules/How To Use/About) - same grouped-with-a-tint language
+   as the header's View/Data action groups, so the whole header reads as one system. */
+.tab-group {
+  display: flex;
+  gap: 8px;
+  padding: 5px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+/* The app's core workflow (Browse/Collection/Deck Builder/My Decks) gets a stronger tint
+   and bold text on every tab in the group, not just whichever one's active - it's the
+   primary place people spend their time, so it should read as more prominent than the
+   reference/info groups beside it at a glance, not just equally-weighted buttons in a
+   different color. */
+.tab-group-primary {
+  background: rgba(124, 140, 255, 0.26);
+  border-color: rgba(124, 140, 255, 0.7);
+}
+.tab-group-primary .tab-link { font-weight: 700; }
+.tab-group-secondary {
+  background: rgba(201, 165, 54, 0.16);
+  border-color: rgba(201, 165, 54, 0.5);
+}
+.tab-group-info {
+  background: rgba(154, 156, 166, 0.16);
+  border-color: rgba(154, 156, 166, 0.5);
+}
+
+/* Buttons/tabs inside a tinted group pick up a touch of that group's color themselves,
+   instead of staying the same neutral --bg-input as everything else - otherwise the
+   group tint only shows in the thin strip of padding around them. */
+.tab-group-primary .tab-link:not(.active) {
+  background: rgba(124, 140, 255, 0.2);
+  border-color: rgba(124, 140, 255, 0.55);
+  color: var(--text);
+}
+.tab-group-secondary .tab-link:not(.active) {
+  background: rgba(201, 165, 54, 0.14);
+  border-color: rgba(201, 165, 54, 0.4);
+}
+.tab-group-info .tab-link:not(.active) {
+  background: rgba(154, 156, 166, 0.14);
+  border-color: rgba(154, 156, 166, 0.4);
+}
+.btn {
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text);
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn:hover { border-color: var(--accent); }
+.btn-primary { background: var(--accent); color: #101116; border-color: var(--accent); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: transparent; }
+.btn-danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+/* A tinted middle ground between btn-ghost (near-invisible) and btn-primary (reserved for
+   the one standout action per panel, e.g. "Sync now") - for secondary actions that still
+   need to read as clickable buttons rather than blend into the card background. */
+.btn-accent { background: rgba(124, 140, 255, 0.16); border-color: var(--accent); color: var(--text); }
+.btn-accent:hover { background: rgba(124, 140, 255, 0.28); }
+
+#app { padding: 16px 20px 40px; max-width: 1400px; margin: 0 auto; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Bordered/elevated on every tab that uses it (Search, My Collection, Rules, Deck
+   Builder's pool) - was plain background: var(--bg) blending into the page, which read as
+   a missing border rather than a deliberate choice once other panels nearby (Deck
+   Builder's summary/list panels) had one. Consistent everywhere now. */
+.sticky-controls {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 9;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  /* The box's own bottom padding covers spacing to its own last line (the match-count
+     status text), but nothing separated the box itself from whatever follows it - the
+     card grid sat flush against the border with no breathing room. */
+  margin-bottom: 16px;
+}
+
+.controls-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4px 0 14px;
+}
+
+.browse-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-dim); }
+
+/* Pushed to the opposite end of the controls row and visually set apart with a divider,
+   since it's an independent way to find a card (bypasses the edition picker entirely)
+   rather than a refinement of it - shouldn't read as grouped with Editions/Filter cards. */
+.global-search-field {
+  margin-left: auto;
+  padding-left: 20px;
+  border-left: 1px solid var(--border);
+  min-width: 260px;
+}
+
+.input-clear-wrap { position: relative; display: flex; }
+.input-clear-wrap input { width: 100%; padding-right: 28px; }
+.input-clear-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 6px;
+  display: none;
+}
+.input-clear-btn:hover { color: var(--danger); }
+.field-grow { flex: 1; min-width: 220px; }
+
+select, input[type="text"], .deck-name-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.status-text { font-size: 12px; color: var(--text-dim); }
+
+/* Was stacked (the .field default) - text-above-slider made this row taller than every
+   other button in the header group. Laying it out as a row instead keeps its height in
+   line with the buttons beside it. */
+.card-size-field { min-width: 110px; flex-direction: row; align-items: center; gap: 6px; }
+.card-size-slider {
+  width: 100px;
+  accent-color: var(--accent);
+  height: 30px;
+  cursor: pointer;
+}
+
+.edition-picker {
+  position: relative;
+  min-width: 260px;
+}
+
+.edition-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.edition-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-input);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 4px 6px 4px 10px;
+  border-radius: 14px;
+  font-size: 12px;
+}
+
+.edition-chip-remove {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.edition-chip-remove:hover { color: var(--danger); }
+
+.edition-checklist {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.edition-checklist.hidden { display: none; }
+
+.edition-checklist-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  gap: 8px;
+}
+
+.edition-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.edition-row:hover { background: var(--bg-input); }
+.edition-row input { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* Scryfall serves set symbols as plain black line art meant to be recolored by whoever
+   embeds them (that's why they publish raw SVG instead of a pre-colored image) - loaded
+   as a plain <img>, though, there's no CSS hook into the SVG's own fill, so a flat invert
+   is the simplest way to turn "black on dark background" into something visible. */
+.edition-icon { width: 16px; height: 16px; flex-shrink: 0; filter: invert(1); }
+
+.filter-details, .filter-panel { margin-bottom: 4px; }
+
+.filter-summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  user-select: none;
+}
+.filter-summary::-webkit-details-marker { display: none; }
+.filter-summary::before {
+  content: "\25B8";
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+.filter-details[open] > .filter-summary::before { transform: rotate(90deg); }
+.filter-summary:hover { border-color: var(--accent); color: var(--text); }
+
+.type-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* Without this, .filter-pill-group (a flex row) and the Sort by field next to it in the
+   markup are just two stacked block-level siblings - Sort by ends up alone on its own
+   full-width line instead of sitting beside the pills. */
+.filter-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-bottom: 16px;
+}
+
+/* Type/color/rarity used to each get their own full-width row, which left big empty
+   gaps once a row's handful of pills ran out - "display: contents" drops the three
+   .type-filter-row wrappers from the box model so their buttons all flow together as
+   one wrapping group, packing the available width instead of stacking mostly-empty rows. */
+.filter-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.filter-pill-group .type-filter-row {
+  display: contents;
+}
+
+.sort-toggle-btn { white-space: nowrap; }
+
+.type-filter-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.type-filter-btn:hover { border-color: var(--accent); color: var(--text); }
+.type-filter-btn.active { background: var(--accent); color: #101116; border-color: var(--accent); font-weight: 600; }
+
+.type-filter-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.3);
+}
+
+.type-filter-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+}
+.type-filter-icon { width: 18px; height: 18px; display: block; pointer-events: none; }
+.type-filter-btn-icon.active { background: var(--bg-elevated); border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min-w), 1fr));
+  gap: 14px;
+}
+
+.card-grid-compact { grid-template-columns: repeat(auto-fill, minmax(var(--card-min-w-compact), 1fr)); }
+
+.card-tile {
+  position: relative;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  /* Without this, a grid item's implicit min-width defaults to its content's min-content
+     size - a long card name plus a nowrap mana cost could force this tile (and therefore
+     its whole grid column) wider than the column track ever intended, which is what was
+     making the page horizontally scrollable at small card sizes. */
+  min-width: 0;
+}
+
+.card-qty-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(20, 21, 26, 0.85);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  pointer-events: none;
+}
+
+.card-tile img {
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  display: block;
+  background: var(--bg-input);
+}
+
+.card-tile-noimg {
+  aspect-ratio: 5 / 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  border-radius: 6px;
+  background: var(--bg-input);
+  cursor: pointer;
+  padding: 8px;
+}
+
+.card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+/* The name is the flexible side - truncates with an ellipsis instead of forcing the row
+   (and its tile/grid column) wider than the tile at small card sizes. */
+.card-title-row > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-mana { color: var(--text-dim); font-weight: 400; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
+
+.card-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+}
+
+.card-set-line {
+  font-size: 10px;
+  color: var(--text-dim);
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rarity-common { color: var(--text-dim); }
+.rarity-uncommon { color: #b8c4d1; }
+.rarity-rare { color: var(--gold); }
+.rarity-mythic { color: #d8683a; }
+
+.card-own-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+
+.card-own-row input { width: 16px; height: 16px; }
+
+.card-own-row-merged { justify-content: space-between; color: var(--text-dim); }
+.remove-all-btn { font-size: 11px; padding: 3px 8px; color: var(--danger); border-color: var(--danger); }
+.card-own-row-info { color: var(--text-dim); font-size: 11px; text-align: center; }
+
+.card-add-btn {
+  width: 100%;
+  padding: 5px;
+  font-size: 12px;
+}
+
+.toggle-btn {
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-dim);
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.toggle-btn:hover { border-color: var(--accent); color: var(--text); }
+.toggle-btn.active { background: var(--accent); color: #101116; border-color: var(--accent); font-weight: 600; }
+
+/* Deck Builder */
+
+/* Was a 1.3fr/1fr side-by-side split - the deck-in-progress panel is much shorter than
+   the card pool, which left a lot of dead space below it once the pool kept going. Now
+   it sits full-width above the pool instead (both at any screen size, not just mobile),
+   and the pool's own card grid matches Browse/Collection's sizing (see #deck-pool-grid
+   dropping the .card-grid-compact class in app.html) now that it has the full width. */
+.deckbuilder-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+/* Grid items default to an implicit min-width based on their content's min-content size -
+   nested "auto-fill" grids (the card pool) can push that surprisingly high, which forces
+   the whole single-column layout wider than the viewport. min-width: 0 lets both panes
+   actually shrink to the column they were given instead. */
+.deckbuilder-pool, .deckbuilder-current { min-width: 0; }
+
+
+/* Was a single ~760px-capped box - on anything wider than that, the rest of the row sat
+   empty. Splitting it into two side-by-side panels (meta/stats, and the actual card list)
+   uses that width instead of wasting it, and surfaces the in-progress deck list somewhere
+   more prominent than "scroll down past the stats." */
+.deckbuilder-current {
+  order: -1;
+  display: flex;
+  gap: 20px;
+  /* Was flex-start: the list panel's height is set by .deck-list's own max-height
+     (50vh), while the summary panel's height is just whatever its content needs - almost
+     always shorter, which left flex-start showing a slab of bare background below the
+     summary card instead of it matching its neighbor's height. stretch makes both panels
+     equal height; .deck-stats's flex: 1 then lets the summary card's own content claim
+     that extra room instead of just leaving empty padding at the bottom. */
+  align-items: stretch;
+}
+
+.deckbuilder-summary,
+.deckbuilder-list-panel {
+  flex: 1 1 360px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.deckbuilder-list-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.deckbuilder-list-heading { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.deckbuilder-list-panel h3 { margin: 0; font-size: 14px; flex-shrink: 0; }
+/* The deck's own name/format/count next to the "Current Deck" label - so what you're
+   looking at is identified right where you're looking at it, not only up in the name
+   field on the other side of the row (or off-screen entirely once panels stack on mobile). */
+.deckbuilder-list-summary { font-size: 12px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+.pool-add-label { font-size: 15px; font-weight: 700; color: var(--text); }
+
+@media (max-width: 900px) {
+  /* align-items: flex-start (set above for the desktop row layout, where it stops a
+     shorter panel from being stretched to match a taller neighbor) has a different effect
+     once this becomes a column: it's now the CROSS axis, so flex-start also stops each
+     panel from stretching to the container's full WIDTH - each one shrinks to its own
+     content width instead, leaving empty space beside it. stretch is what's actually
+     wanted here. */
+  .deckbuilder-current { flex-direction: column; align-items: stretch; }
+  /* flex: 1 1 360px was written for the side-by-side desktop layout, where 360px is a
+     sensible WIDTH floor for each panel. Stacked in a column here, that same basis
+     becomes a HEIGHT floor instead - stretching a short "Current Deck" list (a couple of
+     cards) down to at least 360px tall regardless of how little content it actually has.
+     auto lets each panel size to its own content instead. */
+  .deckbuilder-summary, .deckbuilder-list-panel { flex: 0 1 auto; }
+}
+
+@media (max-width: 500px) {
+  .deck-meta { flex-wrap: wrap; }
+  .deck-format-field { flex: 1 1 100%; }
+}
+
+.deck-meta { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 12px; }
+.deck-name-field { flex: 1; }
+.deck-format-field { flex: 0 0 auto; min-width: 140px; }
+
+.deck-pool-note { font-size: 12px; color: var(--text-dim); margin: 0 0 8px; }
+
+.deck-add-feedback { display: block; font-size: 13px; color: var(--danger); min-height: 16px; margin-bottom: 4px; }
+
+.deck-commander-panel { margin-bottom: 14px; }
+.deck-commander-panel.hidden { display: none; }
+.deck-commander-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+.deck-commander-thumb { width: 48px; border-radius: 4px; flex-shrink: 0; }
+.deck-commander-info { flex: 1; min-width: 0; }
+.deck-commander-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
+.deck-commander-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.deck-format-status {
+  font-size: 12px;
+  color: var(--gold);
+  background: rgba(201, 165, 54, 0.1);
+  border: 1px solid rgba(201, 165, 54, 0.35);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+.deck-format-status.hidden { display: none; }
+
+.deck-stats { margin-bottom: 14px; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+/* Each stat used to just be a row flowing into the next with no visual break - now its
+   own bordered block, same treatment as the summary/list panels themselves, so "where does
+   Color Balance end and Mana Curve begin" is obvious at a glance. */
+.stat-section {
+  /* Same background tier as its own parent (.deckbuilder-summary) - separated from it by
+     the border alone, same technique that panel itself uses against the page background.
+     Using --bg-input here instead would match the color-bar-track/type-chip elements
+     nested inside it one level down, which rely on --bg-input contrasting against an
+     --bg-elevated parent to be visible at all. */
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+/* Mana Curve and Deck Insights claim any extra vertical room #deck-stats has (Types stays
+   its own natural, compact size - a chip list has no meaningful way to "grow") instead of
+   leaving a slab of empty background below the last section on decks with room to spare. */
+.stat-section-grow { flex: 1; display: flex; flex-direction: column; }
+.stat-section-grow .curve-bars { flex: 1; height: auto; min-height: 110px; }
+.stat-section-center .deck-insights-list { flex: 1; justify-content: center; }
+.stat-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: baseline; }
+/* The section name itself (first span) - "Mana Curve", "Types", "Deck Insights" - reads as
+   a heading now instead of blending into the same small dim text as the secondary value
+   next to it (avg CMC, cards total, etc.), which keeps its own smaller/dimmer styling. */
+.stat-label > span:first-child { font-size: 14px; font-weight: 700; color: var(--text); }
+/* The one number that actually matters most while building a deck (how close to done am I)
+   deserves to stand out from the rest of this row's small dim labels, not blend in. */
+.deck-total-cards { font-size: 15px; font-weight: 700; color: var(--text); }
+
+.stat-caption { font-size: 11px; line-height: 1.4; color: var(--text-dim); margin: 0 0 8px; }
+
+/* Narrowed to a fixed width and centered (was flex: 1, stretching each of the 7 columns
+   to fill the row) - reads as a chart instead of a set of full-width blocks. */
+.curve-bars { display: flex; align-items: flex-end; justify-content: center; gap: 10px; height: 110px; }
+.curve-bar-wrap { flex: 0 0 30px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+/* Was a single solid-color .curve-bar - now a flex column of .curve-bar-segment children,
+   each sized by flex-grow proportional to its color's count within this bucket, so the
+   stack's total height still matches the bucket's overall count (min-height covers the
+   empty-bucket case, where there are no segments to give the wrapper any height at all). */
+.curve-bar-stack { width: 100%; display: flex; flex-direction: column; border-radius: 3px 3px 0 0; overflow: hidden; min-height: 2px; }
+.curve-bar-segment { width: 100%; }
+.curve-bar-count { font-size: 10px; color: var(--text-dim); white-space: nowrap; }
+.curve-bar-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.curve-axis-title { text-align: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-top: 6px; }
+
+/* Legend for the stacked segments above - was its own full "Color Balance" section with a
+   proportional bar per color; folded in here now that the stacked curve itself shows
+   color proportions, so this just needs to map segment color back to a name and a total. */
+.curve-color-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.curve-legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-dim); }
+.mana-pip-icon { width: 20px; height: 20px; flex-shrink: 0; }
+/* A flat gold dot didn't read as "multicolor" so much as "a 6th color." A five-color pie
+   (Magic's own well-known color-wheel iconography) reads as "touches multiple colors"
+   without implying any specific two, since a multicolor card here could be any
+   combination - not always the same pair. Sized to match the real mana symbol icons. */
+.legend-multi-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: conic-gradient(var(--white) 0% 20%, var(--blue) 20% 40%, var(--black) 40% 60%, var(--red) 60% 80%, var(--green) 80% 100%);
+  border: 1px solid var(--border);
+}
+.curve-legend-count { min-width: 14px; }
+
+.type-breakdown { display: flex; flex-wrap: wrap; gap: 6px; font-size: 11px; }
+.type-chip { background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 2px 8px; }
+
+.deck-insights-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+.deck-insights-list li { position: relative; padding-left: 14px; }
+.deck-insights-list li::before { content: "•"; position: absolute; left: 0; color: var(--accent); }
+
+/* Right padding keeps the remove button clear of the scrollbar - without it, the button
+   sat flush against (and got partly covered by) the scrollbar track on both web and
+   mobile whenever the list was tall enough to scroll. */
+.deck-list { list-style: none; margin: 0; padding: 0 10px 0 0; max-height: 50vh; overflow-y: auto; }
+.deck-list-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.deck-list-item .qty { color: var(--text-dim); width: 20px; flex-shrink: 0; }
+.deck-list-item .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Was bare text with no border/background - easy to mistake for a decorative label
+   instead of a clickable control. Real button chrome (border, fill, hover state) makes
+   it read as tappable at a glance. */
+.deck-list-item .remove-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.deck-list-item .remove-btn:hover { background: rgba(224, 91, 91, 0.15); border-color: var(--danger); }
+.empty-hint { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
+
+/* My Decks */
+
+.decks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  /* Reuses the same --card-min-w the header's Card size slider already drives for the
+     card grids, so it doubles as a deck-card size control too. */
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min-w), 1fr));
+  gap: 14px;
+}
+.deck-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.15s ease;
+}
+.deck-card:hover { border-color: var(--accent); }
+/* The name is the one thing identifying a deck at a glance - full width of its own at the
+   very top of the panel, not sharing the row (and fighting for space) with the format
+   badge. The badge instead leads the info area below the image, on its own line above the
+   card count/date - "what kind of deck" reads before "how big is it," without competing
+   with the name up top. */
+.deck-card .deck-card-name { font-weight: 600; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.deck-card .deck-card-format-row { line-height: 1; }
+.deck-card .deck-card-format-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-dim);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.deck-card .deck-card-image { width: 100%; border-radius: 6px; display: block; }
+.deck-card .deck-card-meta { font-size: 12px; color: var(--text-dim); }
+/* Divider makes the button row read as its own footer instead of floating right under
+   whatever text happens to end above it - margin-top: auto still does the actual work of
+   pinning it to the bottom of the card when a grid row stretches shorter cards to match
+   a taller neighbor. */
+.deck-card .deck-card-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+.deck-card .deck-card-actions .btn { flex: 1; }
+
+/* Rules */
+
+.rules-disclaimer {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+  margin: 0 0 20px;
+  max-width: 900px;
+}
+
+.rules-section {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+
+.rules-section-header h2 { margin: 0 0 4px; font-size: 17px; }
+.rules-section-header p { margin: 0 0 14px; font-size: 13px; color: var(--text-dim); }
+
+.rule-entries {
+  display: grid;
+  /* auto-fit (not auto-fill) collapses empty tracks so real content stretches to
+     fill the row - auto-fill reserves phantom empty columns, leaving a lone entry
+     stuck in a narrow strip with dead space beside it. */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  /* Default grid behavior stretches every entry in a row to match the tallest one -
+     fine when they're close in length, but a short entry (e.g. "Saving") next to a much
+     longer one (e.g. "Format") ended up as a tall card with a lot of empty space at the
+     bottom. Letting each entry size to its own content instead keeps that from happening. */
+  align-items: start;
+}
+
+/* Several How To Use sections are individually short enough that stacked full-width (like
+   the longer sections) they'd each leave a lot of unused horizontal space - grouped into
+   one responsive row of their own cards instead. */
+.howto-compact-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.howto-compact-row .rules-section { margin-bottom: 0; }
+
+.rule-entry {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  /* As a CSS Grid item, a flex container's default min-width is "auto," which resolves to
+     its content's own minimum intrinsic width - a long line of bullet text (or one long
+     unbroken run like a slash-separated list) could refuse to shrink to the grid track's
+     actual 1fr width and instead overflow sideways into the next column. min-width: 0
+     overrides that, letting the column's own width win and the text wrap normally instead. */
+  min-width: 0;
+}
+
+/* Trial run (Evergreen Keywords only) - a real example card next to the rule text. */
+.rule-entry-example {
+  width: 84px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: block;
+  cursor: pointer;
+}
+.rule-entry-example:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.rule-entry-body { flex: 1; min-width: 0; }
+
+/* How To Use's entries (unlike the Rules tab's) put the term/bullets directly in
+   .rule-entry with no .rule-entry-body wrapper, so .rule-entry's own row layout (needed
+   elsewhere to sit an example-card thumbnail beside its text) put the bold header beside
+   its own bullet list instead of above it - stack those specifically, leaving the
+   thumbnail layout untouched. */
+.rule-entry:not(:has(.rule-entry-body)) {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rule-term { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+
+.rule-bullets { margin: 0; padding-left: 18px; }
+.rule-bullets li { font-size: 13px; color: var(--text); line-height: 1.45; margin-bottom: 3px; }
+.rule-bullets li::marker { color: var(--accent); }
+
+/* Edition/year is a footnote, not the headline - smaller, dimmer, and visually last. */
+.rule-source { font-size: 11px; color: var(--text-dim); font-style: italic; margin-top: 6px; }
+
+/* About page */
+
+/* No width cap of its own anymore - matches every other tab's full #app width instead of
+   sitting in its own narrower centered column. */
+.about-content { }
+
+.about-header { text-align: center; margin-bottom: 20px; }
+.about-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.about-name { font-size: 26px; margin: 0; }
+
+.about-bio { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.about-photo-placeholder,
+.about-photo {
+  /* Source photo is 1812x1720, so 240px is nowhere near its ceiling - picked as a round,
+     comfortably-sized bio-avatar number rather than another arbitrary percentage bump. */
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  flex-shrink: 0;
+}
+.about-photo-placeholder {
+  background: var(--bg-input);
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+}
+.about-photo { object-fit: cover; display: block; }
+/* max-width caps line length for comfortable reading now that the card itself can stretch
+   much wider than before - the photo+text row still fills the section, just with room to
+   spare on very wide screens instead of every line running edge to edge. */
+.about-bio-text { flex: 1; min-width: 200px; max-width: 640px; font-size: 14px; line-height: 1.6; color: var(--text-dim); }
+.about-bio-text p { margin: 0 0 12px; }
+.about-bio-text p:last-child { margin-bottom: 0; }
+
+.about-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.about-links a { color: var(--accent); text-decoration: none; font-size: 14px; }
+.about-links a:hover { text-decoration: underline; }
+
+.about-cta-text { font-size: 14px; color: var(--text-dim); line-height: 1.5; margin: 0 0 14px; }
+.about-cta {
+  display: inline-block;
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  text-align: center;
+}
+.about-cta-donate { background: var(--blue); color: #fff; }
+.about-cta-donate:hover { filter: brightness(1.1); }
+.about-cta-contact { background: #c9762c; color: #fff; }
+.about-cta-contact:hover { filter: brightness(1.1); }
+
+.about-footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 20px 0 8px;
+  line-height: 1.8;
+}
+.about-footer a { color: var(--text-dim); }
+
+.other-apps-list { display: flex; flex-direction: column; gap: 14px; }
+.other-app-card {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+/* Optional landing-screen preview, full width above the QR/info row - omitted entirely
+   (no empty gap left behind) when an entry has no thumbnail set. */
+.other-app-thumb {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.other-app-row { display: flex; gap: 16px; align-items: center; }
+/* White regardless of theme - the QR itself is already black-on-white (the library bakes
+   that in), but a little white padding around it gives it the same "quiet zone" border a
+   printed QR code needs to scan reliably, instead of the code's corner modules sitting
+   flush against this dark card's own background. */
+.other-app-qr {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.other-app-qr svg { width: 100%; height: 100%; display: block; }
+.other-app-info { flex: 1; min-width: 0; }
+.other-app-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.other-app-desc { font-size: 13px; color: var(--text-dim); margin: 0 0 10px; line-height: 1.4; }
+.other-app-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.other-app-share-feedback { font-size: 12px; color: var(--text-dim); }
+
+@media (max-width: 500px) {
+  .other-app-row { flex-direction: column; align-items: center; text-align: center; }
+  .other-app-actions { justify-content: center; width: 100%; }
+}
+
+/* Modal */
+
+.modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; }
+.modal.hidden { display: none; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.7); }
+.modal-content {
+  position: relative;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 560px;
+  width: 90%;
+  max-height: 92vh;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+}
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 24px;
+  cursor: pointer;
+}
+.modal-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(20, 21, 26, 0.75);
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+}
+.modal-nav:hover { border-color: var(--accent); color: var(--accent); }
+.modal-nav.hidden { display: none; }
+.modal-nav-prev { left: 8px; }
+.modal-nav-next { right: 8px; }
+#modal-body img { width: 100%; border-radius: 10px; display: block; }
+.modal-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.modal-own-toggle { display: flex; align-items: center; gap: 6px; color: var(--text); white-space: nowrap; }
+.modal-own-toggle input { width: 16px; height: 16px; }
+.modal-body-text { white-space: pre-wrap; font-size: 14px; line-height: 1.5; }
+.modal-body-text h2 { margin-top: 0; font-size: 18px; }
+
+/* Wider than the single-card modal above - this one holds a full card grid, not one
+   enlarged image, and needs the room. justify-content: flex-start overrides the base
+   .modal-content's "center" - centering a flex column whose content overflows its
+   scrollable box clips the START of the content from ever being scrolled into view in
+   most browsers (a well-known flexbox+overflow quirk), which was making the top of a
+   long deck - including the Commander, always rendered first - unreachable by scrolling. */
+.deck-view-content { max-width: 1100px; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+/* Sticky, not just top-of-content, so the close button stays reachable no matter how far
+   down the card grid you've scrolled - the whole reason this exists is the mobile case
+   where there's barely any backdrop left to tap around a nearly full-screen modal. */
+.deck-view-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.deck-view-title-area { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.deck-view-header h2 { margin: 0; font-size: 18px; }
+.deck-view-close-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.deck-view-close-btn:hover { color: var(--text); }
+.deck-view-format {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-dim);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.deck-view-group { margin-bottom: 20px; }
+.deck-view-group:last-child { margin-bottom: 0; }
+.deck-view-group-header {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-dim);
+}
+.deck-view-group-header span { font-weight: 400; text-transform: none; letter-spacing: normal; }
+
+.sync-note { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin: 0 0 12px; }
+.sync-status-row { font-size: 13px; margin-bottom: 6px; }
+.sync-error { font-size: 12px; color: var(--danger); margin-bottom: 10px; }
+.sync-setup-steps { margin: 0 0 14px; padding-left: 20px; font-size: 13px; color: var(--text); line-height: 1.6; }
+.sync-setup-steps li { margin-bottom: 4px; }
+
+.data-tab-actions { display: flex; gap: 10px; }
+.data-tab-actions .btn { flex: 1; }
+
+.update-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(201, 165, 54, 0.14);
+  border: 1px solid rgba(201, 165, 54, 0.5);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+.update-banner.hidden { display: none; }
+.update-banner-dismiss {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.update-banner-dismiss:hover { color: var(--text); }
+
+/* A prominent, always-visible summary above the section cards - which profile you're in,
+   whether it's synced, and how big it is - answered in one glance instead of having to
+   read into each card below. One row: live status items, then View (Merge Dupes/Card
+   size), then Sync/Share pinned to the right - #data-status-dynamic uses display: contents
+   so its own children (the status items + the actions wrapper) flow directly into this
+   row instead of being boxed off as one unit, letting the static View controls sit
+   between them in source order without needing to live inside the JS-regenerated HTML
+   (keeping the slider's drag state safe from being wiped out by an unrelated re-render). */
+.data-status-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  margin-bottom: 16px;
+}
+.data-status-dynamic { display: contents; }
+.data-status-item { display: flex; flex-direction: column; gap: 0; }
+.data-status-label { font-size: 9px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim); }
+.data-status-value { font-size: 12px; font-weight: 600; }
+.data-status-value.data-status-error { color: var(--danger); }
+/* order: 10 (everything else defaults to source order, i.e. 0) is what actually keeps this
+   pinned as the last thing in the row regardless of where View sits in the markup -
+   margin-left: auto still does the job of soaking up the leftover space in front of it. */
+.data-status-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; order: 10; }
+.data-status-sync-btn { padding: 5px 12px; font-size: 12px; flex-shrink: 0; }
+.data-status-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.data-status-share-feedback { font-size: 11px; color: var(--gold); flex-shrink: 0; }
+
+/* View controls - sits inline in the same row (between the live status items and the
+   Sync/Share actions), not a separate row of its own. */
+.data-status-view {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-left: 14px;
+  border-left: 1px solid var(--border);
+}
+.data-status-view-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* The section cards (Sync/Manual Backup/Refresh/Switch Profiles) were each stretching to
+   the full content width even though most only need a fraction of it - side by side
+   instead, same auto-fit-collapses-empty-tracks approach as .rule-entries. */
+.data-tab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  /* Unlike .rule-entries/.howto-compact-row (where a short entry stretched to match a much
+     longer neighbor left an awkward wall of empty space under a couple lines of text),
+     these four panels are close enough in nature (each a card of controls) that matching
+     row height reads as a tidy grid instead - the empty space at the bottom of a shorter
+     panel is what was asked for here, not something to design around. */
+  align-items: stretch;
+}
+.data-tab-grid .rules-section { margin-bottom: 0; }
+
+/* Cards, not thin list rows - each profile gets a proper card sized to actually show its
+   name/stats clearly, with Switch/Rename/Delete anchored to the bottom of the frame
+   (margin-top: auto) so a row of mixed-height cards (e.g. "Active" badge on one, not the
+   other) still lines its buttons up evenly instead of each button row floating right
+   under whatever text happens to be above it. */
+.data-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+/* The <ul> itself contributes nothing to the box model here - its <li> profile cards flow
+   directly into .data-profile-grid as siblings of .data-profile-create, so a new/blank
+   profile "card" can sit in that same grid instead of trailing below it as a plain form row. */
+.data-profile-list {
+  display: contents;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.data-profile-item {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 120px;
+}
+.data-profile-item.active { border-color: var(--accent); }
+.data-profile-info { min-width: 0; }
+.data-profile-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.data-profile-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #101116;
+  background: var(--accent);
+  border-radius: 10px;
+  padding: 2px 7px;
+  vertical-align: middle;
+}
+.data-profile-meta { font-size: 13px; color: var(--text-dim); }
+/* Temporary sync-debugging aid - see the comment in ui-data.js. Deliberately quiet
+   (monospace, low contrast) so it reads as diagnostic info, not a real feature. */
+.data-profile-id { font-size: 10px; font-family: ui-monospace, monospace; color: var(--text-dim); opacity: 0.6; margin-top: 4px; }
+.data-profile-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
+.data-profile-actions .btn { flex: 1; }
+
+/* Styled to read as a blank "add a profile" card matching the real profile cards' size,
+   not a form row trailing after the list - the dashed border and centered "+" are the
+   established pattern for an empty/add slot. */
+.data-profile-create {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 10px;
+  min-height: 120px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.data-profile-create-icon {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.data-profile-create input { text-align: center; }
+
+.sync-actions-primary { margin-top: 12px; }
+.sync-actions-primary .btn { width: 100%; padding: 11px; font-size: 14px; }
+
+/* Deliberately separated from "Sync now" (a divider + real vertical gap, not just a
+   different color) and shrunk to a plain text-style link, not a solid button - this used
+   to sit right next to Sync Now as an equally-weighted button, which made it too easy to
+   hit by mistake. */
+.sync-actions-secondary {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.btn-text-danger {
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+.btn-text-danger:hover { color: #ff8790; }
+
+/* Phone (either orientation): the controls row's fixed min-widths force nearly every
+   field onto its own line, and the edition-chip list wraps to as many rows as there are
+   selected editions - both are unbounded height risks the "dashboard" budget can't absorb. */
+@media (max-width: 600px) and (orientation: portrait), (orientation: landscape) and (max-height: 500px) {
+  .browse-controls { gap: 8px 10px; }
+  .browse-controls .field,
+  .browse-controls .field-grow,
+  .browse-controls .edition-picker {
+    min-width: 140px;
+    flex: 1 1 140px;
+  }
+  .global-search-field {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    flex-basis: 100%;
+  }
+  .edition-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-top: 4px;
+  }
+  .edition-chip { flex-shrink: 0; }
+
+  .sticky-controls { padding-top: 6px; padding-bottom: 2px; }
+  .browse-controls { margin-bottom: 6px; }
+  .controls-divider { margin: 4px 0 8px; }
+  .filter-summary { margin-bottom: 6px; padding: 5px 9px; font-size: 11px; }
+  .filter-details[open] > .filter-summary { margin-bottom: 8px; }
+  .type-filter-row { margin-bottom: 8px; }
+  .filter-pill-group { margin-bottom: 8px; gap: 6px; }
+  .field { gap: 2px; }
+  .field > *:first-child { font-size: 11px; }
+
+  /* The always-visible filter panel (sort/merge/refresh/size + color/type/rarity pills)
+     is a lot of content to keep permanently on screen - instead of wrapping to several
+     rows, flatten it into one horizontally-scrollable strip, the same pattern already
+     used for the header's tab bar and the edition-chip list. */
+  .filter-panel {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: 0;
+  }
+  .filter-panel > .filter-pill-group,
+  .filter-panel > .status-text {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    margin-bottom: 0;
+  }
+  .filter-panel .field,
+  .filter-panel .card-size-field {
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+  .filter-panel .btn,
+  .filter-panel .type-filter-btn,
+  .filter-panel select {
+    white-space: nowrap;
+  }
+}
+
+/* Phone portrait: a slim title line, then the nav collapses into a single compact,
+   horizontally-scrollable bar below it - between the two, the header "dashboard" stays
+   out of most of the viewport instead of eating it. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .app-header {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+  .app-header h1 { font-size: 15px; }
+  .header-controls-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* flex-shrink: 0 is the fix here - without it .tabs/.header-actions get squeezed
+     narrower than their own content by the row's flex algorithm, and with
+     justify-content still "center" (inherited from the base rule) that overflow spills
+     out symmetrically past both edges of the shrunk box, overlapping whatever's next
+     to it instead of just scrolling like the rest of this row does. */
+  .tabs { flex-wrap: nowrap; flex-shrink: 0; justify-content: flex-start; gap: 6px; }
+  .tab-link { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+  .tab-group { flex-shrink: 0; align-items: center; min-height: 44px; padding: 4px; gap: 6px; }
+  .card-size-field { min-width: 90px; }
+
+  /* Was pinned to 1 column (200px doesn't fit twice at phone width) - shrink the default
+     minimum so 2-3 tiles fit per row instead of one giant card at a time. Only takes
+     effect while the user hasn't set an explicit zoom level (see :root comment above). */
+  :root { --card-min-w: 140px; --card-min-w-compact: 120px; }
+  .card-grid { gap: 10px; }
+
+  /* Photo above the bio copy instead of squeezed beside it once wrapping kicks in. */
+  .about-bio { flex-direction: column; align-items: center; text-align: center; }
+}
+
+/* Phone landscape: the header has almost no vertical room to work with, so it becomes
+   a fixed left sidebar instead of fighting the card grid for height. --header-h (used
+   by .sticky-controls for portrait/desktop) no longer applies once the header is a
+   full-height sidebar, so its top offset is hardcoded here instead. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 130px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 8px;
+    overflow-y: auto;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    z-index: 20;
+  }
+  .app-header h1 { font-size: 13px; }
+  /* Every one of these needs align-items: stretch spelled out explicitly, not left to
+     default - otherwise a group with less content than its neighbor ends up narrower
+     than the sidebar instead of matching its full width, which is what read as the
+     sidebar "moving"/being inconsistent between sections. */
+  .tabs { flex-direction: column; align-items: stretch; gap: 4px; }
+  .tab-link { text-align: center; padding: 6px 8px; font-size: 12px; }
+  .tab-group { flex-direction: column; align-items: stretch; width: 100%; padding: 4px; }
+  .card-size-field { min-width: 0; }
+  .card-size-slider { width: 100%; }
+
+  #app { margin: 0 0 0 130px; max-width: none; padding: 12px 14px 30px; }
+
+  .sticky-controls { top: 0; }
+
+  /* Landscape has plenty of width once the header moves into the sidebar - was still
+     capped at the 200px desktop default, which only fit 3 tiles; pack in more per row
+     by default (still overridable by the zoom slider, same as the portrait default). */
+  :root { --card-min-w: 120px; --card-min-w-compact: 105px; }
+  .card-grid { gap: 10px; }
+}

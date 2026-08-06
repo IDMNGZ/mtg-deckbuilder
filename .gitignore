@@ -11,3 +11,7 @@ landing-bg/*.png
 # Same reasoning as above, for the app-wide (not landing-page) background pool - see
 # js/app-backgrounds.js and app-bg/README.txt.
 app-bg/*.png
+
+# Zipped copy generated for direct delivery of docs/blank-app-template/ - the actual
+# source files are already tracked individually, this is just a packaging convenience.
+docs/blank-app-template.zip

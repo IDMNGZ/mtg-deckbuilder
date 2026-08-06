@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Your App Name</title>
+<meta name="theme-color" content="#14151a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Your App">
+<!-- <link rel="icon" href="favicon.svg" type="image/svg+xml"> -->
+<!-- <link rel="apple-touch-icon" href="favicon.svg"> -->
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/app-backgrounds.js"></script>
+<script>
+  // Runs before the body paints, so there's no flash of the plain dark background before
+  // swapping to the randomly chosen one - no-ops harmlessly until APP_BACKGROUNDS actually
+  // has filenames in it.
+  (function () {
+    if (typeof APP_BACKGROUNDS === "undefined" || APP_BACKGROUNDS.length === 0) return;
+    var choice = APP_BACKGROUNDS[Math.floor(Math.random() * APP_BACKGROUNDS.length)];
+    var absoluteUrl = new URL(choice, location.href).href;
+    document.documentElement.style.setProperty("--app-bg", "url('" + absoluteUrl + "')");
+  })();
+</script>
+</head>
+<body>
+
+<div id="app-bg-layer"></div>
+
+<header class="app-header">
+  <h1>Your App Name</h1>
+  <div class="header-controls-row">
+  <nav class="tabs">
+    <!-- tab-group-primary: your app's core workflow tabs - the ones people spend the most
+         time in. Gets the strongest visual weight (bold text, on every tab in the group,
+         not just the active one). Add/rename/remove tabs freely; just keep each one's
+         data-tab value matching its <section id="tab-..."> below. -->
+    <div class="tab-group tab-group-primary">
+      <a href="#tab-one" class="tab-link" data-tab="tab-one">Tab One</a>
+      <a href="#tab-two" class="tab-link" data-tab="tab-two">Tab Two</a>
+    </div>
+    <!-- tab-group-secondary: reference/lookup content - a lighter (gold-tinted) visual
+         weight than primary, still distinct from the neutral info group. -->
+    <div class="tab-group tab-group-secondary">
+      <a href="#reference" class="tab-link" data-tab="reference">Reference</a>
+    </div>
+    <!-- tab-group-info: app-about-itself pages (help, settings, about) - neutral weight,
+         lowest visual priority. The icon+text pattern (System) is worth keeping if you
+         have a settings-style tab; swap the SVG for whatever icon you like. -->
+    <div class="tab-group tab-group-info">
+      <a href="#howto" class="tab-link" data-tab="howto">How To Use</a>
+      <a href="#system" class="tab-link tab-link-icon" data-tab="system">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        System
+      </a>
+      <a href="#about" class="tab-link" data-tab="about">About</a>
+    </div>
+  </nav>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- Always-visible status/profile bar, sits below the header on every tab. Sync/Share
+       are generic enough to keep for any app with cloud sync; drop or replace the rest
+       with whatever glanceable info your app actually has (item count, last updated,
+       connection status, etc). -->
+  <div id="data-status-bar" class="data-status-bar">
+    <div class="data-status-item">
+      <span class="data-status-label">Profile</span>
+      <span class="data-status-value">—</span>
+    </div>
+    <div class="data-status-item">
+      <span class="data-status-label">Status</span>
+      <span class="data-status-value">—</span>
+    </div>
+    <div class="data-status-actions">
+      <button id="btn-status-sync" class="btn btn-primary">Sync</button>
+      <button id="btn-status-share" class="btn btn-ghost">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+        Share
+      </button>
+      <span id="status-share-feedback" class="other-app-share-feedback" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <!-- Example of the bordered "sticky controls" search/filter box pattern (sticks below
+       the header while its content scrolls past). See docs/LAYOUT-SIZING-REFERENCE.md in
+       this same repo for the full sizing spec if you build this out for real. -->
+  <section id="tab-tab-one" class="tab-panel">
+    <div class="sticky-controls">
+      <label class="field field-grow">
+        Placeholder label
+        <div class="input-clear-wrap">
+          <input type="text" placeholder="Placeholder search…">
+        </div>
+      </label>
+    </div>
+    <p class="empty-hint">Tab One content goes here.</p>
+  </section>
+
+  <section id="tab-tab-two" class="tab-panel">
+    <p class="empty-hint">Tab Two content goes here.</p>
+  </section>
+
+  <section id="tab-reference" class="tab-panel">
+    <p class="empty-hint">Reference content goes here.</p>
+  </section>
+
+  <section id="tab-howto" class="tab-panel">
+    <p class="empty-hint">How To Use content goes here.</p>
+  </section>
+
+  <section id="tab-system" class="tab-panel">
+    <p class="empty-hint">System/settings content goes here.</p>
+  </section>
+
+  <!-- The About tab, fully built out - this is the layout that was specifically praised
+       and asked to be preserved exactly. Replace every placeholder below with real
+       content; don't change the structure/classes unless you want a different look. -->
+  <section id="tab-about" class="tab-panel">
+    <div class="about-content">
+      <div class="about-header">
+        <div class="about-eyebrow">About</div>
+        <h1 class="about-name">Created by Your Name</h1>
+      </div>
+
+      <section class="rules-section">
+        <div class="rules-section-header"><h2>Bio</h2></div>
+        <div class="about-bio">
+          <img class="about-photo" src="" alt="Your Name">
+          <div class="about-bio-text">
+            <p>A short line about who you are.</p>
+            <p>Why you made this app.</p>
+            <p>Thank you / enjoy line.</p>
+            <p>Your name / signoff.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Three short cards side by side instead of stacked full-width - same
+           space-saving pattern used for the How To Use tab's own compact rows. -->
+      <div class="howto-compact-row">
+        <section class="rules-section">
+          <div class="rules-section-header"><h2>Links</h2></div>
+          <ul class="about-links">
+            <li><a href="#" target="_blank" rel="noopener">yourwebsite.com</a></li>
+            <li><a href="#" target="_blank" rel="noopener">@yourhandle</a></li>
+          </ul>
+        </section>
+
+        <section class="rules-section">
+          <div class="rules-section-header"><h2>Support This App</h2></div>
+          <p class="about-cta-text">If you enjoy using this app, consider supporting future updates.</p>
+          <a href="#" target="_blank" rel="noopener" class="about-cta about-cta-donate">Donate</a>
+        </section>
+
+        <section class="rules-section">
+          <div class="rules-section-header"><h2>Found a Bug? Have a Suggestion?</h2></div>
+          <p class="about-cta-text">If something is broken, inaccurate, or confusing - or you have an idea - let me know.</p>
+          <a href="mailto:you@example.com" class="about-cta about-cta-contact">Contact</a>
+        </section>
+      </div>
+
+      <!-- My Other Apps - see js/other-apps.js to add entries (each gets its own card:
+           QR code, Visit link, Share button, optional landing-screen thumbnail). -->
+      <section class="rules-section">
+        <div class="rules-section-header"><h2>My Other Apps</h2></div>
+        <div id="other-apps-list" class="other-apps-list"></div>
+      </section>
+
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Legal / Disclaimer</h2>
+          <p>The important fine print.</p>
+        </div>
+        <div class="rule-entries">
+          <div class="rule-entry">
+            <ul class="rule-bullets">
+              <li>Your legal/disclaimer text goes here.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="about-footer">
+        <div>Your App Name <span id="about-version"></span></div>
+        <div>&copy; 2026 Your Name. All rights reserved.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="js/version.js"></script>
+<script src="js/share.js"></script>
+<script src="js/vendor/qrcode-generator.js"></script>
+<script src="js/qr-code.js"></script>
+<script src="js/other-apps.js"></script>
+<script src="js/ui-other-apps.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
