@@ -1,8 +1,12 @@
 // Renders the "My Other Apps" list on the About tab (data: js/other-apps.js) - an optional
-// landing-screen thumbnail, a QR code, a Visit link, and a Share button per app. Share
-// reuses ShareApp's share/copy-fallback logic with a per-entry URL/title override (and, on
-// browsers that support attaching files to a share, the QR code itself as an image)
-// instead of duplicating that logic per app.
+// landing-screen thumbnail, a Visit link, and a Share button per app. Share reuses
+// ShareApp's share/copy-fallback logic with a per-entry URL/title override instead of
+// duplicating that logic per app. QR codes were tried here in an earlier iteration and
+// dropped - a QR box glued to a Share button that already does the same job added visual
+// clutter without a real use case. js/qr-code.js is still vendored in this template in case
+// you want a QR code somewhere it actually earns its keep (e.g. a static one for THIS app's
+// own URL, generated once and dropped in images/QR/ - see that folder's note in
+// images/README.txt) - just not wired into this card by default.
 var OtherAppsUI = (function () {
   "use strict";
 
@@ -27,19 +31,11 @@ var OtherAppsUI = (function () {
         card.appendChild(thumb);
       }
 
-      var row = document.createElement("div");
-      row.className = "other-app-row";
-
-      var qr = document.createElement("div");
-      qr.className = "other-app-qr";
-      qr.title = app.name + " QR code";
-      row.appendChild(qr);
-
       var info = document.createElement("div");
       info.className = "other-app-info";
       info.innerHTML =
-        '<div class="other-app-name">' + CardView.escapeHtml(app.name) + "</div>" +
-        '<p class="other-app-desc">' + CardView.escapeHtml(app.description || "") + "</p>";
+        '<div class="other-app-name">' + DomUtils.escapeHtml(app.name) + "</div>" +
+        '<p class="other-app-desc">' + DomUtils.escapeHtml(app.description || "") + "</p>";
 
       var actions = document.createElement("div");
       actions.className = "other-app-actions";
@@ -64,23 +60,13 @@ var OtherAppsUI = (function () {
       actions.appendChild(feedback);
 
       info.appendChild(actions);
-      row.appendChild(info);
-      card.appendChild(row);
+      card.appendChild(info);
       container.appendChild(card);
 
-      QRCodeUtil.renderInto(qr, app.url, 4);
-
-      var fileSafeName = app.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
       ShareApp.wire(shareBtn, feedback, {
         url: app.url,
         title: app.name,
         text: app.description || app.name,
-        getFiles: function () {
-          var svg = qr.querySelector("svg");
-          return QRCodeUtil.svgToPngBlob(svg, 512).then(function (blob) {
-            return [new File([blob], fileSafeName + "-qr.png", { type: "image/png" })];
-          });
-        },
       });
     });
   }

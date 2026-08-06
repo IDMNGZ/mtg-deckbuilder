@@ -65,33 +65,21 @@
 
 <main id="app">
 
-  <!-- Always-visible status/profile bar, sits below the header on every tab. Sync/Share
-       are generic enough to keep for any app with cloud sync; drop or replace the rest
-       with whatever glanceable info your app actually has (item count, last updated,
-       connection status, etc). -->
+  <!-- Polled by watchForNewVersion() in app.js against js/version.js - catches a tab left
+       open across a deploy running stale code. Hidden until a mismatch is actually found. -->
+  <div id="update-banner" class="update-banner hidden">
+    <span>A new version of this app is available.</span>
+    <button type="button" id="btn-update-refresh" class="btn btn-primary">Refresh</button>
+    <button type="button" id="btn-update-dismiss" class="update-banner-dismiss" title="Dismiss">&times;</button>
+  </div>
+
+  <!-- Always-visible status/profile bar, sits below the header on every tab. Its contents
+       (Profile/Sync/Share) are entirely re-rendered by SystemTabUI.renderStatusBar() -
+       don't hand-edit the markup inside #data-status-dynamic, edit that function instead
+       (js/system-tab.js). Add your own glanceable item there the same way (item count,
+       last updated, whatever's actually useful to see without opening a tab for it). -->
   <div id="data-status-bar" class="data-status-bar">
-    <div class="data-status-item">
-      <span class="data-status-label">Profile</span>
-      <span class="data-status-value">—</span>
-    </div>
-    <div class="data-status-item">
-      <span class="data-status-label">Status</span>
-      <span class="data-status-value">—</span>
-    </div>
-    <div class="data-status-actions">
-      <button id="btn-status-sync" class="btn btn-primary">Sync</button>
-      <button id="btn-status-share" class="btn btn-ghost">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="18" cy="5" r="3"></circle>
-          <circle cx="6" cy="12" r="3"></circle>
-          <circle cx="18" cy="19" r="3"></circle>
-          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-        </svg>
-        Share
-      </button>
-      <span id="status-share-feedback" class="other-app-share-feedback" aria-live="polite"></span>
-    </div>
+    <div id="data-status-dynamic" class="data-status-dynamic"></div>
   </div>
 
   <!-- Example of the bordered "sticky controls" search/filter box pattern (sticks below
@@ -121,8 +109,57 @@
     <p class="empty-hint">How To Use content goes here.</p>
   </section>
 
+  <!-- Fully wired: profiles, Dropbox sync, manual backup, and a reset escape hatch - see
+       js/system-tab.js and js/storage.js. Nothing here needs to change to work; only add
+       to it (e.g. your own settings) or trim it (e.g. drop Dropbox sync entirely if your
+       app doesn't need cross-device sync - see docs/SYNC-ARCHITECTURE-HANDOFF.md). -->
   <section id="tab-system" class="tab-panel">
-    <p class="empty-hint">System/settings content goes here.</p>
+    <p class="rules-disclaimer">Manage where your data lives - automatic sync, manual backup, and switching profiles.</p>
+
+    <section class="rules-section">
+      <div class="rules-section-header">
+        <h2>Switch Profiles</h2>
+        <p>Separate data for different people sharing this device - all backed up through the same Dropbox connection below.</p>
+      </div>
+      <div class="data-profile-grid">
+        <ul id="data-profile-list" class="data-profile-list"></ul>
+        <div class="data-profile-create">
+          <div class="data-profile-create-icon">+</div>
+          <input type="text" id="data-new-profile-name" placeholder="New profile name…">
+          <button id="btn-create-profile" class="btn btn-accent">Create</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="data-tab-grid">
+      <section class="rules-section">
+        <div id="data-sync-section"></div>
+      </section>
+
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Manual Backup</h2>
+          <p>No account needed - move your data yourself.</p>
+        </div>
+        <p class="sync-note">Export downloads a JSON file of your current profile's data. Import loads that file back in (on this device or another), merging it with whatever's already here. Works well dropped into any synced folder you already use - iCloud Drive, Dropbox, OneDrive, etc.</p>
+        <div class="data-tab-actions">
+          <button id="btn-export" class="btn btn-accent">Export</button>
+          <button id="btn-import" class="btn btn-accent">Import</button>
+          <input type="file" id="file-import" accept="application/json" hidden>
+        </div>
+      </section>
+
+      <section class="rules-section">
+        <div class="rules-section-header">
+          <h2>Reset This Device</h2>
+          <p>Wipe every profile stored here and start fresh.</p>
+        </div>
+        <p class="sync-note">For when this device's local data is corrupted or mixed up and starting clean is easier than fixing it by hand - doesn't touch your Dropbox account itself, only what's stored on this device. If Dropbox was connected here, reconnecting afterward pulls your data back down with nothing local left to conflict with it.</p>
+        <div class="data-tab-actions">
+          <button id="btn-reset-device" class="btn btn-danger">Reset This Device</button>
+        </div>
+      </section>
+    </div>
   </section>
 
   <!-- The About tab, fully built out - this is the layout that was specifically praised
@@ -203,11 +240,20 @@
 </main>
 
 <script src="js/version.js"></script>
+<script src="js/dom-utils.js"></script>
 <script src="js/share.js"></script>
 <script src="js/vendor/qrcode-generator.js"></script>
 <script src="js/qr-code.js"></script>
 <script src="js/other-apps.js"></script>
 <script src="js/ui-other-apps.js"></script>
+<!-- Ships with an empty DROPBOX_APP_KEY - loading it as-is is harmless
+     (DropboxSync.isConfigured() just reports false and the System tab shows a "not set up
+     yet" message instead of a broken Connect button). Fill in your own key when you're
+     ready to wire up sync - see README.md ("Syncing across devices"). -->
+<script src="js/sync-config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/dropbox-sync.js"></script>
+<script src="js/system-tab.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

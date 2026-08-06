@@ -23,10 +23,17 @@ dimensions, responsive image-grid formula, breakpoint list), see
 [`LAYOUT-SIZING-REFERENCE.md`](LAYOUT-SIZING-REFERENCE.md) — sizing/layout only, no colors
 or fonts, so it drops into a differently-themed app cleanly.
 
-For a literal starting point (not just documentation) — a blank, placeholder-filled copy
-of this app's page shell and About tab, CSS included verbatim — see
+For a literal starting point (not just documentation) — a working, placeholder-filled copy
+of this app's page shell, About tab, and full persistence/Dropbox-sync/System-tab backend
+(profiles, sync, backup, reset — not a stub, it runs out of the box) — see
 [`blank-app-template/`](blank-app-template/README.md). Unlike the sizing reference above,
-this one carries full visual continuity (fonts, exact CSS), not just the numbers.
+this one carries full visual continuity (fonts, exact CSS) and working code, not just
+numbers and prose.
+
+**Starting an actual new app from any of this?** Read
+[`NEW-APP-HANDOFF.md`](NEW-APP-HANDOFF.md) first — it's the single entry point that ties
+all four docs above together into one checklist, instead of reading them in whatever order
+seems reasonable.
 
 ## Current shape of the app
 
@@ -120,7 +127,15 @@ Parked, not rejected — revisit if priorities change:
 
 ## Open items from the last session
 
-- None blocking — last shipped change (`v0.1.110`) consolidated all app images under
+- None blocking — most recently, `docs/blank-app-template/` was refreshed to match the
+  current app (folder names, Other-Apps card grid) and extended with a full working
+  persistence/Dropbox-sync/System-tab backend (`storage.js`, `dropbox-sync.js`,
+  `system-tab.js` — genericized versions of this app's own real files, verified running
+  end-to-end with zero console errors, not just described in prose), plus a new
+  [`NEW-APP-HANDOFF.md`](NEW-APP-HANDOFF.md) tying it and the three existing companion
+  docs together into one starting checklist for bootstrapping a new app project. Nothing
+  in the live MTG Deck Builder app itself changed as part of this — docs/template only.
+- Before that, last shipped change (`v0.1.110`) consolidated all app images under
   one `images/` folder (`images/about/`, `images/app-bg/`, `images/landing-bg/`,
   `images/other/`, `images/QR/` — see `images/README.txt`), pointed every JS/HTML
   reference at the new paths, and updated `.gitignore`'s raw-PNG-exclusion patterns to
