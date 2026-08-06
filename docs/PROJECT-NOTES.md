@@ -35,6 +35,8 @@ header) holds always-visible controls: Sync, Share, Merge Dupes toggle, card-siz
 - `sync-config.js` — Dropbox app key (host-specific, gitignored value pattern — see README)
 - `scryfall.js` — API wrapper + card normalization (handles single-faced vs. `card_faces` cards)
 - `card-view.js` / `card-filters.js` — shared card rendering + filter UI
+- `qr-code.js` — thin wrapper around `vendor/qrcode-generator.js` (vendored locally, MIT, kazuhikoarase), renders an SVG QR code into a container
+- `other-apps.js` / `ui-other-apps.js` — hand-edited "My Other Apps" list + its About-tab renderer (QR code, Visit link, Share button per entry, via `ShareApp.wire()`'s per-call override)
 - `deck-view.js` — modal showing a whole deck as a grouped visual card grid (used by both My Decks and Deck Builder's "View" buttons)
 - `ui-browse.js`, `ui-collection.js`, `ui-deckbuilder.js`, `ui-decks.js`, `ui-rules.js`, `ui-data.js` — per-tab UI logic
 - `formats.js` — deck format definitions (Commander, Standard, etc.)
