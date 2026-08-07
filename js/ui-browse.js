@@ -274,6 +274,15 @@ var BrowseUI = (function () {
       cards.forEach(function (card) {
         frag.appendChild(CardView.renderTile(card, {
           onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
+          // Only offered per-printing (not in the merged view above) for the same reason
+          // ownership itself only gets a checkbox here and not there - a merged tile could
+          // represent several printings, so "add this one to the Buy list" would be
+          // ambiguous about which printing it means.
+          isWishlisted: Storage.isWishlisted(card.id),
+          onWishlistToggle: function (card) {
+            Storage.setWishlisted(card, !Storage.isWishlisted(card.id));
+            renderGrid();
+          },
         }));
       });
     }

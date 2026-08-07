@@ -127,7 +127,7 @@ var Storage = (function () {
   // comment above), not per-profile.
   var PROFILE_DATA_KEYS = [
     "owned", "decks", "lastBrowseSet", "mergeByName", "cardGridSize", "ownedRemoved", "decksRemoved",
-    "favorites", "favoritesRemoved",
+    "favorites", "favoritesRemoved", "wishlist", "wishlistRemoved",
   ];
   // Tombstones only need to outlive the slowest device that hasn't synced in a while - kept
   // well past that (6 months) rather than tuned tight, since the failure mode of pruning too
@@ -375,6 +375,14 @@ var Storage = (function () {
         decksRemoved: readJSON(profileKey(p.id, "decksRemoved"), {}),
         favorites: readJSON(profileKey(p.id, "favorites"), {}),
         favoritesRemoved: readJSON(profileKey(p.id, "favoritesRemoved"), {}),
+        // Denormalized snapshots (like ownedCards above), not just a flag - a wishlisted
+        // printing isn't owned yet, so there's no other map holding its display data to
+        // cross-reference. Safe to merge "remote wins on a shared id" the same way owned
+        // cards are: unlike Favorites (see 3f in SYNC-ARCHITECTURE-HANDOFF.md), nothing
+        // mutates a wishlist entry in place after it's created - it's only ever added
+        // wholesale or removed, so there's no in-place-mutation race to protect against.
+        wishlist: readJSON(profileKey(p.id, "wishlist"), {}),
+        wishlistRemoved: readJSON(profileKey(p.id, "wishlistRemoved"), {}),
       };
     });
   }
@@ -498,6 +506,27 @@ var Storage = (function () {
       localFavoritesRemoved = pruneOldTombstones(localFavoritesRemoved);
       if (!writeJSON(profileKey(remote.id, "favorites"), localFavorites)) failedKeys.push(profileKey(remote.id, "favorites"));
       if (!writeJSON(profileKey(remote.id, "favoritesRemoved"), localFavoritesRemoved)) failedKeys.push(profileKey(remote.id, "favoritesRemoved"));
+
+      // Wishlist: same shape/reasoning as owned/ownedRemoved above (denormalized snapshots,
+      // remote wins on a shared id) - safe here since nothing mutates a wishlist entry in
+      // place after it's added (see the comment on this field in getAllProfilesData).
+      var localWishlistRemoved = readJSON(profileKey(remote.id, "wishlistRemoved"), {});
+      Object.keys(remote.wishlistRemoved || {}).forEach(function (id) {
+        if (!localWishlistRemoved[id] || remote.wishlistRemoved[id] > localWishlistRemoved[id]) {
+          localWishlistRemoved[id] = remote.wishlistRemoved[id];
+        }
+      });
+
+      var localWishlist = readJSON(profileKey(remote.id, "wishlist"), {});
+      Object.keys(remote.wishlist || {}).forEach(function (id) {
+        var tombstonedAt = localWishlistRemoved[id];
+        if (tombstonedAt && tombstonedAt >= (remote.syncedAt || "")) return;
+        localWishlist[id] = remote.wishlist[id];
+        delete localWishlistRemoved[id];
+      });
+      localWishlistRemoved = pruneOldTombstones(localWishlistRemoved);
+      if (!writeJSON(profileKey(remote.id, "wishlist"), localWishlist)) failedKeys.push(profileKey(remote.id, "wishlist"));
+      if (!writeJSON(profileKey(remote.id, "wishlistRemoved"), localWishlistRemoved)) failedKeys.push(profileKey(remote.id, "wishlistRemoved"));
     });
 
     if (!writeJSON(KEY_PROFILES, profiles)) failedKeys.push(KEY_PROFILES);
@@ -561,6 +590,8 @@ var Storage = (function () {
     if (owned) {
       map[card.id] = card;
       delete removed[card.id]; // re-adding supersedes any earlier removal
+      // No reason to keep buying something you now own.
+      if (isWishlisted(card.id)) setWishlisted(card, false);
     } else {
       delete map[card.id];
       removed[card.id] = new Date().toISOString();
@@ -611,6 +642,46 @@ var Storage = (function () {
     writeJSON(activeKey("favorites"), map);
     writeJSON(activeKey("favoritesRemoved"), removed);
     dispatchDataChanged();
+  }
+
+  // ---- Wishlist (cards you want to buy - a specific printing, not owned yet) ----
+  //
+  // Denormalized snapshots (like getOwnedMap above), not just a flag like Favorites -
+  // there's no other map already holding a not-yet-owned card's display data to
+  // cross-reference, so the wishlist entry has to carry it itself. Safe to merge "remote
+  // wins on a shared id" the same way owned cards are (see mergeAllProfilesData): unlike
+  // Favorites, nothing mutates a wishlist entry in place after it's added - it's only ever
+  // written wholesale or removed, so there's no in-place-mutation race to protect against.
+  function getWishlistMap() {
+    return readActiveJSON("wishlist", {});
+  }
+
+  function getWishlistRemovedMap() {
+    return readActiveJSON("wishlistRemoved", {});
+  }
+
+  function isWishlisted(scryfallId) {
+    return !!getWishlistMap()[scryfallId];
+  }
+
+  function setWishlisted(card, wishlisted) {
+    var map = getWishlistMap();
+    var removed = getWishlistRemovedMap();
+    if (wishlisted) {
+      map[card.id] = card;
+      delete removed[card.id];
+    } else {
+      delete map[card.id];
+      removed[card.id] = new Date().toISOString();
+    }
+    writeJSON(activeKey("wishlist"), map);
+    writeJSON(activeKey("wishlistRemoved"), removed);
+    dispatchDataChanged();
+  }
+
+  function getWishlistCards() {
+    var map = getWishlistMap();
+    return Object.keys(map).map(function (id) { return map[id]; });
   }
 
   function getOwnedIds() {
@@ -846,6 +917,7 @@ var Storage = (function () {
       ownedCards: getOwnedMap(),
       decks: getDecks(),
       favorites: getFavoritesMap(),
+      wishlist: getWishlistMap(),
     };
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     var url = URL.createObjectURL(blob);
@@ -874,9 +946,11 @@ var Storage = (function () {
     if (mode === "replace") {
       writeJSON(activeKey("owned"), parsed.ownedCards);
       writeJSON(activeKey("decks"), parsed.decks);
-      // Only touch favorites if this backup actually has them - an older export predating
-      // this field shouldn't silently wipe favorites as a side effect of restoring cards.
+      // Only touch favorites/wishlist if this backup actually has them - an older export
+      // predating these fields shouldn't silently wipe them as a side effect of restoring
+      // cards.
       if (parsed.favorites) writeJSON(activeKey("favorites"), parsed.favorites);
+      if (parsed.wishlist) writeJSON(activeKey("wishlist"), parsed.wishlist);
       return { owned: Object.keys(parsed.ownedCards).length, decks: parsed.decks.length };
     }
 
@@ -892,6 +966,12 @@ var Storage = (function () {
       var favorites = getFavoritesMap();
       Object.keys(parsed.favorites).forEach(function (id) { favorites[id] = true; });
       writeJSON(activeKey("favorites"), favorites);
+    }
+
+    if (parsed.wishlist) {
+      var wishlist = getWishlistMap();
+      Object.keys(parsed.wishlist).forEach(function (id) { wishlist[id] = parsed.wishlist[id]; });
+      writeJSON(activeKey("wishlist"), wishlist);
     }
 
     var byId = {};
@@ -954,6 +1034,9 @@ var Storage = (function () {
     setOwned: setOwned,
     isFavorite: isFavorite,
     setFavorite: setFavorite,
+    isWishlisted: isWishlisted,
+    setWishlisted: setWishlisted,
+    getWishlistCards: getWishlistCards,
     getOwnedIds: getOwnedIds,
     getOwnedMap: getOwnedMap,
     getOwnedCards: getOwnedCards,

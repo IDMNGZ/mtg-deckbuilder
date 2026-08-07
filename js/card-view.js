@@ -96,6 +96,23 @@ var CardView = (function () {
       tile.appendChild(favBtn);
     }
 
+    // Same corner slot as the favorite button above - safe to reuse since a tile only ever
+    // gets one or the other (Favorites is Collection-only/owned cards; wishlisting is
+    // Browse-only/not-yet-owned cards, see ui-browse.js). Distinct icon+color (bookmark,
+    // accent blue) so the two read as different concepts at a glance, not just because
+    // they'd otherwise collide.
+    if (opts.onWishlistToggle) {
+      var wishBtn = document.createElement("button");
+      wishBtn.type = "button";
+      wishBtn.className = "card-wishlist-btn" + (opts.isWishlisted ? " active" : "");
+      wishBtn.title = opts.isWishlisted ? "Remove from Buy list" : "Add to Buy list";
+      wishBtn.innerHTML =
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="' + (opts.isWishlisted ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>';
+      wishBtn.addEventListener("click", function () { opts.onWishlistToggle(card); });
+      tile.appendChild(wishBtn);
+    }
+
     var titleRow = document.createElement("div");
     titleRow.className = "card-title-row";
     titleRow.innerHTML =
@@ -158,6 +175,41 @@ var CardView = (function () {
       addBtn.textContent = opts.addLabel || "Add to deck";
       addBtn.addEventListener("click", function () { opts.onAdd(card); });
       tile.appendChild(addBtn);
+    }
+
+    // Buy tab only: one link per vendor Scryfall has purchase_uris for on this printing
+    // (TCGplayer/Cardmarket/Cardhoarder/etc - varies by card, hence the loop instead of
+    // hardcoding specific vendors), plus a way to take it back off the list.
+    if (opts.onRemoveFromWishlist) {
+      var vendorLabels = { tcgplayer: "TCGplayer", cardmarket: "Cardmarket", cardhoarder: "Cardhoarder", cardkingdom: "Card Kingdom" };
+      var uris = card.purchaseUris || {};
+      var vendorKeys = Object.keys(uris);
+
+      var buyRow = document.createElement("div");
+      buyRow.className = "card-buy-row";
+      if (vendorKeys.length > 0) {
+        vendorKeys.forEach(function (key) {
+          var link = document.createElement("a");
+          link.href = uris[key];
+          link.target = "_blank";
+          link.rel = "noopener";
+          link.className = "btn btn-ghost card-add-btn card-buy-btn";
+          link.textContent = "Buy on " + (vendorLabels[key] || (key.charAt(0).toUpperCase() + key.slice(1)));
+          buyRow.appendChild(link);
+        });
+      } else {
+        var noVendor = document.createElement("span");
+        noVendor.className = "card-own-row-info";
+        noVendor.textContent = "No purchase links available for this printing.";
+        buyRow.appendChild(noVendor);
+      }
+      tile.appendChild(buyRow);
+
+      var removeWishBtn = document.createElement("button");
+      removeWishBtn.className = "btn btn-ghost remove-all-btn";
+      removeWishBtn.textContent = "Remove from Buy list";
+      removeWishBtn.addEventListener("click", function () { opts.onRemoveFromWishlist(card); });
+      tile.appendChild(removeWishBtn);
     }
 
     return tile;

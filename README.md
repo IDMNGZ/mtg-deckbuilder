@@ -59,3 +59,4 @@ Nothing here needs a paid Dropbox plan or a backend server — the whole flow (i
 - The Deck Builder only lets you add cards you've checked off as owned.
 - Deck stats (mana curve, color balance, average CMC) exclude lands from the curve/CMC math, which is standard practice — a land's cost doesn't reflect deck aggression the way a spell's does.
 - Basic Lands aren't capped at 4 copies; everything else is.
+- The bookmark icon on a card in Search adds that specific printing to the **Buy** tab, where each one links out to whatever vendors Scryfall has purchase links for (TCGplayer, Cardmarket, etc.) — plain convenience links, not affiliate links. Owning a card removes it from the Buy list automatically.
