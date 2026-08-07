@@ -115,7 +115,7 @@ var DataTabUI = (function () {
   // rather than trying to hand-reset each one.
   function switchProfile(id) {
     Storage.setActiveProfileId(id);
-    location.reload();
+    AppReload();
   }
 
   function renameProfilePrompt(profile) {
@@ -139,7 +139,7 @@ var DataTabUI = (function () {
     var wasActive = profile.id === Storage.getActiveProfileId();
     Storage.deleteProfile(profile.id);
     if (wasActive) {
-      location.reload();
+      AppReload();
     } else {
       renderProfiles();
     }
@@ -234,7 +234,7 @@ var DataTabUI = (function () {
       "This cannot be undone locally.";
     if (!window.confirm(msg)) return;
     Storage.resetThisDevice();
-    location.reload();
+    AppReload();
   }
 
   function wireResetDevice() {

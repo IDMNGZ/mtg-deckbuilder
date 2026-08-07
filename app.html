@@ -2,6 +2,39 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>
+  // A hard refresh of this page (F5, the reload button, pull-to-refresh) sends the user
+  // back to the landing page instead of just reloading app.html in place - this app treats
+  // the landing page as its front door, and staying mid-app after an accidental refresh
+  // (or a stale bookmark straight to app.html) skips it entirely. Placed as early as
+  // possible in <head>, right after the mandatory charset declaration, so it redirects
+  // before anything else on the page loads if this really is a refresh.
+  //
+  // Detected via the Navigation Timing API rather than a sessionStorage flag set when
+  // Enter is clicked on the landing page - sessionStorage survives a refresh, so a flag
+  // set once on Enter would still be present after F5 and could only ever catch "opened a
+  // fresh tab without clicking Enter first," which is the opposite of what this needs.
+  //
+  // window.AppReload() is the escape hatch for the app's OWN legitimate reasons to reload
+  // itself in place (switching profiles, the update-available banner, etc.) - it marks the
+  // upcoming reload as intentional first, so this check can tell "the app asked for this"
+  // apart from "the user/browser did." Use it instead of a bare location.reload() anywhere
+  // else in this app that needs one.
+  window.AppReload = function () {
+    sessionStorage.setItem("mtg:intentional-reload", "1");
+    location.reload();
+  };
+  (function () {
+    var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+    var isReload = nav ? nav.type === "reload" : !!(performance.navigation && performance.navigation.type === 1);
+    if (!isReload) return;
+    if (sessionStorage.getItem("mtg:intentional-reload")) {
+      sessionStorage.removeItem("mtg:intentional-reload");
+      return;
+    }
+    location.replace("index.html");
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>MTG Deck Builder</title>
 <meta name="theme-color" content="#14151a">

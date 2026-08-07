@@ -79,7 +79,7 @@
       }).catch(function () { /* offline or blocked - not worth surfacing as an error */ });
     }
 
-    document.getElementById("btn-update-refresh").addEventListener("click", function () { location.reload(); });
+    document.getElementById("btn-update-refresh").addEventListener("click", function () { AppReload(); });
     document.getElementById("btn-update-dismiss").addEventListener("click", function () {
       dismissed = true;
       banner.classList.add("hidden");

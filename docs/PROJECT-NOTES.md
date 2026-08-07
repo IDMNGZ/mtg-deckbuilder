@@ -128,7 +128,20 @@ Parked, not rejected — revisit if priorities change:
 
 ## Open items from the last session
 
-- None blocking — most recently (`v0.1.117`) the Wish List tab's vendor buttons were
+- None blocking — most recently (`v0.1.120`) a hard refresh of `app.html` (F5, the reload
+  button, pull-to-refresh) now bounces to the landing page (`index.html`) instead of just
+  reloading the app in place. Detected via the Navigation Timing API
+  (`performance.getEntriesByType("navigation")[0].type === "reload"`) in an inline script
+  as early as possible in `app.html`'s `<head>` - deliberately NOT a sessionStorage flag
+  set when Enter is clicked on the landing page, since sessionStorage survives a refresh
+  and would only ever catch "opened a fresh tab without clicking Enter," the opposite of
+  what a refresh actually is. The app's own legitimate self-reloads (switching profiles,
+  deleting the active profile, Reset This Device, the update-available banner's Refresh
+  button) all go through a new `window.AppReload()` helper instead of a bare
+  `location.reload()` - it marks the reload as intentional in sessionStorage first so the
+  early-detection script can tell "the app asked for this" apart from "the user/browser
+  did" and skip the redirect for just that one reload.
+- Before that (`v0.1.117`), the Wish List tab's vendor buttons were
   narrowed to **TCGplayer only**, via an `ALLOWED_VENDORS` allow-list in
   `card-view.js`'s buy-actions block. Confirmed directly against Scryfall's real API
   response (not from memory) that `purchase_uris` always returns exactly three keys -
