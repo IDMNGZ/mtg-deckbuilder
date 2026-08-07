@@ -29,6 +29,14 @@ working landing page, header/nav, status bar, About tab, and a **fully functiona
 tab** (profiles, Dropbox sync, manual backup, reset) with zero configuration. See that
 folder's own `README.md` for exactly what's in it and what to fill in first.
 
+**`X:\APP_projects\template-app`** (`github.com/IDMNGZ/template-app`) - a live, standalone,
+already-pushed repo seeded directly from `blank-app-template/` (same contents, flattened to
+its own repo root, with the three portable companion docs copied alongside so it's self-
+contained). This is the user's own working sandbox for iterating on the template going
+forward - check whether it's moved ahead of `blank-app-template/` (new patterns tried
+there, things renamed away from the `"yourapp"` placeholder, etc.) before assuming
+`blank-app-template/` is still the most current version of any given piece.
+
 **Three companion reference docs** (same `docs/` folder as this one) - read the relevant
 one *when you get to that part of the work*, not necessarily all up front:
 - [`UI-DESIGN-AND-COLLABORATION-HANDOFF.md`](UI-DESIGN-AND-COLLABORATION-HANDOFF.md) - UI/UX
@@ -139,3 +147,51 @@ building MTG Deck Builder:
    pushing anywhere.
 7. Everything else (Dropbox app registration, real background images, a real font) can
    happen incrementally - none of it blocks getting a working skeleton committed first.
+
+## 6. Real gotchas hit doing exactly this the first time (`template-app`)
+
+Not hypothetical - every one of these happened bootstrapping `template-app`, in this order:
+
+- **A fresh `git init` defaults to branch `master`; a repo created via GitHub's web UI
+  defaults to `main`.** Pushing `master` straight to a `main`-default remote works, but
+  leaves you with a mismatched/empty default branch on GitHub. Rename first:
+  `git branch -m master main`, *then* `git remote add origin ...` and push - don't
+  discover this after the push.
+- **Don't `git clone <url>` from inside a folder that's already named after the repo.**
+  Cloning a repo named `template-app` while your current directory is *also* named
+  `template-app` creates a nested `template-app/template-app/` subfolder (git always
+  creates a new folder named after the repo unless you pass `.` as the destination) -
+  it does NOT merge into or replace the folder you're standing in, even if that folder
+  already has local content and its own git history. If you already have local work
+  committed in that outer folder (as this project's own hand-off content was), the clone
+  leaves it completely untouched and disconnected in a separate `.git` one level up - the
+  fix is to take the *remote URL* from the nested empty clone (`git remote -v` inside it)
+  and add it directly to your real outer repo instead
+  (`git remote add origin <url>` there), then delete the now-redundant empty nested folder.
+  Simpler still: don't clone at all once local content already exists - just create the
+  empty GitHub repo, then `git remote add origin` + push directly from the folder you
+  already have.
+- **Don't assume "created the repo" happened just because the button was clicked** -
+  during a GitHub outage (see below) a creation attempt can silently fail or hang. Verify
+  with `git clone <url>` (a real, authoritative signal - if it succeeds with "no commits
+  yet," the repo genuinely exists) rather than trusting an unauthenticated
+  `api.github.com/repos/<owner>/<repo>` check alone, which returns 404 for BOTH "doesn't
+  exist" and "exists but is private" - it can't tell you which.
+- **Diagnosing "the live site is stuck on an old version" is a solved, repeatable
+  recipe, not a guessing game:**
+  1. Check `https://www.githubstatus.com/api/v2/status.json` for an active incident
+     affecting Pages/Actions.
+  2. Check `https://api.github.com/repos/<owner>/<repo>/actions/runs?per_page=8` (no auth
+     needed for a public repo) - look at the `status`/`conclusion` for the run matching
+     your latest commit's SHA. A run can sit `queued` for a long time during a GitHub-side
+     incident, then resolve to `completed`/`failure` once the incident clears - if that
+     happens, the site stays stuck on whatever the LAST successful deploy was until a NEW
+     push triggers a fresh run.
+  3. Confirm what's actually live by curling the deployed file directly, bypassing any
+     browser cache: `curl "https://<user>.github.io/<repo>/js/version.js?_=$(date +%s)"`.
+     If this already shows the new version, the deploy succeeded and what the user is
+     seeing is their OWN browser's HTTP cache, not a real deployment problem - a hard
+     refresh (Ctrl+Shift+R) is the actual fix, not another push.
+  4. The fix for a genuinely stuck/failed deploy is almost always just: push again (even a
+     trivial commit) once the incident has cleared - GitHub Pages doesn't automatically
+     retry a failed run on its own.

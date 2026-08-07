@@ -1054,8 +1054,14 @@ select, input[type="text"], .deck-name-input {
 /* Pinned to the card's bottom (mirrors .data-profile-actions below) so a row of
    mixed-height cards - e.g. one with a longer description - still lines its buttons up
    evenly. */
-.other-app-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
-.other-app-share-feedback { font-size: 12px; color: var(--text-dim); }
+/* Visit/Share stretch to fill the row edge-to-edge (was left-aligned, content-width) - a
+   two-button row reads better sharing the full card width evenly than sitting bunched up
+   on one side with empty space beside it. */
+.other-app-actions { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+.other-app-actions .btn { flex: 1; }
+/* Its own full-width row once there's feedback text to show, instead of squeezing in
+   beside the now-wider buttons. */
+.other-app-share-feedback { flex-basis: 100%; text-align: center; font-size: 12px; color: var(--text-dim); }
 
 /* Modal */
 
