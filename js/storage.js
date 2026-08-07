@@ -127,6 +127,7 @@ var Storage = (function () {
   // comment above), not per-profile.
   var PROFILE_DATA_KEYS = [
     "owned", "decks", "lastBrowseSet", "mergeByName", "cardGridSize", "ownedRemoved", "decksRemoved",
+    "favorites", "favoritesRemoved",
   ];
   // Tombstones only need to outlive the slowest device that hasn't synced in a while - kept
   // well past that (6 months) rather than tuned tight, since the failure mode of pruning too
@@ -372,6 +373,8 @@ var Storage = (function () {
         // sticks on every other device sharing the account, not just locally.
         ownedRemoved: readJSON(profileKey(p.id, "ownedRemoved"), {}),
         decksRemoved: readJSON(profileKey(p.id, "decksRemoved"), {}),
+        favorites: readJSON(profileKey(p.id, "favorites"), {}),
+        favoritesRemoved: readJSON(profileKey(p.id, "favoritesRemoved"), {}),
       };
     });
   }
@@ -468,6 +471,33 @@ var Storage = (function () {
         failedKeys.push(profileKey(remote.id, "decks"));
       }
       if (!writeJSON(profileKey(remote.id, "decksRemoved"), localDecksRemoved)) failedKeys.push(profileKey(remote.id, "decksRemoved"));
+
+      // Favorites are their OWN tombstoned map, deliberately not a mutation on the owned-
+      // card object above - a mutable flag inside an object that the owned-cards merge
+      // treats as "remote wins wholesale on a shared id" gets silently reverted by the very
+      // next auto-push's pre-upload pull (which runs BEFORE the favorite even reaches
+      // Dropbox), since that id already exists on both sides and the pull unconditionally
+      // overwrites it with remote's not-yet-updated copy. A separate additive-union map
+      // (same shape as ownedRemoved/owned above) only ever ADDS ids present on the remote
+      // side - it never resets local to remote's set, so a favorite toggled moments ago and
+      // not yet uploaded survives a pull instead of getting wiped by it.
+      var localFavoritesRemoved = readJSON(profileKey(remote.id, "favoritesRemoved"), {});
+      Object.keys(remote.favoritesRemoved || {}).forEach(function (id) {
+        if (!localFavoritesRemoved[id] || remote.favoritesRemoved[id] > localFavoritesRemoved[id]) {
+          localFavoritesRemoved[id] = remote.favoritesRemoved[id];
+        }
+      });
+
+      var localFavorites = readJSON(profileKey(remote.id, "favorites"), {});
+      Object.keys(remote.favorites || {}).forEach(function (id) {
+        var tombstonedAt = localFavoritesRemoved[id];
+        if (tombstonedAt && tombstonedAt >= (remote.syncedAt || "")) return;
+        localFavorites[id] = remote.favorites[id];
+        delete localFavoritesRemoved[id];
+      });
+      localFavoritesRemoved = pruneOldTombstones(localFavoritesRemoved);
+      if (!writeJSON(profileKey(remote.id, "favorites"), localFavorites)) failedKeys.push(profileKey(remote.id, "favorites"));
+      if (!writeJSON(profileKey(remote.id, "favoritesRemoved"), localFavoritesRemoved)) failedKeys.push(profileKey(remote.id, "favoritesRemoved"));
     });
 
     if (!writeJSON(KEY_PROFILES, profiles)) failedKeys.push(KEY_PROFILES);
@@ -534,31 +564,52 @@ var Storage = (function () {
     } else {
       delete map[card.id];
       removed[card.id] = new Date().toISOString();
+      // Favoriting only means something for a card you own - clear it (with its own
+      // tombstone, same as everything else here) so it doesn't linger as orphaned state,
+      // and so re-owning this id later starts unfavorited rather than silently inheriting
+      // whatever it was set to before.
+      if (isFavorite(card.id)) setFavorite(card.id, false);
     }
     writeJSON(activeKey("owned"), map);
     writeJSON(activeKey("ownedRemoved"), removed);
     dispatchDataChanged();
   }
 
-  // ---- Favorites (a flag on an already-owned card, not a separate map) ----
+  // ---- Favorites (own tombstoned map, NOT a flag mutated on the owned-card object) ----
   //
-  // Deliberately just a property on the same denormalized snapshot setOwned already
-  // stores, not its own map/tombstone pair - it rides along for free with the existing
-  // sync/export/import/remove-clears-it behavior an owned card already has, instead of
-  // needing a second parallel bookkeeping system. Meaningless for a card that isn't
-  // owned (there's nowhere to store the flag), so these are no-ops if it isn't.
+  // A flag mutated on the same denormalized card object the "owned" merge above treats as
+  // "remote wins wholesale on any id both sides already have" gets silently reverted the
+  // very next time this device auto-pushes - push() always pulls first, and that pull
+  // unconditionally overwrites the local object (including a favorite flag toggled seconds
+  // ago and not yet uploaded) with remote's stale copy, since the id already exists on
+  // both sides. A separate additive-union map with its own tombstones (identical shape/
+  // reasoning to ownedRemoved above) doesn't have this problem: merging only ever ADDS ids
+  // present on the remote side, it never resets local's set to match remote's, so a
+  // favorite toggled moments ago survives a pull instead of being wiped by it.
+  function getFavoritesMap() {
+    return readActiveJSON("favorites", {});
+  }
+
+  function getFavoritesRemovedMap() {
+    return readActiveJSON("favoritesRemoved", {});
+  }
+
   function isFavorite(scryfallId) {
-    var card = getOwnedMap()[scryfallId];
-    return !!(card && card.favorite);
+    return !!getFavoritesMap()[scryfallId];
   }
 
   function setFavorite(scryfallId, favorite) {
-    var map = getOwnedMap();
-    var card = map[scryfallId];
-    if (!card) return; // can't favorite a card that isn't owned
-    if (favorite) card.favorite = true;
-    else delete card.favorite;
-    writeJSON(activeKey("owned"), map);
+    var map = getFavoritesMap();
+    var removed = getFavoritesRemovedMap();
+    if (favorite) {
+      map[scryfallId] = true;
+      delete removed[scryfallId];
+    } else {
+      delete map[scryfallId];
+      removed[scryfallId] = new Date().toISOString();
+    }
+    writeJSON(activeKey("favorites"), map);
+    writeJSON(activeKey("favoritesRemoved"), removed);
     dispatchDataChanged();
   }
 
@@ -794,6 +845,7 @@ var Storage = (function () {
       exportedAt: new Date().toISOString(),
       ownedCards: getOwnedMap(),
       decks: getDecks(),
+      favorites: getFavoritesMap(),
     };
     var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     var url = URL.createObjectURL(blob);
@@ -822,6 +874,9 @@ var Storage = (function () {
     if (mode === "replace") {
       writeJSON(activeKey("owned"), parsed.ownedCards);
       writeJSON(activeKey("decks"), parsed.decks);
+      // Only touch favorites if this backup actually has them - an older export predating
+      // this field shouldn't silently wipe favorites as a side effect of restoring cards.
+      if (parsed.favorites) writeJSON(activeKey("favorites"), parsed.favorites);
       return { owned: Object.keys(parsed.ownedCards).length, decks: parsed.decks.length };
     }
 
@@ -832,6 +887,12 @@ var Storage = (function () {
     var owned = getOwnedMap();
     Object.keys(parsed.ownedCards).forEach(function (id) { owned[id] = parsed.ownedCards[id]; });
     writeJSON(activeKey("owned"), owned);
+
+    if (parsed.favorites) {
+      var favorites = getFavoritesMap();
+      Object.keys(parsed.favorites).forEach(function (id) { favorites[id] = true; });
+      writeJSON(activeKey("favorites"), favorites);
+    }
 
     var byId = {};
     getDecks().forEach(function (d) { byId[d.id] = d; });
