@@ -177,13 +177,21 @@ var CardView = (function () {
       tile.appendChild(addBtn);
     }
 
-    // Wish List tab only: one link per vendor Scryfall has purchase_uris for on this printing
-    // (TCGplayer/Cardmarket/Cardhoarder/etc - varies by card, hence the loop instead of
-    // hardcoding specific vendors), plus a way to take it back off the list.
+    // Wish List tab only: one link per allowed vendor Scryfall has purchase_uris for on
+    // this printing, plus a way to take it back off the list.
+    //
+    // TCGplayer only for now, not every vendor Scryfall returns - Scryfall's purchase_uris
+    // always includes exactly three keys (confirmed directly against their API), but only
+    // TCGplayer is what most players actually mean by "buy this card": Cardmarket is a
+    // real marketplace too, just the European one (unfamiliar/less useful to this app's
+    // audience); Cardhoarder sells Magic ONLINE (MTGO) digital cards/tickets, not the
+    // physical paper card at all, which reads as flat-out wrong next to a paper printing.
+    // Revisit this allow-list if a better-fitting vendor turns up later.
     if (opts.onRemoveFromWishlist) {
+      var ALLOWED_VENDORS = ["tcgplayer"];
       var vendorLabels = { tcgplayer: "TCGplayer", cardmarket: "Cardmarket", cardhoarder: "Cardhoarder", cardkingdom: "Card Kingdom" };
       var uris = card.purchaseUris || {};
-      var vendorKeys = Object.keys(uris);
+      var vendorKeys = Object.keys(uris).filter(function (key) { return ALLOWED_VENDORS.indexOf(key) !== -1; });
 
       var buyRow = document.createElement("div");
       buyRow.className = "card-buy-row";

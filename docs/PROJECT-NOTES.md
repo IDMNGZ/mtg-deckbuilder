@@ -128,7 +128,16 @@ Parked, not rejected — revisit if priorities change:
 
 ## Open items from the last session
 
-- None blocking — most recently (`v0.1.116`) the tab added last round was renamed from
+- None blocking — most recently (`v0.1.117`) the Wish List tab's vendor buttons were
+  narrowed to **TCGplayer only**, via an `ALLOWED_VENDORS` allow-list in
+  `card-view.js`'s buy-actions block. Confirmed directly against Scryfall's real API
+  response (not from memory) that `purchase_uris` always returns exactly three keys -
+  `tcgplayer` (physical, US), `cardmarket` (physical, but the European marketplace -
+  real, just unfamiliar/less useful here), and `cardhoarder` (Magic ONLINE/MTGO digital
+  cards, not the physical card at all - the one that prompted this, since it read as
+  wrong next to a paper printing). Easy to widen later by adding keys back to
+  `ALLOWED_VENDORS` if a better-fitting non-TCGplayer vendor turns up.
+- Before that (`v0.1.116`), the same tab was renamed from
   "Buy" to **"Wish List"** and moved to the end of the primary tab group (past Deck
   Builder) per user feedback, with a full internal rename to match
   (`ui-buy.js` → `ui-wishlist.js`, `BuyUI` → `WishlistUI`, every `buy-*`/`tab-buy` id →
