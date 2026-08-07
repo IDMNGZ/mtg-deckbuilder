@@ -40,7 +40,7 @@ it broke in a specific, confirmed way (see part 3).
 
 These aren't hypothetical — every one of these was reported by a real user, reproduced
 in a test harness, and confirmed fixed the same way. If you're building sync from
-scratch, budget for all five of these existing in your first draft too.
+scratch, budget for all six of these existing in your first draft too.
 
 ### 3a. Comparing timestamps across two devices' clocks
 **Symptom:** device B pushes real data; device A's pull skips it entirely, looks
@@ -120,9 +120,33 @@ prefix, invisible to every cache-management function, consuming most of the quot
      out to build an upload. A silently-dropped write there is indistinguishable from
      a successful one until the wrong data ships somewhere durable.
 
+### 3f. A mutable per-item flag added later, on top of a "whole object, remote wins" merge
+**Symptom:** a new toggle (in our case, a "Favorite" star on an already-synced item)
+appears to work — it updates instantly, the UI reflects it — but a few seconds later,
+with sync connected, it silently reverts back off. Looks intermittent/flaky; isn't.
+**Cause:** the toggle was implemented as a property mutated directly on the same
+denormalized object the *item-level* merge (3c's "never delete" union) already treats
+as **whole-object, remote-wins-on-any-shared-id** — reasonable when that object only
+ever changes via rare, deliberate actions (the original write, an explicit refresh),
+but wrong the moment something mutates it via ordinary, frequent user interaction.
+`push()` always pulls before it uploads (see 3b) — for an id already present on *both*
+sides, that pull unconditionally overwrites the local object, including the flag
+toggled seconds ago and not yet uploaded, with the stale remote copy. The change is
+reverted locally before its own upload step ever runs. This isn't a rare race — it
+reproduces on the *next* auto-push after *every* toggle, on every already-synced item,
+every time.
+**Fix:** never bolt a frequently-changing flag onto an object a merge treats as whole-
+object-authoritative. Give it its **own** small tombstoned map instead — identical
+shape to the item-removal tombstones in 3c (`{id: true}` plus `{id: removedAt}`),
+merged as its own additive union. An additive union only ever *adds* ids present on the
+remote side; it never resets local's set to match remote's, so a change made moments
+ago and not yet uploaded survives a pull instead of being wiped by it. Rule of thumb:
+**if it's a boolean/enum a user can flip with one tap, it gets its own tombstoned map,
+never a mutation on a larger object a merge already owns wholesale.**
+
 ## 4. Testing methodology that actually caught these
 
-None of the five bugs above were found by reading the code carefully — they were found
+None of the six bugs above were found by reading the code carefully — they were found
 by *reproducing the exact reported symptom* in a scripted browser session:
 
 - Run the actual app in a real browser (not a headless unit-test mock of the storage
