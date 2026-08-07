@@ -2,14 +2,14 @@
 (function () {
   "use strict";
 
-  var TABS = ["browse", "collection", "buy", "deckbuilder", "decks", "rules", "howto", "links", "data", "about"];
+  var TABS = ["browse", "collection", "decks", "deckbuilder", "wishlist", "rules", "howto", "links", "data", "about"];
 
   var activators = {
     browse: function () { BrowseUI.activate(); },
     collection: function () { CollectionUI.activate(); },
-    buy: function () { BuyUI.activate(); },
     deckbuilder: function () { DeckBuilderUI.activate(); },
     decks: function () { DecksUI.activate(); },
+    wishlist: function () { WishlistUI.activate(); },
     data: function () { DataTabUI.activate(); },
   };
 
@@ -198,8 +198,8 @@
     DeckView.init();
     BrowseUI.init();
     CollectionUI.init();
-    BuyUI.init();
     DeckBuilderUI.init();
+    WishlistUI.init();
     DecksUI.init();
     RulesUI.init();
     DataTabUI.init();

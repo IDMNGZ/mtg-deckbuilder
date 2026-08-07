@@ -105,7 +105,7 @@ var CardView = (function () {
       var wishBtn = document.createElement("button");
       wishBtn.type = "button";
       wishBtn.className = "card-wishlist-btn" + (opts.isWishlisted ? " active" : "");
-      wishBtn.title = opts.isWishlisted ? "Remove from Buy list" : "Add to Buy list";
+      wishBtn.title = opts.isWishlisted ? "Remove from Wish List" : "Add to Wish List";
       wishBtn.innerHTML =
         '<svg width="15" height="15" viewBox="0 0 24 24" fill="' + (opts.isWishlisted ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
         '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>';
@@ -177,7 +177,7 @@ var CardView = (function () {
       tile.appendChild(addBtn);
     }
 
-    // Buy tab only: one link per vendor Scryfall has purchase_uris for on this printing
+    // Wish List tab only: one link per vendor Scryfall has purchase_uris for on this printing
     // (TCGplayer/Cardmarket/Cardhoarder/etc - varies by card, hence the loop instead of
     // hardcoding specific vendors), plus a way to take it back off the list.
     if (opts.onRemoveFromWishlist) {
@@ -207,7 +207,7 @@ var CardView = (function () {
 
       var removeWishBtn = document.createElement("button");
       removeWishBtn.className = "btn btn-ghost remove-all-btn";
-      removeWishBtn.textContent = "Remove from Buy list";
+      removeWishBtn.textContent = "Remove from Wish List";
       removeWishBtn.addEventListener("click", function () { opts.onRemoveFromWishlist(card); });
       tile.appendChild(removeWishBtn);
     }
@@ -249,6 +249,11 @@ var CardView = (function () {
     info.textContent = card.setName + (modalState.prints.length > 1 ? " (" + (modalState.index + 1) + " of " + modalState.prints.length + ")" : "");
     caption.appendChild(info);
 
+    // Grouped together (not two independent space-between items in .modal-caption) so
+    // they read as a paired set of checkboxes and wrap as a unit on narrow viewports.
+    var toggles = document.createElement("div");
+    toggles.className = "modal-toggles";
+
     var ownToggle = document.createElement("label");
     ownToggle.className = "modal-own-toggle";
     var cb = document.createElement("input");
@@ -257,11 +262,32 @@ var CardView = (function () {
     cb.addEventListener("change", function () {
       Storage.setOwned(card, cb.checked);
       document.dispatchEvent(new CustomEvent("mtg:ownership-changed"));
+      renderModalPrint(); // re-sync both checkboxes - owning this now auto-clears any Wish List flag
     });
     ownToggle.appendChild(cb);
     ownToggle.appendChild(document.createTextNode("I own this"));
-    caption.appendChild(ownToggle);
+    toggles.appendChild(ownToggle);
 
+    // Second, separate checkbox - "I own this" and "want to buy this" are opposite states
+    // by definition, so wishlisting is disabled (not just redundant) once a card is owned,
+    // matching Storage.setOwned's own auto-clear-on-own behavior instead of just hiding it
+    // and letting the two drift out of sync.
+    var wishToggle = document.createElement("label");
+    wishToggle.className = "modal-own-toggle";
+    var wishCb = document.createElement("input");
+    wishCb.type = "checkbox";
+    wishCb.checked = Storage.isWishlisted(card.id);
+    wishCb.disabled = cb.checked;
+    if (cb.checked) wishToggle.title = "Already owned - remove it above first if you want to wishlist it instead.";
+    wishCb.addEventListener("change", function () {
+      Storage.setWishlisted(card, wishCb.checked);
+      renderModalPrint();
+    });
+    wishToggle.appendChild(wishCb);
+    wishToggle.appendChild(document.createTextNode("Wish List"));
+    toggles.appendChild(wishToggle);
+
+    caption.appendChild(toggles);
     body.appendChild(caption);
 
     var multi = modalState.prints.length > 1;

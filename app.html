@@ -35,9 +35,9 @@
     <div class="tab-group tab-group-primary">
       <a href="#browse" class="tab-link" data-tab="browse">Search</a>
       <a href="#collection" class="tab-link" data-tab="collection">My Collection</a>
-      <a href="#buy" class="tab-link" data-tab="buy">Buy</a>
       <a href="#decks" class="tab-link" data-tab="decks">My Decks</a>
       <a href="#deckbuilder" class="tab-link" data-tab="deckbuilder">Deck Builder</a>
+      <a href="#wishlist" class="tab-link" data-tab="wishlist">Wish List</a>
     </div>
     <div class="tab-group tab-group-secondary">
       <a href="#rules" class="tab-link" data-tab="rules">MTG Rules</a>
@@ -155,28 +155,28 @@
     <div id="collection-grid" class="card-grid"></div>
   </section>
 
-  <section id="tab-buy" class="tab-panel">
+  <section id="tab-wishlist" class="tab-panel">
     <div class="sticky-controls">
       <div class="browse-controls">
         <label class="field field-grow">
-          Filter your Buy list
+          Filter your Wish List
           <div class="input-clear-wrap">
-            <input type="text" id="buy-filter" placeholder="Search name, edition, or type…">
-            <button type="button" id="buy-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
+            <input type="text" id="wishlist-filter" placeholder="Search name, edition, or type…">
+            <button type="button" id="wishlist-filter-clear" class="input-clear-btn" title="Clear">&times;</button>
           </div>
         </label>
       </div>
       <hr class="controls-divider">
       <div class="filter-panel">
         <div class="filter-pill-group">
-          <div id="buy-color-filters" class="type-filter-row"></div>
-          <div id="buy-type-filters" class="type-filter-row"></div>
-          <div id="buy-rarity-filters" class="type-filter-row"></div>
-          <button type="button" id="buy-sort" class="type-filter-btn sort-toggle-btn" title="Cycle sort order"></button>
+          <div id="wishlist-color-filters" class="type-filter-row"></div>
+          <div id="wishlist-type-filters" class="type-filter-row"></div>
+          <div id="wishlist-rarity-filters" class="type-filter-row"></div>
+          <button type="button" id="wishlist-sort" class="type-filter-btn sort-toggle-btn" title="Cycle sort order"></button>
         </div>
       </div>
     </div>
-    <div id="buy-grid" class="card-grid"></div>
+    <div id="wishlist-grid" class="card-grid"></div>
   </section>
 
   <section id="tab-deckbuilder" class="tab-panel">
@@ -752,7 +752,7 @@
 <script src="js/rules-data.js"></script>
 <script src="js/ui-browse.js"></script>
 <script src="js/ui-collection.js"></script>
-<script src="js/ui-buy.js"></script>
+<script src="js/ui-wishlist.js"></script>
 <script src="js/ui-deckbuilder.js"></script>
 <script src="js/ui-decks.js"></script>
 <script src="js/ui-rules.js"></script>

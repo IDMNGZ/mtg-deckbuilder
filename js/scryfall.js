@@ -65,7 +65,7 @@ var Scryfall = (function () {
       scryfallUri: card.scryfall_uri,
       // Convenience purchase links Scryfall already provides (TCGplayer/Cardmarket/
       // Cardhoarder/etc, whichever it has for this printing) - carries Scryfall's own
-      // affiliate tag, not ours. Used by the Buy tab.
+      // affiliate tag, not ours. Used by the Wish List tab.
       purchaseUris: card.purchase_uris || null,
     };
   }

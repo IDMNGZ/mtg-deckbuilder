@@ -1,8 +1,8 @@
-// "Buy" tab: every printing tagged from Browse as something you want to buy (Storage's
-// wishlist, see storage.js). Always one tile per printing - unlike Collection there's no
-// Merge Dupes toggle here, since a wishlisted printing is a specific art/edition someone
-// wants, not "any copy of this card name."
-var BuyUI = (function () {
+// "Wish List" tab: every printing tagged from Search as something you want to buy
+// (Storage's wishlist, see storage.js). Always one tile per printing - unlike Collection
+// there's no Merge Dupes toggle here, since a wishlisted printing is a specific art/edition
+// someone wants, not "any copy of this card name."
+var WishlistUI = (function () {
   "use strict";
 
   var els = {};
@@ -40,33 +40,33 @@ var BuyUI = (function () {
     els.grid.appendChild(frag);
 
     if (wishlist.length === 0) {
-      els.grid.innerHTML = '<p class="empty-hint">Nothing on your Buy list yet — tap the bookmark on a card in Search to add one.</p>';
+      els.grid.innerHTML = '<p class="empty-hint">Nothing on your Wish List yet — tap the bookmark on a card in Search to add one.</p>';
     } else if (visible.length === 0) {
       els.grid.innerHTML = '<p class="empty-hint">No cards match these filters.</p>';
     }
   }
 
   function init() {
-    els.filter = document.getElementById("buy-filter");
-    els.sort = document.getElementById("buy-sort");
-    els.grid = document.getElementById("buy-grid");
-    els.typeFilters = document.getElementById("buy-type-filters");
-    els.colorFilters = document.getElementById("buy-color-filters");
-    els.rarityFilters = document.getElementById("buy-rarity-filters");
+    els.filter = document.getElementById("wishlist-filter");
+    els.sort = document.getElementById("wishlist-sort");
+    els.grid = document.getElementById("wishlist-grid");
+    els.typeFilters = document.getElementById("wishlist-type-filters");
+    els.colorFilters = document.getElementById("wishlist-color-filters");
+    els.rarityFilters = document.getElementById("wishlist-rarity-filters");
 
     els.filter.addEventListener("input", render);
-    CardView.attachClearButton(els.filter, document.getElementById("buy-filter-clear"));
+    CardView.attachClearButton(els.filter, document.getElementById("wishlist-filter-clear"));
     CardFilters.wireSortCycle(els.sort, function (value) { state.sort = value; render(); });
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, render);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);
     CardFilters.renderToggleGroup(els.rarityFilters, CardFilters.RARITIES, state.selectedRarities, render);
 
-    // A card tagged from Browse (or a card that became owned, auto-clearing its wishlist
+    // A card tagged from Search (or a card that became owned, auto-clearing its wishlist
     // entry - see storage.js's setOwned) should be reflected here even if this tab isn't
     // the one currently visible when it happens.
     document.addEventListener("mtg:data-changed", function () {
-      var tab = document.getElementById("tab-buy");
+      var tab = document.getElementById("tab-wishlist");
       if (tab && tab.classList.contains("active")) render();
     });
   }

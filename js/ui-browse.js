@@ -276,7 +276,7 @@ var BrowseUI = (function () {
           onOwnToggle: function (card, owned) { Storage.setOwned(card, owned); },
           // Only offered per-printing (not in the merged view above) for the same reason
           // ownership itself only gets a checkbox here and not there - a merged tile could
-          // represent several printings, so "add this one to the Buy list" would be
+          // represent several printings, so "add this one to the Wish List" would be
           // ambiguous about which printing it means.
           isWishlisted: Storage.isWishlisted(card.id),
           onWishlistToggle: function (card) {

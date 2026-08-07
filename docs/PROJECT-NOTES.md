@@ -37,8 +37,8 @@ seems reasonable.
 
 ## Current shape of the app
 
-Static HTML/CSS/JS, no build step, no backend. Tabs: Browse, Collection, Buy, Deck
-Builder, My Decks, MTG Rules, Links, How To Use, System, About. Status bar (below the
+Static HTML/CSS/JS, no build step, no backend. Tabs: Browse, Collection, My Decks, Deck
+Builder, Wish List, MTG Rules, Links, How To Use, System, About. Status bar (below the
 profile header) holds always-visible controls: Sync, Share, Merge Dupes toggle, card-size
 slider.
 
@@ -46,7 +46,7 @@ slider.
 - `storage.js` — localStorage persistence, profile management, tombstoned deletions, export/import
 - `dropbox-sync.js` — OAuth PKCE + conditional-write push/pull
 - `sync-config.js` — Dropbox app key; committed directly (not gitignored) since it's a public OAuth client id, not a secret — see README
-- `ui-buy.js` — "Buy" tab: cards tagged from Browse via `Storage.setWishlisted()` (its own tombstoned map, see storage.js), each tile linking out to Scryfall's `purchase_uris` (TCGplayer/Cardmarket/etc, convenience links only — no affiliate ID configured)
+- `ui-wishlist.js` — "Wish List" tab: cards tagged from Browse (or the card detail modal) via `Storage.setWishlisted()` (its own tombstoned map, see storage.js), each tile linking out to Scryfall's `purchase_uris` (TCGplayer/Cardmarket/etc, convenience links only — no affiliate ID configured)
 - `scryfall.js` — API wrapper + card normalization (handles single-faced vs. `card_faces` cards)
 - `card-view.js` / `card-filters.js` — shared card rendering + filter UI
 - `qr-code.js` — thin wrapper around `vendor/qrcode-generator.js` (vendored locally, MIT, kazuhikoarase); used to generate the static `images/QR/mtg-deckbuilder-qr.png` asset, not called live in the running app
@@ -121,25 +121,37 @@ Parked, not rejected — revisit if priorities change:
 | Deck share link | Encode a deck (name/format/cards) into a URL hash, decode + preview-import on load | Feasible — decks already store full card snapshots. Needs a decision on how an imported deck interacts with the "only owned cards" builder rule (leaning: imported cards display fine as-is, owned-only rule only applies when adding *more* cards afterward). |
 | Deck import/export as text | Standard `qty name` list format compatible with Moxfield/Archidekt/MTGO | Export is trivial; import needs name-matching against owned cards plus a "not found" summary UI. |
 | Collection value estimate | Capture `prices.usd` at normalize time, sum owned cards on System tab | Prices are a cache-time snapshot, not live — label accordingly. |
-| Own TCGplayer/etc. affiliate links | Swap the Buy tab's plain `purchase_uris` links for ones carrying your own affiliate ID | Needs registering with each vendor's affiliate program first (user explicitly opted for convenience-only links for now, no affiliate status) — see `ui-buy.js` and `card-view.js`'s buy-actions block. |
+| Own TCGplayer/etc. affiliate links | Swap the Wish List tab's plain `purchase_uris` links for ones carrying your own affiliate ID | Needs registering with each vendor's affiliate program first (user explicitly opted for convenience-only links for now, no affiliate status) — see `ui-wishlist.js` and `card-view.js`'s buy-actions block. |
 | Deck notes field | Free-text `deck.notes`, textarea in Deck Builder | Cheapest of all of these — one field, one textarea. |
 | Offline support (service worker) | Cache app shell + viewed Scryfall data | Higher risk — needs its own cache-versioning scheme independent of `APP_VERSION`, and can fight the existing "new version available" banner if not taught `skipWaiting()`/`clients.claim()`. Test deliberately, don't fold in casually. |
 | One-tap "Add to Home Screen" | Web app manifest + `beforeinstallprompt` | True one-tap only works on Android/Chrome. iOS Safari has no API for this at all — best case there is a guided on-screen instruction, not automation. Worth a manifest regardless (cleaner icon/splash on both platforms). |
 
 ## Open items from the last session
 
-- None blocking — most recently (`v0.1.115`) added a **Buy tab**: cards get tagged from
-  Browse (bookmark icon on a per-printing tile, unmerged view only) via a new
+- None blocking — most recently (`v0.1.116`) the tab added last round was renamed from
+  "Buy" to **"Wish List"** and moved to the end of the primary tab group (past Deck
+  Builder) per user feedback, with a full internal rename to match
+  (`ui-buy.js` → `ui-wishlist.js`, `BuyUI` → `WishlistUI`, every `buy-*`/`tab-buy` id →
+  `wishlist-*`/`tab-wishlist`) rather than just relabeling the nav text and leaving
+  internal names to drift from what's shown on screen. Also added a second checkbox
+  ("Wish List," next to "I own this") to the card detail modal's version-cycler caption,
+  since the original bookmark-icon-on-a-tile was the only way to wishlist a card and
+  wasn't reachable from the modal - the two checkboxes are mutually exclusive by design
+  (wishlisting disables itself once "I own this" is checked, matching
+  `Storage.setOwned()`'s own auto-clear-on-own behavior, both re-rendered together so
+  they can't drift out of sync with actual storage state).
+- Before that (`v0.1.115`), added the original **Wish List** (then "Buy") tab: cards get
+  tagged from Browse (bookmark icon on a per-printing tile, unmerged view only) via a new
   `Storage.setWishlisted()`/`isWishlisted()` pair backed by its own tombstoned `wishlist`
   map (mirrors `owned`/`ownedRemoved` - full denormalized snapshots, safe to merge
   "remote wins," since nothing mutates a wishlist entry in place the way Favorites'
-  bug 3f did). Each Buy tab tile links out to whichever vendors Scryfall's
-  `purchase_uris` has for that printing (now captured in `scryfall.js`'s
-  `normalizeCard()`, previously discarded) - convenience links only, no affiliate ID
-  configured, per explicit user choice. Owning a wishlisted card auto-clears its
-  wishlist entry. Also added the Favorites fix (bug 3f, see
-  `SYNC-ARCHITECTURE-HANDOFF.md`) in the prior round, and this Buy feature deliberately
-  followed that same tombstoned-map pattern from the start rather than repeating the
+  bug 3f did). Each tile links out to whichever vendors Scryfall's `purchase_uris` has
+  for that printing (now captured in `scryfall.js`'s `normalizeCard()`, previously
+  discarded) - convenience links only, no affiliate ID configured, per explicit user
+  choice. Owning a wishlisted card auto-clears its wishlist entry. Also added the
+  Favorites fix (bug 3f, see `SYNC-ARCHITECTURE-HANDOFF.md`) in the round before that,
+  and this feature deliberately followed that same tombstoned-map pattern from the start
+  rather than repeating the
   mistake.
 - Before that, `docs/blank-app-template/` was refreshed to match the
   current app (folder names, Other-Apps card grid) and extended with a full working
