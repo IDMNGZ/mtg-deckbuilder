@@ -475,6 +475,27 @@ select, input[type="text"], .deck-name-input {
   pointer-events: none;
 }
 
+/* Opposite corner from .card-qty-badge, same dark chip treatment - this one's a real
+   button (not decorative), so pointer-events stays at its default instead of :none. */
+.card-favorite-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(20, 21, 26, 0.85);
+  color: var(--text-dim);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.card-favorite-btn:hover { border-color: var(--gold); color: var(--gold); }
+.card-favorite-btn.active { color: var(--gold); border-color: var(--gold); }
+
 .card-tile img {
   width: 100%;
   border-radius: 6px;
@@ -1054,8 +1075,14 @@ select, input[type="text"], .deck-name-input {
 .other-app-desc { font-size: 13px; color: var(--text-dim); margin: 0 0 10px; line-height: 1.4; }
 /* Pinned to the card's bottom (mirrors .data-profile-actions) so a row of mixed-height
    cards - e.g. one with a longer description - still lines its buttons up evenly. */
-.other-app-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
-.other-app-share-feedback { font-size: 12px; color: var(--text-dim); }
+/* Visit/Share stretch to fill the row edge-to-edge (was left-aligned, content-width) - a
+   two-button row reads better sharing the full card width evenly than sitting bunched up
+   on one side with empty space beside it. */
+.other-app-actions { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+.other-app-actions .btn { flex: 1; }
+/* Its own full-width row once there's feedback text to show, instead of squeezing in
+   beside the now-wider buttons. */
+.other-app-share-feedback { flex-basis: 100%; text-align: center; font-size: 12px; color: var(--text-dim); }
 
 /* Modal */
 

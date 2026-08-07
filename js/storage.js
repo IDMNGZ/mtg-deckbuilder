@@ -540,6 +540,28 @@ var Storage = (function () {
     dispatchDataChanged();
   }
 
+  // ---- Favorites (a flag on an already-owned card, not a separate map) ----
+  //
+  // Deliberately just a property on the same denormalized snapshot setOwned already
+  // stores, not its own map/tombstone pair - it rides along for free with the existing
+  // sync/export/import/remove-clears-it behavior an owned card already has, instead of
+  // needing a second parallel bookkeeping system. Meaningless for a card that isn't
+  // owned (there's nowhere to store the flag), so these are no-ops if it isn't.
+  function isFavorite(scryfallId) {
+    var card = getOwnedMap()[scryfallId];
+    return !!(card && card.favorite);
+  }
+
+  function setFavorite(scryfallId, favorite) {
+    var map = getOwnedMap();
+    var card = map[scryfallId];
+    if (!card) return; // can't favorite a card that isn't owned
+    if (favorite) card.favorite = true;
+    else delete card.favorite;
+    writeJSON(activeKey("owned"), map);
+    dispatchDataChanged();
+  }
+
   function getOwnedIds() {
     return Object.keys(getOwnedMap());
   }
@@ -869,6 +891,8 @@ var Storage = (function () {
   return {
     isOwned: isOwned,
     setOwned: setOwned,
+    isFavorite: isFavorite,
+    setFavorite: setFavorite,
     getOwnedIds: getOwnedIds,
     getOwnedMap: getOwnedMap,
     getOwnedCards: getOwnedCards,

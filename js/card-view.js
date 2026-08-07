@@ -81,6 +81,21 @@ var CardView = (function () {
       tile.appendChild(qtyBadge);
     }
 
+    // Opposite corner from the qty badge above. Only meaningful for an owned card (there's
+    // nowhere to persist the flag otherwise - see Storage.setFavorite), so callers only
+    // pass onFavoriteToggle where that's guaranteed true (Collection).
+    if (opts.onFavoriteToggle) {
+      var favBtn = document.createElement("button");
+      favBtn.type = "button";
+      favBtn.className = "card-favorite-btn" + (opts.isFavorite ? " active" : "");
+      favBtn.title = opts.isFavorite ? "Remove from Favorites" : "Add to Favorites";
+      favBtn.innerHTML =
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="' + (opts.isFavorite ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
+      favBtn.addEventListener("click", function () { opts.onFavoriteToggle(card); });
+      tile.appendChild(favBtn);
+    }
+
     var titleRow = document.createElement("div");
     titleRow.className = "card-title-row";
     titleRow.innerHTML =

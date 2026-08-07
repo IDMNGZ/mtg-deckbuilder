@@ -3,7 +3,12 @@ var CollectionUI = (function () {
   "use strict";
 
   var els = {};
-  var state = { selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set(), sort: "" };
+  var state = { selectedTypes: new Set(), selectedColors: new Set(), selectedRarities: new Set(), sort: "", favoritesOnly: false };
+
+  function toggleFavorite(card) {
+    Storage.setFavorite(card.id, !Storage.isFavorite(card.id));
+    render(); // unfavoriting while the Favorites filter is active should drop the tile immediately
+  }
 
   function matchesFilter(card, needle) {
     if (!needle) return true;
@@ -28,7 +33,8 @@ var CollectionUI = (function () {
       return matchesFilter(c, needle) &&
         CardFilters.matchesTypes(c, state.selectedTypes) &&
         CardFilters.matchesColors(c, state.selectedColors) &&
-        CardFilters.matchesRarity(c, state.selectedRarities);
+        CardFilters.matchesRarity(c, state.selectedRarities) &&
+        (!state.favoritesOnly || Storage.isFavorite(c.id));
     });
     visible = CardFilters.sortCards(visible, state.sort);
     var merged = Storage.getMergeByName();
@@ -41,6 +47,8 @@ var CollectionUI = (function () {
         frag.appendChild(CardView.renderTile(group.representative, {
           printCount: group.prints.length,
           onRemoveAll: function (card) { removeAllPrintings(card.name); },
+          isFavorite: Storage.isFavorite(group.representative.id),
+          onFavoriteToggle: toggleFavorite,
         }));
       });
     } else {
@@ -50,6 +58,8 @@ var CollectionUI = (function () {
             Storage.setOwned(card, owned);
             render(); // unchecking here should remove the tile immediately
           },
+          isFavorite: Storage.isFavorite(card.id),
+          onFavoriteToggle: toggleFavorite,
         }));
       });
     }
@@ -57,6 +67,10 @@ var CollectionUI = (function () {
 
     if (owned.length === 0) {
       els.grid.innerHTML = '<p class="empty-hint">No cards yet — check some off in the Search tab.</p>';
+    } else if (visible.length === 0) {
+      els.grid.innerHTML = state.favoritesOnly
+        ? '<p class="empty-hint">No favorites yet — tap the star on a card to add one.</p>'
+        : '<p class="empty-hint">No cards match these filters.</p>';
     }
   }
 
@@ -67,10 +81,16 @@ var CollectionUI = (function () {
     els.typeFilters = document.getElementById("collection-type-filters");
     els.colorFilters = document.getElementById("collection-color-filters");
     els.rarityFilters = document.getElementById("collection-rarity-filters");
+    els.favoritesToggle = document.getElementById("collection-favorites-toggle");
 
     els.filter.addEventListener("input", render);
     CardView.attachClearButton(els.filter, document.getElementById("collection-filter-clear"));
     CardFilters.wireSortCycle(els.sort, function (value) { state.sort = value; render(); });
+    els.favoritesToggle.addEventListener("click", function () {
+      state.favoritesOnly = !state.favoritesOnly;
+      els.favoritesToggle.classList.toggle("active", state.favoritesOnly);
+      render();
+    });
 
     CardFilters.renderToggleGroup(els.typeFilters, CardFilters.TYPES, state.selectedTypes, render);
     CardFilters.renderToggleGroup(els.colorFilters, CardFilters.COLORS, state.selectedColors, render);
